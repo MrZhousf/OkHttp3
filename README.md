@@ -2,9 +2,7 @@
 ##OkHttp3
 基于OkHttp3封装的网络请求工具类
 
-
 ##功能点
-
 * 支持Http/Https等协议
 * 支持缓存响应，缓存等级
 * 断网请求
@@ -12,21 +10,8 @@
 * Json自动解析
 * 请求与Activity/Fragment生命周期绑定，自动取消请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
-* Application中自定义全局配置
-* 增加了系统默认配置
+* Application中自定义全局配置/增加系统默认配置
 * 后续优化中...
-
-##自定义全局配置
-在Application中配置
-```java
-OkHttpUtil.init(this)
-                .setConnectTimeout(30)//超时时间设置
-                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存
-                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)
-                .build();
-```
 
 ##提交记录
 * 2016-6-29 项目提交
@@ -37,6 +22,17 @@ OkHttpUtil.init(this)
     *  增加系统默认配置
     *  修复内存释放bug
 
+##自定义全局配置
+在Application中配置如下：
+```java
+OkHttpUtil.init(this)
+                .setConnectTimeout(30)//超时设置
+                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存
+                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
+                .setShowHttpLog(true)//显示请求日志
+                .setShowLifecycleLog(true)
+                .build();
+```
 
 ##有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
