@@ -2,6 +2,7 @@
 ##OkHttp3
 基于OkHttp3封装的网络请求工具类
 
+
 ##功能点
 * 支持Http/Https等协议
 * 支持缓存响应，缓存等级
@@ -13,14 +14,16 @@
 * Application中自定义全局配置/增加系统默认配置
 * 后续优化中...
 
+
 ##提交记录
 * 2016-6-29 项目提交
 * 2016-6-30 
-    * 项目框架调整
+    *  项目框架调整
     *  代码优化、降低耦合
     *  增加Application中全局配置
     *  增加系统默认配置
     *  修复内存释放bug
+
 
 ##自定义全局配置
 在Application中配置如下：
@@ -33,6 +36,13 @@ OkHttpUtil.init(this)
                 .setShowLifecycleLog(true)
                 .build();
 ```
+
+##相关截图
+# 界面
+   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/1.png?raw=true)
+# 日志
+   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/2.png?raw=true)
+
 
 ##有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
