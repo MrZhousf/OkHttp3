@@ -9,6 +9,9 @@ import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Http请求实体类
+ */
 public class HttpInfo {
 
     //**请求参数定义**/

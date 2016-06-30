@@ -43,6 +43,9 @@ OkHttpUtil.init(this)
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
 ### 日志
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
+* GET-URL：请求地址
+* CostTime：请求耗时（单位：秒）
+* Response：响应串
 
 
 ##有问题反馈

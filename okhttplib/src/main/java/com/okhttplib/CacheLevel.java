@@ -2,6 +2,9 @@ package com.okhttplib;
 
 import android.support.annotation.IntDef;
 
+/**
+ * 缓存等级
+ */
 @IntDef({CacheLevel.FIRST_LEVEL, CacheLevel.SECOND_LEVEL, CacheLevel.THIRD_LEVEL, CacheLevel.FOURTH_LEVEL})
 public @interface CacheLevel {
     int FIRST_LEVEL = 1; //默认无缓存
