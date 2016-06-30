@@ -2,11 +2,9 @@ package base;
 
 import android.app.Application;
 
-import http.OkHttpUtil;
+import com.okhttplib.OkHttpUtil;
 
 public class BaseApplication extends Application {
-
-    private OkHttpUtil.BaseActivityLifecycleCallbacks activityLifecycleCallbacks;
 
     public static BaseApplication baseApplication;
 
@@ -18,12 +16,16 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         baseApplication = this;
-        registerActivityLifecycleCallbacks(activityLifecycleCallbacks = new OkHttpUtil.BaseActivityLifecycleCallbacks());
+        OkHttpUtil.init(baseApplication)
+                .setConnectTimeout(40)
+                .setShowLifecycleLog(true)
+                .setShowHttpLog(false)
+                .build();
+
     }
 
     @Override
     public void onTerminate() {
-        unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
         super.onTerminate();
     }
 

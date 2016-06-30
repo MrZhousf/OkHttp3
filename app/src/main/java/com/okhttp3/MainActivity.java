@@ -6,11 +6,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.okhttplib.CacheLevel;
+import com.okhttplib.CacheType;
+import com.okhttplib.HttpInfo;
+import com.okhttplib.OkHttpUtil;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import http.HttpInfo;
-import http.OkHttpUtil;
 import util.NetWorkUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(this);
+                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
                 OkHttpUtil.Builder().build().doGetSync(info);
                 if (info.isSuccessful()) {
                     String result = info.getRetDetail();
@@ -79,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder().build().doGetAsync(
+        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
                 HttpInfo.Builder().setUrl(url).build(this),
                 info -> {
                     if (info.isSuccessful()) {
@@ -95,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void doHttpCache() {
         OkHttpUtil.Builder()
-                .setCacheLevel(OkHttpUtil.CacheLevel.SECOND_LEVEL)
+                .setCacheLevel(CacheLevel.SECOND_LEVEL)
                 .build()
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(this),
@@ -113,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpOffline(){
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
-                    .setCacheType(OkHttpUtil.CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
+                    .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
                     .build()
                     .doGetAsync(
                             HttpInfo.Builder().setUrl(url).build(this),

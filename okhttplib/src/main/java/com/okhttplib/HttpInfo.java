@@ -1,4 +1,4 @@
-package http;
+package com.okhttplib;
 
 import android.app.Activity;
 import android.support.v4.app.Fragment;

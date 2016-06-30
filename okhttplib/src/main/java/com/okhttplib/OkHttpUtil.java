@@ -1,12 +1,12 @@
-package http;
+package com.okhttplib;
 
-import android.app.Activity;
 import android.app.Application;
-import android.os.Bundle;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.IntDef;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -14,13 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import base.BaseApplication;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Call;
@@ -30,16 +26,15 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import util.LogUtil;
-import util.NetWorkUtil;
 
 
 public class OkHttpUtil {
 
-    boolean doLog = true;//日志打印
     private final String TAG = getClass().getSimpleName();
+    private static Application application;
     private static OkHttpClient httpClient;
     private Builder builder;
+    private static Builder builderGlobal;
     /**
      * 请求时间戳：区别每次请求标识
      */
@@ -50,14 +45,21 @@ public class OkHttpUtil {
     private enum Method {
         GET,POST
     }
-    /**
-     * 请求集合: key=Activity value=Call集合
-     */
-    private static Map<Class<?>,List<Call>> callsMap = new ConcurrentHashMap<>();
+
     /**
      * 回调请求标识
      */
     private final static int WHAT_CALLBACK = 1;
+
+    /**
+     * 初始化：请在Application中调用
+     * @param context 上下文
+     */
+    public static Builder init(Application context){
+        application = context;
+        application.registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
+        return BuilderGlobal();
+    }
 
     /**
      * 同步Post请求
@@ -104,15 +106,16 @@ public class OkHttpUtil {
      * @return HttpInfo
      */
     private HttpInfo doRequestSync(HttpInfo info, Method method){
+        Call call = null;
         try {
             String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
                 return retInfo(info,info.CheckURL);
             }
-            Call call = httpClient.newCall(fetchRequest(info,method));
+            call = httpClient.newCall(fetchRequest(info,method));
+            BaseActivityLifecycleCallbacks.putCall(info,call);
             Response res = call.execute();
-            putCall(info,call);
-            return dealResponse(info, res);
+            return dealResponse(info, res, call);
         } catch (IllegalArgumentException e){
             return retInfo(info,info.ProtocolException);
         } catch (SocketTimeoutException e){
@@ -127,6 +130,8 @@ public class OkHttpUtil {
             return retInfo(info,info.CheckNet);
         } catch (Exception e) {
             return retInfo(info,info.NoResult);
+        }finally {
+            BaseActivityLifecycleCallbacks.cancelCall(info,call);
         }
     }
 
@@ -140,6 +145,7 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(fetchRequest(info,method));
+        BaseActivityLifecycleCallbacks.putCall(info,call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -149,40 +155,10 @@ public class OkHttpUtil {
             @Override
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
-                handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res)).build());
+                handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
+                BaseActivityLifecycleCallbacks.cancelCall(info,call);
             }
         });
-        putCall(info,call);
-    }
-
-    /**
-     * 异步请求回调接口
-     */
-    public interface CallbackOk {
-        /**
-         * 该回调方法已切换到UI线程
-         */
-        void onResponse(HttpInfo info) throws IOException;
-    }
-
-    /**
-     * 回调信息实体类
-     */
-    public class CallbackMessage{
-        public int what;
-        public CallbackOk callback;
-        public HttpInfo info;
-        public CallbackMessage(int what, CallbackOk callback, HttpInfo info) {
-            this.what = what;
-            this.callback = callback;
-            this.info = info;
-        }
-        public Message build(){
-            Message msg = new Message();
-            msg.what = this.what;
-            msg.obj = this;
-            return msg;
-        }
     }
 
     /**
@@ -205,7 +181,7 @@ public class OkHttpUtil {
         }
     };
 
-    private HttpInfo dealResponse(HttpInfo info, Response res){
+    private HttpInfo dealResponse(HttpInfo info, Response res, Call call){
         try {
             if(null != res && null != res.body()){
                 if(res.isSuccessful()){
@@ -224,6 +200,7 @@ public class OkHttpUtil {
             }
             return retInfo(info,info.CheckURL);
         } catch (Exception e) {
+            e.printStackTrace();
             return retInfo(info,info.NoResult);
         } finally {
             if(null != res)
@@ -281,51 +258,69 @@ public class OkHttpUtil {
     /**
      * 网络请求拦截器
      */
-    public Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = chain -> {
-        Response.Builder resBuilder = chain.proceed(chain.request()).newBuilder();
-        switch (builder.cacheType) {
-            case CacheType.CACHE_THEN_NETWORK:
-                resBuilder.removeHeader("Pragma")
-                        .header("Cache-Control", String.format("max-age=%d", builder.cacheSurvivalTime));
+    public Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Response.Builder resBuilder = chain.proceed(chain.request()).newBuilder();
+            switch (builder.cacheType) {
+                case CacheType.CACHE_THEN_NETWORK:
+                    resBuilder.removeHeader("Pragma")
+                            .header("Cache-Control", String.format("max-age=%d", builder.cacheSurvivalTime));
+            }
+            return resBuilder.build();
         }
-        return resBuilder.build();
     };
 
     /**
      * 缓存应用拦截器
      */
-    public Interceptor CACHE_CONTROL_INTERCEPTOR = chain ->  {
-        Request request = chain.request();
-        switch (builder.cacheType){
-            case CacheType.FORCE_CACHE:
-                request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                break;
-            case CacheType.FORCE_NETWORK:
-                request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
-                break;
-            case CacheType.NETWORK_THEN_CACHE:
-            case CacheType.CACHE_THEN_NETWORK:
-                if(!NetWorkUtil.isNetworkAvailable(BaseApplication.getApplication())){
+    public Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Request request = chain.request();
+            switch (builder.cacheType){
+                case CacheType.FORCE_CACHE:
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                }
-                break;
+                    break;
+                case CacheType.FORCE_NETWORK:
+                    request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                    break;
+                case CacheType.NETWORK_THEN_CACHE:
+                case CacheType.CACHE_THEN_NETWORK:
+                    if(!isNetworkAvailable(application)){
+                        request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                    }
+                    break;
+            }
+            return chain.proceed(request);
         }
-        return chain.proceed(request);
     };
+
+    private boolean isNetworkAvailable(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo net = cm.getActiveNetworkInfo();
+        if (net != null && net.getState() == NetworkInfo.State.CONNECTED) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * 日志拦截器
      */
-    public Interceptor LOG_INTERCEPTOR = chain -> {
-        long startTime = System.currentTimeMillis();
-        showLog(String.format("%s-URL: %s %n",chain.request().method(),
-                chain.request().url()));
-        Response res = chain.proceed(chain.request());
-        long endTime = System.currentTimeMillis();
-        showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000.0));
-        return res;
+    public Interceptor LOG_INTERCEPTOR = new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            long startTime = System.currentTimeMillis();
+            showLog(String.format("%s-URL: %s %n",chain.request().method(),
+                    chain.request().url()));
+            Response res = chain.proceed(chain.request());
+            long endTime = System.currentTimeMillis();
+            showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000.0));
+            return res;
+        }
     };
-
 
     private OkHttpUtil(Builder builder) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
@@ -336,8 +331,7 @@ public class OkHttpUtil {
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure)
                 .addInterceptor(LOG_INTERCEPTOR)
                 .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
-                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR)
-                ;
+                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
@@ -364,11 +358,16 @@ public class OkHttpUtil {
         }
         if(this.builder.cacheSurvivalTime > 0)
             this.builder.cacheType = CacheType.CACHE_THEN_NETWORK;
+        BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
 
     }
 
     public static Builder Builder() {
-        return new Builder();
+        return new Builder(false);
+    }
+
+    public static Builder BuilderGlobal() {
+        return new Builder(true);
     }
 
     public static final class Builder {
@@ -384,11 +383,40 @@ public class OkHttpUtil {
         private int cacheSurvivalTime;//缓存存活时间（秒）
         private int cacheType;//缓存类型
         private int cacheLevel;//缓存级别
+        private boolean isGlobalConfig;//是否全局配置
+        private boolean showHttpLog;//是否显示Http请求日志
+        private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
 
         public Builder() {
-            //默认配置
+        }
+
+        public Builder(boolean isGlobal) {
+            isGlobalConfig = isGlobal;
+            //系统默认配置
+            initDefaultConfig();
+            if(!isGlobal){
+                if(null != builderGlobal){
+                    //全局自定义配置
+                    initGlobalConfig(builderGlobal);
+                }
+            }
+        }
+
+        public OkHttpUtil build() {
+            if(isGlobalConfig){
+                if(null == builderGlobal){
+                    builderGlobal = this;
+                }
+            }
+            return new OkHttpUtil(this);
+        }
+
+        /**
+         * 系统默认配置
+         */
+        private void initDefaultConfig(){
             setMaxCacheSize(10 * 1024 * 1024);
-            setCachedDir(BaseApplication.getApplication().getExternalCacheDir());
+            setCachedDir(application.getExternalCacheDir());
             setConnectTimeout(30);
             setReadTimeout(30);
             setWriteTimeout(30);
@@ -398,10 +426,28 @@ public class OkHttpUtil {
             setCacheLevel(CacheLevel.FIRST_LEVEL);
             setNetworkInterceptors(null);
             setInterceptors(null);
+            setShowHttpLog(true);
+            setShowLifecycleLog(false);
         }
 
-        public OkHttpUtil build() {
-            return new OkHttpUtil(this);
+        /**
+         * 全局自定义配置
+         * @param builder builder
+         */
+        private void initGlobalConfig(Builder builder){
+            setMaxCacheSize(builder.maxCacheSize);
+            setCachedDir(builder.cachedDir);
+            setConnectTimeout(builder.connectTimeout);
+            setReadTimeout(builder.readTimeout);
+            setWriteTimeout(builder.writeTimeout);
+            setRetryOnConnectionFailure(builder.retryOnConnectionFailure);
+            setCacheSurvivalTime(builder.cacheSurvivalTime);
+            setCacheType(builder.cacheType);
+            setCacheLevel(builder.cacheLevel);
+            setNetworkInterceptors(builder.networkInterceptors);
+            setInterceptors(builder.interceptors);
+            setShowHttpLog(builder.showHttpLog);
+            setShowLifecycleLog(builder.showLifecycleLog);
         }
 
         public Builder setMaxCacheSize(int maxCacheSize) {
@@ -410,7 +456,8 @@ public class OkHttpUtil {
         }
 
         public Builder setCachedDir(File cachedDir) {
-            this.cachedDir = cachedDir;
+            if(null != cachedDir)
+                this.cachedDir = cachedDir;
             return this;
         }
 
@@ -468,109 +515,26 @@ public class OkHttpUtil {
             this.cacheLevel = cacheLevel;
             return this;
         }
+
+        public Builder setShowHttpLog(boolean showHttpLog) {
+            this.showHttpLog = showHttpLog;
+            return this;
+        }
+
+        public Builder setShowLifecycleLog(boolean showLifecycleLog) {
+            this.showLifecycleLog = showLifecycleLog;
+            return this;
+        }
     }
 
-    @IntDef({CacheType.FORCE_NETWORK, CacheType.FORCE_CACHE, CacheType.NETWORK_THEN_CACHE, CacheType.CACHE_THEN_NETWORK})
-    public @interface CacheType {
-        int FORCE_NETWORK = 1;
-        int FORCE_CACHE = 2;
-        int NETWORK_THEN_CACHE = 3;
-        int CACHE_THEN_NETWORK = 4;
-    }
-
-    @IntDef({CacheLevel.FIRST_LEVEL, CacheLevel.SECOND_LEVEL, CacheLevel.THIRD_LEVEL, CacheLevel.FOURTH_LEVEL})
-    public @interface CacheLevel {
-        int FIRST_LEVEL = 1; //默认无缓存
-        int SECOND_LEVEL = 2; //缓存存活时间为15秒
-        int THIRD_LEVEL = 3; //30秒
-        int FOURTH_LEVEL = 4; //60秒
-    }
-
+    /**
+     * 打印日志
+     * @param msg 日志信息
+     */
     private void showLog(String msg){
-        if(this.doLog)
+        if(this.builder.showHttpLog)
             Log.d(TAG+"["+timeStamp+"]", msg);
     }
-
-    /**
-     * 保存请求集合
-     * @param info 请求信息体
-     * @param call 请求
-     */
-    private void putCall(HttpInfo info, Call call){
-        if(null != info.getTag()){
-            List<Call> callList = callsMap.get(info.getTag());
-            if(null == callList){
-                callList = new LinkedList<>();
-                callList.add(call);
-                callsMap.put(info.getTag(),callList);
-            }else{
-                callList.add(call);
-            }
-        }
-    }
-
-    /**
-     * 取消请求
-     * @param clazz 上下文
-     */
-    public static void cancelCall(Class<?> clazz){
-        List<Call> callList = callsMap.get(clazz);
-        if(null != callList){
-            for(Call call : callList){
-                if(!call.isCanceled())
-                    call.cancel();
-            }
-            callsMap.remove(clazz);
-        }
-    }
-
-    public static void print(){
-        for(Map.Entry<Class<?>,List<Call>> entry : callsMap.entrySet()){
-            LogUtil.d(OkHttpUtil.class,entry.getKey().getName() + ",size = " + entry.getValue().size());
-        }
-    }
-
-    /**
-     * Activity声明周期回调
-     */
-    public static class BaseActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
-
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-        }
-
-        @Override
-        public void onActivityStarted(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityResumed(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
-            cancelCall(activity.getClass());
-        }
-    }
-
 
 
 }
