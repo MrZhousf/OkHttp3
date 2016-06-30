@@ -39,9 +39,9 @@ OkHttpUtil.init(this)
 
 ##相关截图
 # 界面
-   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/1.png)
+   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/1.jpg?raw=true)
 # 日志
-   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/2.png)
+   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/2.jpg?raw=true)
 
 
 ##有问题反馈
