@@ -12,6 +12,7 @@
 * 请求与Activity/Fragment生命周期绑定，自动取消请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
+* 完善的日志跟踪
 * 后续优化中...
 
 
@@ -39,9 +40,9 @@ OkHttpUtil.init(this)
 
 ##相关截图
 # 界面
-   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/1.jpg?raw=true)
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
 # 日志
-   ![](https://github.com/MrZhousf/OkHttp3/tree/master/pic/2.jpg?raw=true)
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
 
 
 ##有问题反馈
