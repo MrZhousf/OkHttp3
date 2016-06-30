@@ -12,8 +12,29 @@
 * Json自动解析
 * 请求与Activity/Fragment生命周期绑定，自动取消请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
+* Application中自定义全局配置
+* 增加了系统默认配置
 * 后续优化中...
 
+##自定义全局配置
+在Application中配置
+```java
+OkHttpUtil.init(this)
+                .setConnectTimeout(30)//超时时间设置
+                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存
+                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
+                .setShowHttpLog(true)//显示请求日志
+                .setShowLifecycleLog(true)
+                .build();
+```
+
+##提交记录
+*2016-6-29 项目提交
+*2016-6-30 项目框架调整
+           代码优化，降低耦合
+           增加Application中全局配置
+           增加系统默认配置
+           修复内存释放bug
 
 
 ##有问题反馈
@@ -21,7 +42,6 @@
 
 * QQ: 424427633
 * CSDN: [@嘿，你好！](http://blog.csdn.net/zsf442553199/article/details/51720241)
-
 
 
 ##感激
@@ -41,11 +61,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.okhttplib.CacheLevel;
+import com.okhttplib.CacheType;
+import com.okhttplib.HttpInfo;
+import com.okhttplib.OkHttpUtil;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import http.HttpInfo;
-import http.OkHttpUtil;
 import util.NetWorkUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -98,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(this);
+                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
                 OkHttpUtil.Builder().build().doGetSync(info);
                 if (info.isSuccessful()) {
                     String result = info.getRetDetail();
@@ -114,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder().build().doGetAsync(
+        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
                 HttpInfo.Builder().setUrl(url).build(this),
                 info -> {
                     if (info.isSuccessful()) {
@@ -130,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void doHttpCache() {
         OkHttpUtil.Builder()
-                .setCacheLevel(OkHttpUtil.CacheLevel.SECOND_LEVEL)
+                .setCacheLevel(CacheLevel.SECOND_LEVEL)
                 .build()
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(this),
@@ -148,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpOffline(){
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
-                    .setCacheType(OkHttpUtil.CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
+                    .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
                     .build()
                     .doGetAsync(
                             HttpInfo.Builder().setUrl(url).build(this),
@@ -165,5 +188,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 }
+
 
 ```
