@@ -1,7 +1,6 @@
 package com.okhttplib;
 
 import android.app.Activity;
-import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -77,8 +76,12 @@ public class HttpInfo {
                 Activity activity = (Activity) object;
                 this.tag = activity.getClass();
             }
-            if(object instanceof Fragment){
-                Fragment fragment = (Fragment) object;
+            if(object instanceof android.support.v4.app.Fragment){
+                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
+            if(object instanceof android.app.Fragment){
+                android.app.Fragment fragment = (android.app.Fragment) object;
                 this.tag = fragment.getActivity().getClass();
             }
             return this;
