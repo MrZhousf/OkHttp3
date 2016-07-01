@@ -8,8 +8,11 @@ import android.widget.TextView;
 
 import com.okhttplib.CacheLevel;
 import com.okhttplib.CacheType;
+import com.okhttplib.CallbackOk;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+
+import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -69,9 +72,12 @@ public class MainActivity extends AppCompatActivity {
                 HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
                 OkHttpUtil.Builder().build().doGetSync(info);
                 if (info.isSuccessful()) {
-                    String result = info.getRetDetail();
-                    runOnUiThread(() -> {
-                        resultTV.setText("同步请求："+result);
+                    final String result = info.getRetDetail();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            resultTV.setText("同步请求：" + result);
+                        }
                     });
                 }
             }
@@ -84,10 +90,13 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpAsync() {
         OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
                 HttpInfo.Builder().setUrl(url).build(this),
-                info -> {
-                    if (info.isSuccessful()) {
-                        String result = info.getRetDetail();
-                        resultTV.setText("异步请求："+result);
+                new CallbackOk() {
+                    @Override
+                    public void onResponse(HttpInfo info) throws IOException {
+                        if (info.isSuccessful()) {
+                            String result = info.getRetDetail();
+                            resultTV.setText("异步请求："+result);
+                        }
                     }
                 });
 
@@ -102,10 +111,13 @@ public class MainActivity extends AppCompatActivity {
                 .build()
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(this),
-                        info -> {
-                            if (info.isSuccessful()) {
-                                String result = info.getRetDetail();
-                                resultTV.setText("缓存请求："+result);
+                        new CallbackOk() {
+                            @Override
+                            public void onResponse(HttpInfo info) throws IOException {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("缓存请求：" + result);
+                                }
                             }
                         });
     }
@@ -120,10 +132,13 @@ public class MainActivity extends AppCompatActivity {
                     .build()
                     .doGetAsync(
                             HttpInfo.Builder().setUrl(url).build(this),
-                            info -> {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("断网请求："+result);
+                            new CallbackOk() {
+                                @Override
+                                public void onResponse(HttpInfo info) throws IOException {
+                                    if (info.isSuccessful()) {
+                                        String result = info.getRetDetail();
+                                        resultTV.setText("断网请求：" + result);
+                                    }
                                 }
                             });
         }else{
