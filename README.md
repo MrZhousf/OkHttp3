@@ -52,7 +52,6 @@ OkHttpUtil.init(this)
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
 
 * QQ: 424427633
-* CSDN: [@嘿，你好！](http://blog.csdn.net/zsf442553199/article/details/51720241)
 
 
 ##感激
