@@ -15,6 +15,20 @@
 * 完善的日志跟踪
 * 后续优化中...
 
+##引用方式
+###Maven
+```java
+<dependency>
+  <groupId>com.zhousf.lib</groupId>
+  <artifactId>okhttp3</artifactId>
+  <version>1.1</version>
+  <type>pom</type>
+</dependency>
+```
+###Gradle
+```java
+compile 'com.zhousf.lib:okhttp3:1.1'
+```
 
 ##提交记录
 * 2016-6-29 项目提交
