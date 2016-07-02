@@ -366,7 +366,7 @@ public class OkHttpUtil {
         return new Builder(false);
     }
 
-    public static Builder BuilderGlobal() {
+    private static Builder BuilderGlobal() {
         return new Builder(true);
     }
 
