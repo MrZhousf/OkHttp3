@@ -1,5 +1,6 @@
 package com.okhttplib;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -33,8 +34,12 @@ public class OkHttpUtil {
     private final String TAG = getClass().getSimpleName();
     private static Application application;
     private static OkHttpClient httpClient;
-    private Builder builder;
     private static Builder builderGlobal;
+    private int cacheLevel;
+    private int cacheType;
+    private int cacheSurvivalTime;
+    private Class<?> tag;
+    private boolean showHttpLog;
     /**
      * 请求时间戳：区别每次请求标识
      */
@@ -59,6 +64,14 @@ public class OkHttpUtil {
         application = context;
         application.registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
         return BuilderGlobal();
+    }
+
+    /**
+     * 获取默认请求配置
+     * @return OkHttpUtil
+     */
+    public static OkHttpUtil getDefault(Object object){
+        return new Builder(false).build(object);
     }
 
     /**
@@ -113,7 +126,7 @@ public class OkHttpUtil {
                 return retInfo(info,info.CheckURL);
             }
             call = httpClient.newCall(fetchRequest(info,method));
-            BaseActivityLifecycleCallbacks.putCall(info,call);
+            BaseActivityLifecycleCallbacks.putCall(tag,call);
             Response res = call.execute();
             return dealResponse(info, res, call);
         } catch (IllegalArgumentException e){
@@ -131,7 +144,7 @@ public class OkHttpUtil {
         } catch (Exception e) {
             return retInfo(info,info.NoResult);
         }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(info,call);
+            BaseActivityLifecycleCallbacks.cancelCall(tag,call);
         }
     }
 
@@ -145,7 +158,7 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(fetchRequest(info,method));
-        BaseActivityLifecycleCallbacks.putCall(info,call);
+        BaseActivityLifecycleCallbacks.putCall(tag,call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -156,7 +169,7 @@ public class OkHttpUtil {
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
                 handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
-                BaseActivityLifecycleCallbacks.cancelCall(info,call);
+                BaseActivityLifecycleCallbacks.cancelCall(tag,call);
             }
         });
     }
@@ -262,11 +275,8 @@ public class OkHttpUtil {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response.Builder resBuilder = chain.proceed(chain.request()).newBuilder();
-            switch (builder.cacheType) {
-                case CacheType.CACHE_THEN_NETWORK:
-                    resBuilder.removeHeader("Pragma")
-                            .header("Cache-Control", String.format("max-age=%d", builder.cacheSurvivalTime));
-            }
+            resBuilder.removeHeader("Pragma")
+                    .header("Cache-Control", String.format("max-age=%d", cacheSurvivalTime));
             return resBuilder.build();
         }
     };
@@ -278,7 +288,7 @@ public class OkHttpUtil {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
-            switch (builder.cacheType){
+            switch (cacheType){
                 case CacheType.FORCE_CACHE:
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     break;
@@ -286,6 +296,12 @@ public class OkHttpUtil {
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     break;
                 case CacheType.NETWORK_THEN_CACHE:
+                    if(!isNetworkAvailable(application)){
+                        request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                    }else {
+                        request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                    }
+                    break;
                 case CacheType.CACHE_THEN_NETWORK:
                     if(!isNetworkAvailable(application)){
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
@@ -339,27 +355,31 @@ public class OkHttpUtil {
         httpClient = clientBuilder.build();
         timeStamp = System.currentTimeMillis();
         final int deviation = 5;
-        this.builder = builder;
-        if(this.builder.cacheSurvivalTime == 0){
-            switch (this.builder.cacheLevel){
+        this.cacheLevel = builder.cacheLevel;
+        this.cacheType = builder.cacheType;
+        this.cacheSurvivalTime = builder.cacheSurvivalTime;
+        this.tag = builder.tag;
+        this.showHttpLog = builder.showHttpLog;
+        if(this.cacheSurvivalTime == 0){
+            switch (this.cacheLevel){
                 case CacheLevel.FIRST_LEVEL:
-                    this.builder.cacheSurvivalTime = 0;
+                    this.cacheSurvivalTime = 0;
                     break;
                 case CacheLevel.SECOND_LEVEL:
-                    this.builder.cacheSurvivalTime = 15+deviation;
+                    this.cacheSurvivalTime = 15 + deviation;
                     break;
                 case CacheLevel.THIRD_LEVEL:
-                    this.builder.cacheSurvivalTime = 30+deviation;
+                    this.cacheSurvivalTime = 30 + deviation;
                     break;
                 case CacheLevel.FOURTH_LEVEL:
-                    this.builder.cacheSurvivalTime = 60+deviation;
+                    this.cacheSurvivalTime = 60 + deviation;
                     break;
             }
         }
-        if(this.builder.cacheSurvivalTime > 0)
-            this.builder.cacheType = CacheType.CACHE_THEN_NETWORK;
+        if(this.cacheSurvivalTime > 0)
+            cacheType = CacheType.CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
-
+        showLog("level="+cacheLevel+",type="+cacheType+",time="+cacheSurvivalTime);
     }
 
     public static Builder Builder() {
@@ -386,6 +406,7 @@ public class OkHttpUtil {
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
+        private Class<?> tag;
 
         public Builder() {
         }
@@ -402,12 +423,18 @@ public class OkHttpUtil {
             }
         }
 
-        public OkHttpUtil build() {
+        public OkHttpUtil build(){
+            return build(null);
+        }
+
+        public OkHttpUtil build(Object object) {
             if(isGlobalConfig){
                 if(null == builderGlobal){
                     builderGlobal = this;
                 }
             }
+            if(null != object)
+                setTag(object);
             return new OkHttpUtil(this);
         }
 
@@ -525,6 +552,22 @@ public class OkHttpUtil {
             this.showLifecycleLog = showLifecycleLog;
             return this;
         }
+
+        public Builder setTag(Object object) {
+            if(object instanceof Activity){
+                Activity activity = (Activity) object;
+                this.tag = activity.getClass();
+            }
+            if(object instanceof android.support.v4.app.Fragment){
+                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
+            if(object instanceof android.app.Fragment){
+                android.app.Fragment fragment = (android.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
+            return this;
+        }
     }
 
     /**
@@ -532,7 +575,7 @@ public class OkHttpUtil {
      * @param msg 日志信息
      */
     private void showLog(String msg){
-        if(this.builder.showHttpLog)
+        if(this.showHttpLog)
             Log.d(TAG+"["+timeStamp+"]", msg);
     }
 

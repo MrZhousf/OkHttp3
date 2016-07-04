@@ -1,25 +1,22 @@
 package com.okhttp3;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.okhttplib.CacheLevel;
 import com.okhttplib.CacheType;
-import com.okhttplib.CallbackOk;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
-
-import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import util.NetWorkUtil;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     @Bind(R.id.syncBtn)
     Button syncBtn;
@@ -35,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 注意：测试时请更换该地址
      */
-    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
+//    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
+    String url = "https://admin.jrtoo.com/cifcogroup/application/web/index.php?r=crowdfunding/crowd-list&userId=25024450&crowd_type=3&offset=0";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,37 +65,33 @@ public class MainActivity extends AppCompatActivity {
      * 同步请求：由于不能在UI线程中进行网络请求操作，所以采用子线程方式
      */
     private void doHttpSync() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
-                OkHttpUtil.Builder().build().doGetSync(info);
+        new Thread(()-> {
+                HttpInfo info = HttpInfo.Builder().setUrl(url).build();
+                OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
                     final String result = info.getRetDetail();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                    runOnUiThread(() -> {
                             resultTV.setText("同步请求：" + result);
                         }
-                    });
+                    );
                 }
             }
-        }).start();
+        ).start();
     }
 
     /**
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(this),
-                new CallbackOk() {
-                    @Override
-                    public void onResponse(HttpInfo info) throws IOException {
-                        if (info.isSuccessful()) {
-                            String result = info.getRetDetail();
-                            resultTV.setText("异步请求："+result);
-                        }
+        OkHttpUtil.Builder()
+                .setCacheLevel(CacheLevel.FIRST_LEVEL)
+                .setConnectTimeout(25).build(this)
+                .doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                info -> {
+                    if (info.isSuccessful()) {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求："+result);
                     }
                 });
 
@@ -108,18 +103,16 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpCache() {
         OkHttpUtil.Builder()
                 .setCacheLevel(CacheLevel.SECOND_LEVEL)
-                .build()
+                .build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(this),
-                        new CallbackOk() {
-                            @Override
-                            public void onResponse(HttpInfo info) throws IOException {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("缓存请求：" + result);
-                                }
+                        HttpInfo.Builder().setUrl("http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json").build(),
+                        info -> {
+                            if (info.isSuccessful()) {
+                                String result = info.getRetDetail();
+                                resultTV.setText("缓存请求：" + result);
                             }
-                        });
+                        }
+                );
     }
 
     /**
@@ -129,18 +122,16 @@ public class MainActivity extends AppCompatActivity {
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
                     .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
-                    .build()
+                    .build(this)
                     .doGetAsync(
-                            HttpInfo.Builder().setUrl(url).build(this),
-                            new CallbackOk() {
-                                @Override
-                                public void onResponse(HttpInfo info) throws IOException {
-                                    if (info.isSuccessful()) {
-                                        String result = info.getRetDetail();
-                                        resultTV.setText("断网请求：" + result);
-                                    }
+                            HttpInfo.Builder().setUrl(url).build(),
+                            info -> {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("断网请求：" + result);
                                 }
-                            });
+                            }
+                    );
         }else{
             resultTV.setText("请先断网！");
         }
