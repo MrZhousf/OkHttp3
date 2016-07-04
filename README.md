@@ -21,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.1</version>
+  <version>1.1.2</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.1'
+compile 'com.zhousf.lib:okhttp3:1.1.2'
 ```
 
 ##提交记录
@@ -38,6 +38,7 @@ compile 'com.zhousf.lib:okhttp3:1.1'
     *  增加Application中全局配置
     *  增加系统默认配置
     *  修复内存释放bug
+* 2016-7-4 请求标识逻辑优化
 
 
 ##自定义全局配置
@@ -77,19 +78,18 @@ OkHttpUtil.init(this)
 ##相关示例
 
 ```java
-   package com.okhttp3;
-
+package com.okhttp3;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import com.okhttplib.CacheLevel;
 import com.okhttplib.CacheType;
+import com.okhttplib.CallbackOk;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
-
+import java.io.IOException;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -145,12 +145,15 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
-                OkHttpUtil.Builder().build().doGetSync(info);
+                HttpInfo info = HttpInfo.Builder().setUrl(url).build();
+                OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
-                    String result = info.getRetDetail();
-                    runOnUiThread(() -> {
-                        resultTV.setText("同步请求："+result);
+                    final String result = info.getRetDetail();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            resultTV.setText("同步请求：" + result);
+                        }
                     });
                 }
             }
@@ -161,12 +164,15 @@ public class MainActivity extends AppCompatActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(this),
-                info -> {
-                    if (info.isSuccessful()) {
-                        String result = info.getRetDetail();
-                        resultTV.setText("异步请求："+result);
+        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build(this).doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                new CallbackOk() {
+                    @Override
+                    public void onResponse(HttpInfo info) throws IOException {
+                        if (info.isSuccessful()) {
+                            String result = info.getRetDetail();
+                            resultTV.setText("异步请求："+result);
+                        }
                     }
                 });
 
@@ -178,13 +184,16 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpCache() {
         OkHttpUtil.Builder()
                 .setCacheLevel(CacheLevel.SECOND_LEVEL)
-                .build()
+                .build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(this),
-                        info -> {
-                            if (info.isSuccessful()) {
-                                String result = info.getRetDetail();
-                                resultTV.setText("缓存请求："+result);
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new CallbackOk() {
+                            @Override
+                            public void onResponse(HttpInfo info) throws IOException {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("缓存请求：" + result);
+                                }
                             }
                         });
     }
@@ -196,22 +205,22 @@ public class MainActivity extends AppCompatActivity {
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
                     .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
-                    .build()
+                    .build(this)
                     .doGetAsync(
-                            HttpInfo.Builder().setUrl(url).build(this),
-                            info -> {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("断网请求："+result);
+                            HttpInfo.Builder().setUrl(url).build(),
+                            new CallbackOk() {
+                                @Override
+                                public void onResponse(HttpInfo info) throws IOException {
+                                    if (info.isSuccessful()) {
+                                        String result = info.getRetDetail();
+                                        resultTV.setText("断网请求：" + result);
+                                    }
                                 }
                             });
         }else{
             resultTV.setText("请先断网！");
         }
     }
-
-
 }
-
 
 ```
