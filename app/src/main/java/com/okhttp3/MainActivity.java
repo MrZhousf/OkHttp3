@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
-                OkHttpUtil.Builder().build().doGetSync(info);
+                HttpInfo info = HttpInfo.Builder().setUrl(url).build();
+                OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
                     final String result = info.getRetDetail();
                     runOnUiThread(new Runnable() {
@@ -88,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(this),
+        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build(this).doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
                 new CallbackOk() {
                     @Override
                     public void onResponse(HttpInfo info) throws IOException {
@@ -108,9 +108,9 @@ public class MainActivity extends AppCompatActivity {
     private void doHttpCache() {
         OkHttpUtil.Builder()
                 .setCacheLevel(CacheLevel.SECOND_LEVEL)
-                .build()
+                .build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(this),
+                        HttpInfo.Builder().setUrl(url).build(),
                         new CallbackOk() {
                             @Override
                             public void onResponse(HttpInfo info) throws IOException {
@@ -129,9 +129,9 @@ public class MainActivity extends AppCompatActivity {
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
                     .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
-                    .build()
+                    .build(this)
                     .doGetAsync(
-                            HttpInfo.Builder().setUrl(url).build(this),
+                            HttpInfo.Builder().setUrl(url).build(),
                             new CallbackOk() {
                                 @Override
                                 public void onResponse(HttpInfo info) throws IOException {

@@ -22,7 +22,7 @@ public class BaseApplication extends Application {
                 .setMaxCacheSize(10 * 1024 * 1024)//设置缓存
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(false)
+                .setShowLifecycleLog(true)
                 .build();
 
     }

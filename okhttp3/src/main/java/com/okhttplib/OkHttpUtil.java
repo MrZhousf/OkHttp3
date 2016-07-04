@@ -1,5 +1,6 @@
 package com.okhttplib;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -62,6 +63,14 @@ public class OkHttpUtil {
     }
 
     /**
+     * 获取默认请求配置
+     * @return OkHttpUtil
+     */
+    public static OkHttpUtil getDefault(Object object){
+        return new Builder(false).build(object);
+    }
+
+    /**
      * 同步Post请求
      * @param info 请求信息体
      * @return HttpInfo
@@ -113,7 +122,7 @@ public class OkHttpUtil {
                 return retInfo(info,info.CheckURL);
             }
             call = httpClient.newCall(fetchRequest(info,method));
-            BaseActivityLifecycleCallbacks.putCall(info,call);
+            BaseActivityLifecycleCallbacks.putCall(builder.tag,call);
             Response res = call.execute();
             return dealResponse(info, res, call);
         } catch (IllegalArgumentException e){
@@ -131,7 +140,7 @@ public class OkHttpUtil {
         } catch (Exception e) {
             return retInfo(info,info.NoResult);
         }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(info,call);
+            BaseActivityLifecycleCallbacks.cancelCall(builder.tag,call);
         }
     }
 
@@ -145,7 +154,7 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(fetchRequest(info,method));
-        BaseActivityLifecycleCallbacks.putCall(info,call);
+        BaseActivityLifecycleCallbacks.putCall(builder.tag,call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -156,7 +165,7 @@ public class OkHttpUtil {
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
                 handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
-                BaseActivityLifecycleCallbacks.cancelCall(info,call);
+                BaseActivityLifecycleCallbacks.cancelCall(builder.tag,call);
             }
         });
     }
@@ -386,6 +395,7 @@ public class OkHttpUtil {
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
+        private Class<?> tag;
 
         public Builder() {
         }
@@ -402,12 +412,18 @@ public class OkHttpUtil {
             }
         }
 
-        public OkHttpUtil build() {
+        public OkHttpUtil build(){
+            return build(null);
+        }
+
+        public OkHttpUtil build(Object object) {
             if(isGlobalConfig){
                 if(null == builderGlobal){
                     builderGlobal = this;
                 }
             }
+            if(null != object)
+                setTag(object);
             return new OkHttpUtil(this);
         }
 
@@ -523,6 +539,22 @@ public class OkHttpUtil {
 
         public Builder setShowLifecycleLog(boolean showLifecycleLog) {
             this.showLifecycleLog = showLifecycleLog;
+            return this;
+        }
+
+        public Builder setTag(Object object) {
+            if(object instanceof Activity){
+                Activity activity = (Activity) object;
+                this.tag = activity.getClass();
+            }
+            if(object instanceof android.support.v4.app.Fragment){
+                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
+            if(object instanceof android.app.Fragment){
+                android.app.Fragment fragment = (android.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
             return this;
         }
     }

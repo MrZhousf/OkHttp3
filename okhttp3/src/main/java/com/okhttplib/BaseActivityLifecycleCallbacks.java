@@ -28,16 +28,16 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     /**
      * 保存请求集合
-     * @param info 请求信息体
+     * @param tag 请求标识
      * @param call 请求
      */
-    public static void putCall(HttpInfo info, Call call){
-        if(null != info.getTag()){
-            SparseArray<Call> callList = callsMap.get(info.getTag());
+    public static void putCall(Class<?> tag, Call call){
+        if(null != tag){
+            SparseArray<Call> callList = callsMap.get(tag);
             if(null == callList){
                 callList = new SparseArray<>();
                 callList.put(call.hashCode(),call);
-                callsMap.put(info.getTag(),callList);
+                callsMap.put(tag,callList);
             }else{
                 callList.put(call.hashCode(),call);
             }
@@ -47,10 +47,12 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     /**
      * 取消请求
-     * @param clazz 上下文
+     * @param tag 请求标识
      */
-    public static void cancelCall(Class<?> clazz){
-        SparseArray<Call> callList = callsMap.get(clazz);
+    public static void cancelCall(Class<?> tag){
+        if(null == tag)
+            return ;
+        SparseArray<Call> callList = callsMap.get(tag);
         if(null != callList){
             for(int i=0;i<callList.size();i++){
                 Call call = callList.valueAt(i);
@@ -58,21 +60,21 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
                     call.cancel();
             }
             callList.clear();
-            callsMap.remove(clazz);
+            callsMap.remove(tag);
         }
         showLog(true);
     }
 
-    public static void cancelCall(HttpInfo info, Call call){
-        if(null != call){
-            SparseArray<Call> callList = callsMap.get(info.getTag());
+    public static void cancelCall(Class<?> tag, Call call){
+        if(null != call && null != tag){
+            SparseArray<Call> callList = callsMap.get(tag);
             if(null != callList){
                 Call c = callList.get(call.hashCode());
                 if(!c.isCanceled())
                     c.cancel();
                 callList.delete(call.hashCode());
                 if(callList.size() == 0)
-                    callsMap.remove(info.getTag());
+                    callsMap.remove(tag);
             }
         }
         showLog(true);
