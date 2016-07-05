@@ -32,8 +32,7 @@ public class MainActivity extends Activity {
     /**
      * 注意：测试时请更换该地址
      */
-//    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
-    String url = "https://admin.jrtoo.com/cifcogroup/application/web/index.php?r=crowdfunding/crowd-list&userId=25024450&crowd_type=3&offset=0";
+    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
 
 
     @Override
@@ -105,7 +104,7 @@ public class MainActivity extends Activity {
                 .setCacheLevel(CacheLevel.SECOND_LEVEL)
                 .build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl("http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json").build(),
+                        HttpInfo.Builder().setUrl(url).build(),
                         info -> {
                             if (info.isSuccessful()) {
                                 String result = info.getRetDetail();

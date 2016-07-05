@@ -1,5 +1,6 @@
 package com.okhttplib;
 
+import android.app.Activity;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -20,9 +21,12 @@ public class HttpInfo {
     private int retCode;//返回码
     private String retDetail;//返回结果
 
+    private Class<?> tag;
+
     public HttpInfo(Builder builder) {
         this.url = builder.url;
         this.params = builder.params;
+        this.tag = builder.tag;
     }
 
     public static Builder Builder() {
@@ -34,8 +38,15 @@ public class HttpInfo {
 
         private String url;
         private Map<String,String> params;
+        private Class<?> tag;
+
 
         public Builder() {
+        }
+
+        public HttpInfo build(Object object){
+            setTag(object);
+            return new HttpInfo(this);
         }
 
         public HttpInfo build(){
@@ -57,6 +68,22 @@ public class HttpInfo {
                 this.params = new HashMap<String,String>();
             if(!TextUtils.isEmpty(key))
                 this.params.put(key,value);
+            return this;
+        }
+
+        public Builder setTag(Object object) {
+            if(object instanceof Activity){
+                Activity activity = (Activity) object;
+                this.tag = activity.getClass();
+            }
+            if(object instanceof android.support.v4.app.Fragment){
+                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
+            if(object instanceof android.app.Fragment){
+                android.app.Fragment fragment = (android.app.Fragment) object;
+                this.tag = fragment.getActivity().getClass();
+            }
             return this;
         }
 
@@ -139,4 +166,7 @@ public class HttpInfo {
         return params;
     }
 
+    public Class<?> getTag() {
+        return tag;
+    }
 }

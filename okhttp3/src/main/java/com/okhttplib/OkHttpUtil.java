@@ -66,8 +66,13 @@ public class OkHttpUtil {
         return BuilderGlobal();
     }
 
+    public static OkHttpUtil getDefault(){
+        return new Builder(false).build();
+    }
+
     /**
      * 获取默认请求配置
+     * @param object 请求标识
      * @return OkHttpUtil
      */
     public static OkHttpUtil getDefault(Object object){
@@ -126,7 +131,7 @@ public class OkHttpUtil {
                 return retInfo(info,info.CheckURL);
             }
             call = httpClient.newCall(fetchRequest(info,method));
-            BaseActivityLifecycleCallbacks.putCall(tag,call);
+            BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
             return dealResponse(info, res, call);
         } catch (IllegalArgumentException e){
@@ -144,7 +149,7 @@ public class OkHttpUtil {
         } catch (Exception e) {
             return retInfo(info,info.NoResult);
         }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(tag,call);
+            BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
         }
     }
 
@@ -158,7 +163,7 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(fetchRequest(info,method));
-        BaseActivityLifecycleCallbacks.putCall(tag,call);
+        BaseActivityLifecycleCallbacks.putCall(tag,info,call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -169,7 +174,7 @@ public class OkHttpUtil {
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
                 handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
-                BaseActivityLifecycleCallbacks.cancelCall(tag,call);
+                BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
             }
         });
     }
@@ -196,8 +201,8 @@ public class OkHttpUtil {
 
     private HttpInfo dealResponse(HttpInfo info, Response res, Call call){
         try {
-            if(null != res && null != res.body()){
-                if(res.isSuccessful()){
+            if(null != res){
+                if(res.isSuccessful() && null != res.body()){
                     return retInfo(info,info.SUCCESS,res.body().string());
                 }else{
                     showLog("HttpStatus: "+res.code());
@@ -379,7 +384,6 @@ public class OkHttpUtil {
         if(this.cacheSurvivalTime > 0)
             cacheType = CacheType.CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
-        showLog("level="+cacheLevel+",type="+cacheType+",time="+cacheSurvivalTime);
     }
 
     public static Builder Builder() {

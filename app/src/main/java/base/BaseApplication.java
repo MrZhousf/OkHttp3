@@ -24,7 +24,7 @@ public class BaseApplication extends Application {
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(false)
+                .setShowLifecycleLog(true)
                 .setRetryOnConnectionFailure(true)
                 .build();
 
