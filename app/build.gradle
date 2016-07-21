@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 18
+        targetSdkVersion 21
         multiDexEnabled true
     }
 
@@ -39,7 +39,7 @@ android {
 dependencies {
     compile project(':okhttp3')
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:21.+'
-    compile ('com.jakewharton:butterknife:7.0.1')
+    compile 'com.jakewharton:butterknife:7.0.1'
+    testCompile 'junit:junit:4.12'
 }

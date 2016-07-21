@@ -11,12 +11,30 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.okhttplib.annotation.CacheLevel;
+import com.okhttplib.annotation.CacheType;
+import com.okhttplib.bean.CallbackMessage;
+import com.okhttplib.bean.UploadFileInfo;
+import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
+import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.ProgressCallback;
+import com.okhttplib.progress.ProgressRequestBody;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
@@ -24,8 +42,10 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
@@ -105,7 +125,7 @@ public class OkHttpUtil {
      * @param callback 回调接口
      */
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, Method.POST, callback);
+        doRequestAsync(info, Method.POST, callback, null);
     }
 
     /**
@@ -114,7 +134,46 @@ public class OkHttpUtil {
      * @param callback 回调接口
      */
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, Method.GET, callback);
+        doRequestAsync(info, Method.GET, callback, null);
+    }
+
+    /**
+     * 上传文件
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    public void doUploadFile(final HttpInfo info, final CallbackOk callback){
+        List<UploadFileInfo> uploadFiles = info.getUploadFile();
+        if(null == uploadFiles || uploadFiles.isEmpty()){
+            showLog("上传文件失败：文件不能为空！");
+        }
+        for(UploadFileInfo fileInfo : uploadFiles){
+            String filePath = fileInfo.getFilePathWithName();
+            String interfaceParamName = fileInfo.getInterfaceParamName();
+            ProgressCallback progressCallback = fileInfo.getProgressCallback();
+            File file = new File(filePath);
+            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+            StringBuilder log = new StringBuilder("PostParams: ");
+            log.append(interfaceParamName+"="+filePath);
+            String logInfo;
+            if(null != info.getParams() && !info.getParams().isEmpty()){
+                for (String key : info.getParams().keySet()) {
+                    mBuilder.addFormDataPart(key, info.getParams().get(key));
+                    logInfo = key+" ="+info.getParams().get(key)+", ";
+                    log.append(logInfo);
+                }
+            }
+            showLog(log.toString());
+            mBuilder.addFormDataPart(interfaceParamName, file.getName(), RequestBody.create(null, file));
+            RequestBody requestBody = mBuilder.build();
+            final Request request = new Request
+                    .Builder()
+                    .url(info.getUrl())
+                    .post(new ProgressRequestBody(requestBody,progressCallback))
+                    .build();
+            doRequestAsync(info,Method.POST,callback,request);
+        }
+
     }
 
     /**
@@ -159,10 +218,10 @@ public class OkHttpUtil {
      * @param method 请求方法
      * @param callback 回调接口
      */
-    private void doRequestAsync(final HttpInfo info, Method method, final CallbackOk callback){
+    private void doRequestAsync(final HttpInfo info, Method method, final CallbackOk callback, Request request){
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
-        Call call = httpClient.newCall(fetchRequest(info,method));
+        Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
         BaseActivityLifecycleCallbacks.putCall(tag,info,call);
         call.enqueue(new Callback() {
             @Override
@@ -240,6 +299,9 @@ public class OkHttpUtil {
                 }
                 showLog(log.toString());
             }
+            if(null != info.getUploadFile() && !info.getUploadFile().isEmpty()){
+
+            }
             request = new Request.Builder()
                     .url(info.getUrl())
                     .post(builder.build())
@@ -276,7 +338,7 @@ public class OkHttpUtil {
     /**
      * 网络请求拦截器
      */
-    public Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
+    private Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Response.Builder resBuilder = chain.proceed(chain.request()).newBuilder();
@@ -289,7 +351,7 @@ public class OkHttpUtil {
     /**
      * 缓存应用拦截器
      */
-    public Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
+    private Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
@@ -330,7 +392,7 @@ public class OkHttpUtil {
     /**
      * 日志拦截器
      */
-    public Interceptor LOG_INTERCEPTOR = new Interceptor() {
+    private Interceptor LOG_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             long startTime = System.currentTimeMillis();
@@ -343,6 +405,15 @@ public class OkHttpUtil {
         }
     };
 
+    /**
+     *主机名验证
+     */
+    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
     private OkHttpUtil(Builder builder) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
@@ -350,13 +421,14 @@ public class OkHttpUtil {
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
                 .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure)
-                .addInterceptor(LOG_INTERCEPTOR)
                 .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
                 .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
             clientBuilder.interceptors().addAll(builder.interceptors);
+        clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+        setSslSocketFactory(clientBuilder);
         httpClient = clientBuilder.build();
         timeStamp = System.currentTimeMillis();
         final int deviation = 5;
@@ -384,6 +456,29 @@ public class OkHttpUtil {
         if(this.cacheSurvivalTime > 0)
             cacheType = CacheType.CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
+    }
+
+    /**
+     * 设置HTTPS认证
+     * @param clientBuilder
+     */
+    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
+        clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, new TrustManager[]{new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new java.security.cert.X509Certificate[] {};
+                }
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                }
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                }
+            }}, new SecureRandom());
+            clientBuilder.sslSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Builder Builder() {

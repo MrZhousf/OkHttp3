@@ -1,4 +1,4 @@
-package com.okhttplib;
+package com.okhttplib.annotation;
 
 import android.support.annotation.IntDef;
 

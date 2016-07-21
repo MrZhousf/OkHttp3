@@ -1,6 +1,9 @@
-package com.okhttplib;
+package com.okhttplib.bean;
 
 import android.os.Message;
+
+import com.okhttplib.HttpInfo;
+import com.okhttplib.callback.CallbackOk;
 
 /**
  * 回调信息实体类

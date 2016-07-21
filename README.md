@@ -21,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2</version>
+  <version>1.2.2</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2'
+compile 'com.zhousf.lib:okhttp3:1.2.2'
 ```
 
 ##提交记录
@@ -139,8 +139,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.okhttplib.CacheLevel;
-import com.okhttplib.CacheType;
+import com.okhttplib.annotation.CacheLevel;
+import com.okhttplib.annotation.CacheType;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 

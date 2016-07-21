@@ -1,10 +1,12 @@
-package com.okhttplib;
+package com.okhttplib.callback;
 
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
+
+import com.okhttplib.HttpInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,4 +1,6 @@
-package com.okhttplib;
+package com.okhttplib.callback;
+
+import com.okhttplib.HttpInfo;
 
 import java.io.IOException;
 

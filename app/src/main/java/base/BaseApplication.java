@@ -2,8 +2,8 @@ package base;
 
 import android.app.Application;
 
-import com.okhttplib.CacheLevel;
-import com.okhttplib.CacheType;
+import com.okhttplib.annotation.CacheLevel;
+import com.okhttplib.annotation.CacheType;
 import com.okhttplib.OkHttpUtil;
 
 public class BaseApplication extends Application {
@@ -24,7 +24,7 @@ public class BaseApplication extends Application {
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)
+                .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(true)
                 .build();
 

@@ -4,8 +4,12 @@ import android.app.Activity;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.okhttplib.bean.UploadFileInfo;
+import com.okhttplib.callback.ProgressCallback;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,6 +20,7 @@ public class HttpInfo {
     //**请求参数定义**/
     private String url;//请求地址
     private Map<String,String> params;//请求参数
+    private List<UploadFileInfo> uploadFile;//上传文件参数
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -27,6 +32,7 @@ public class HttpInfo {
         this.url = builder.url;
         this.params = builder.params;
         this.tag = builder.tag;
+        this.uploadFile = builder.uploadFile;
     }
 
     public static Builder Builder() {
@@ -38,6 +44,7 @@ public class HttpInfo {
 
         private String url;
         private Map<String,String> params;
+        private List<UploadFileInfo> uploadFile;
         private Class<?> tag;
 
 
@@ -68,6 +75,32 @@ public class HttpInfo {
                 this.params = new HashMap<String,String>();
             if(!TextUtils.isEmpty(key))
                 this.params.put(key,value);
+            return this;
+        }
+
+        /**
+         * 增加上传文件
+         * @param filePathWithName 上传的文件路径：包含文件名
+         * @param interfaceParamName 接口参数名称
+         */
+        public Builder addUploadFile(String filePathWithName, String interfaceParamName) {
+            addUploadFile(filePathWithName,interfaceParamName,null);
+            return this;
+        }
+
+        /**
+         * 增加上传文件
+         * @param filePathWithName 上传的文件路径：包含文件名
+         * @param interfaceParamName 接口参数名称
+         * @param progressCallback 上传进度回调接口
+         */
+        public Builder addUploadFile(String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+            if(null == this.uploadFile){
+                this.uploadFile = new ArrayList<UploadFileInfo>();
+            }
+            if(!TextUtils.isEmpty(filePathWithName)){
+                this.uploadFile.add(new UploadFileInfo(filePathWithName,interfaceParamName,progressCallback));
+            }
             return this;
         }
 
@@ -168,5 +201,9 @@ public class HttpInfo {
 
     public Class<?> getTag() {
         return tag;
+    }
+
+    public List<UploadFileInfo> getUploadFile() {
+        return uploadFile;
     }
 }
