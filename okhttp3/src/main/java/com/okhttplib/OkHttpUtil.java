@@ -147,6 +147,10 @@ public class OkHttpUtil {
         if(null == uploadFiles || uploadFiles.isEmpty()){
             showLog("上传文件失败：文件不能为空！");
         }
+        if(TextUtils.isEmpty(info.getUrl())){
+            showLog("上传文件失败：文件上传地址不能为空！");
+            return ;
+        }
         for(UploadFileInfo fileInfo : uploadFiles){
             String filePath = fileInfo.getFilePathWithName();
             String interfaceParamName = fileInfo.getInterfaceParamName();

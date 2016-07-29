@@ -38,7 +38,10 @@ public class UploadFileActivity extends ActionBarActivity {
 
     private final String TAG = UploadFileActivity.class.getSimpleName();
 
-    private String url = "https://admin.jrtoo.com/cifcogroup/application/web/index.php?r=file/upload";
+    /**
+     * 文件上传地址
+     */
+    private String url = "";
 
     private String filePath;
 
@@ -90,8 +93,6 @@ public class UploadFileActivity extends ActionBarActivity {
                 tvResult.setText("上传结果：" + info.getRetDetail());
             }
         });
-
-
     }
 
     @Override
