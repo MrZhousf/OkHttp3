@@ -66,7 +66,11 @@ public class HttpInfo {
         }
 
         public Builder addParams(Map<String, String> params) {
-            this.params = params;
+            if(null == this.params){
+                this.params = params;
+            }else{
+                this.params.putAll(params);
+            }
             return this;
         }
 
