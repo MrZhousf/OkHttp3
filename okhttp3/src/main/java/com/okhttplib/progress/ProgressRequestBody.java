@@ -1,6 +1,10 @@
 package com.okhttplib.progress;
 
+import android.os.Message;
+
+import com.okhttplib.bean.ProgressMessage;
 import com.okhttplib.callback.ProgressCallback;
+import com.okhttplib.handler.OkMainHandler;
 
 import java.io.IOException;
 
@@ -19,9 +23,9 @@ public class ProgressRequestBody extends RequestBody {
     private final ProgressCallback progressCallback;
     private BufferedSink bufferedSink;
 
-    public ProgressRequestBody(RequestBody requestBody, ProgressCallback progressCallback) {
-        this.originalRequestBody = requestBody;
+    public ProgressRequestBody(RequestBody originalRequestBody, ProgressCallback progressCallback) {
         this.progressCallback = progressCallback;
+        this.originalRequestBody = originalRequestBody;
     }
 
     @Override
@@ -55,8 +59,16 @@ public class ProgressRequestBody extends RequestBody {
                     contentLength = contentLength();
                 }
                 bytesWritten += byteCount;
-                if (null != progressCallback) {
-                    progressCallback.onProgress(bytesWritten, contentLength, bytesWritten == contentLength);
+                if(null != progressCallback){
+                    progressCallback.onProgressAsync(bytesWritten,contentLength,bytesWritten == contentLength);
+                    //主线程回调
+                    Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
+                            progressCallback,
+                            bytesWritten,
+                            contentLength,
+                            bytesWritten == contentLength)
+                            .build();
+                    OkMainHandler.getInstance().sendMessage(msg);
                 }
             }
         };

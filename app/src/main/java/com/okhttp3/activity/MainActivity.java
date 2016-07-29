@@ -7,15 +7,20 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.okhttp3.R;
-import com.okhttplib.annotation.CacheLevel;
-import com.okhttplib.annotation.CacheType;
+import com.okhttp3.util.NetWorkUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.callback.CallbackOk;
+
+import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.okhttp3.util.NetWorkUtil;
+
+import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
+import static com.okhttplib.annotation.CacheLevel.SECOND_LEVEL;
+import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -65,18 +70,22 @@ public class MainActivity extends ActionBarActivity {
      * 同步请求：由于不能在UI线程中进行网络请求操作，所以采用子线程方式
      */
     private void doHttpSync() {
-        new Thread(()-> {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 HttpInfo info = HttpInfo.Builder().setUrl(url).build();
                 OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
                     final String result = info.getRetDetail();
-                    runOnUiThread(() -> {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
                             resultTV.setText("同步请求：" + result);
                         }
-                    );
+                    });
                 }
             }
-        ).start();
+        }).start();
     }
 
     /**
@@ -84,16 +93,19 @@ public class MainActivity extends ActionBarActivity {
      */
     private void doHttpAsync() {
         OkHttpUtil.Builder()
-                .setCacheLevel(CacheLevel.FIRST_LEVEL)
+                .setCacheLevel(FIRST_LEVEL)
                 .setConnectTimeout(25).build(this)
                 .doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(),
-                info -> {
-                    if (info.isSuccessful()) {
-                        String result = info.getRetDetail();
-                        resultTV.setText("异步请求："+result);
-                    }
-                });
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new CallbackOk() {
+                            @Override
+                            public void onResponse(HttpInfo info) throws IOException {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("异步请求："+result);
+                                }
+                            }
+                        });
 
     }
 
@@ -102,14 +114,17 @@ public class MainActivity extends ActionBarActivity {
      */
     private void doHttpCache() {
         OkHttpUtil.Builder()
-                .setCacheLevel(CacheLevel.SECOND_LEVEL)
+                .setCacheLevel(SECOND_LEVEL)
                 .build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
-                        info -> {
-                            if (info.isSuccessful()) {
-                                String result = info.getRetDetail();
-                                resultTV.setText("缓存请求：" + result);
+                        new CallbackOk() {
+                            @Override
+                            public void onResponse(HttpInfo info) throws IOException {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("缓存请求：" + result);
+                                }
                             }
                         }
                 );
@@ -121,14 +136,17 @@ public class MainActivity extends ActionBarActivity {
     private void doHttpOffline(){
         if(!NetWorkUtil.isNetworkAvailable(this)){
             OkHttpUtil.Builder()
-                    .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
+                    .setCacheType(CACHE_THEN_NETWORK)//缓存类型可以不设置
                     .build(this)
                     .doGetAsync(
                             HttpInfo.Builder().setUrl(url).build(),
-                            info -> {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("断网请求：" + result);
+                            new CallbackOk() {
+                                @Override
+                                public void onResponse(HttpInfo info) throws IOException {
+                                    if (info.isSuccessful()) {
+                                        String result = info.getRetDetail();
+                                        resultTV.setText("断网请求：" + result);
+                                    }
                                 }
                             }
                     );

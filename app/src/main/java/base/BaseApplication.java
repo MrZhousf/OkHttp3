@@ -2,9 +2,10 @@ package base;
 
 import android.app.Application;
 
-import com.okhttplib.annotation.CacheLevel;
-import com.okhttplib.annotation.CacheType;
 import com.okhttplib.OkHttpUtil;
+
+import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
+import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
 
 public class BaseApplication extends Application {
 
@@ -21,8 +22,8 @@ public class BaseApplication extends Application {
         OkHttpUtil.init(this)
                 .setConnectTimeout(30)//超时时间设置
                 .setMaxCacheSize(10 * 1024 * 1024)//设置缓存空间大小
-                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
+                .setCacheLevel(FIRST_LEVEL)//缓存等级
+                .setCacheType(NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
                 .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(true)

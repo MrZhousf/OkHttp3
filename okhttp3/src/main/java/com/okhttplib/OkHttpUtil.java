@@ -5,9 +5,8 @@ import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.IntDef;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,19 +14,25 @@ import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.UploadFileInfo;
+import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
 import com.okhttplib.callback.ProgressCallback;
+import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.progress.ProgressRequestBody;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
@@ -48,6 +53,15 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
+import static com.okhttplib.annotation.CacheLevel.FOURTH_LEVEL;
+import static com.okhttplib.annotation.CacheLevel.SECOND_LEVEL;
+import static com.okhttplib.annotation.CacheLevel.THIRD_LEVEL;
+import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
+import static com.okhttplib.annotation.CacheType.FORCE_CACHE;
+import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
+import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
+
 
 public class OkHttpUtil {
 
@@ -64,17 +78,6 @@ public class OkHttpUtil {
      * 请求时间戳：区别每次请求标识
      */
     private long timeStamp;
-    /**
-     * 请求方法
-     */
-    private enum Method {
-        GET,POST
-    }
-
-    /**
-     * 回调请求标识
-     */
-    private final static int WHAT_CALLBACK = 1;
 
     /**
      * 初始化：请在Application中调用
@@ -105,8 +108,7 @@ public class OkHttpUtil {
      * @return HttpInfo
      */
     public HttpInfo doPostSync(HttpInfo info){
-        doRequestSync(info, Method.POST);
-        return info;
+        return doRequestSync(info, POST, null);
     }
 
     /**
@@ -115,8 +117,7 @@ public class OkHttpUtil {
      * @return HttpInfo
      */
     public HttpInfo doGetSync(HttpInfo info){
-        doRequestSync(info, Method.GET);
-        return info;
+        return doRequestSync(info, GET, null);
     }
 
     /**
@@ -125,7 +126,7 @@ public class OkHttpUtil {
      * @param callback 回调接口
      */
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, Method.POST, callback, null);
+        doRequestAsync(info, POST, callback, null);
     }
 
     /**
@@ -134,49 +135,80 @@ public class OkHttpUtil {
      * @param callback 回调接口
      */
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, Method.GET, callback, null);
+        doRequestAsync(info, GET, callback, null);
     }
+
+    private ExecutorService executorService;
 
     /**
      * 上传文件
      * @param info 请求信息体
-     * @param callback 回调接口
      */
-    public void doUploadFile(final HttpInfo info, final CallbackOk callback){
+    public void doUploadFile(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFile();
-        if(null == uploadFiles || uploadFiles.isEmpty()){
-            showLog("上传文件失败：文件不能为空！");
+        for(final UploadFileInfo fileInfo : uploadFiles){
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    uploadFile(fileInfo, info);
+                }
+            });
         }
-        if(TextUtils.isEmpty(info.getUrl())){
-            showLog("上传文件失败：文件上传地址不能为空！");
+    }
+
+    private void uploadFile(UploadFileInfo fileInfo, HttpInfo info){
+        String filePath = fileInfo.getFilePathWithName();
+        String interfaceParamName = fileInfo.getInterfaceParamName();
+        String url = fileInfo.getUrl();
+        url = TextUtils.isEmpty(url) ? info.getUrl() : url;
+        if(TextUtils.isEmpty(url)){
+            showLog("文件上传接口地址不能为空["+filePath+"]");
             return ;
         }
-        for(UploadFileInfo fileInfo : uploadFiles){
-            String filePath = fileInfo.getFilePathWithName();
-            String interfaceParamName = fileInfo.getInterfaceParamName();
-            ProgressCallback progressCallback = fileInfo.getProgressCallback();
-            File file = new File(filePath);
-            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-            StringBuilder log = new StringBuilder("PostParams: ");
-            log.append(interfaceParamName+"="+filePath);
-            String logInfo;
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                for (String key : info.getParams().keySet()) {
-                    mBuilder.addFormDataPart(key, info.getParams().get(key));
-                    logInfo = key+" ="+info.getParams().get(key)+", ";
-                    log.append(logInfo);
-                }
+        ProgressCallback progressCallback = fileInfo.getProgressCallback();
+        File file = new File(filePath);
+        MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        StringBuilder log = new StringBuilder("PostParams: ");
+        log.append(interfaceParamName+"="+filePath);
+        String logInfo;
+        if(null != info.getParams() && !info.getParams().isEmpty()){
+            for (String key : info.getParams().keySet()) {
+                mBuilder.addFormDataPart(key, info.getParams().get(key));
+                logInfo = key+" ="+info.getParams().get(key)+", ";
+                log.append(logInfo);
             }
-            showLog(log.toString());
-            mBuilder.addFormDataPart(interfaceParamName, file.getName(), RequestBody.create(null, file));
-            RequestBody requestBody = mBuilder.build();
-            final Request request = new Request
-                    .Builder()
-                    .url(info.getUrl())
-                    .post(new ProgressRequestBody(requestBody,progressCallback))
-                    .build();
-            doRequestAsync(info,Method.POST,callback,request);
         }
+        showLog(log.toString());
+        mBuilder.addFormDataPart(interfaceParamName, file.getName(), RequestBody.create(null, file));
+        RequestBody requestBody = mBuilder.build();
+        final Request request = new Request
+                .Builder()
+                .url(url)
+                .post(new ProgressRequestBody(requestBody,progressCallback))
+                .build();
+        doRequestSync(info,POST,request);
+        Message msg = new UploadMessage(
+                OkMainHandler.RESPONSE_UPLOAD_CALLBACK,
+                filePath,
+                info,
+                progressCallback)
+                .build();
+        OkMainHandler.getInstance().sendMessage(msg);
+    }
+
+
+    /**
+     * 下载文件
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    public void doDownloadFile(final HttpInfo info, final CallbackOk callback){
+        if(TextUtils.isEmpty(info.getUrl())){
+            showLog("下载文件失败：文件下载地址不能为空！");
+            return ;
+        }
+
+
 
     }
 
@@ -186,14 +218,14 @@ public class OkHttpUtil {
      * @param method 请求方法
      * @return HttpInfo
      */
-    private HttpInfo doRequestSync(HttpInfo info, Method method){
+    private HttpInfo doRequestSync(HttpInfo info, @Method int method, Request request){
         Call call = null;
         try {
             String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
                 return retInfo(info,info.CheckURL);
             }
-            call = httpClient.newCall(fetchRequest(info,method));
+            call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
             BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
             return dealResponse(info, res, call);
@@ -222,7 +254,7 @@ public class OkHttpUtil {
      * @param method 请求方法
      * @param callback 回调接口
      */
-    private void doRequestAsync(final HttpInfo info, Method method, final CallbackOk callback, Request request){
+    private void doRequestAsync(final HttpInfo info, @Method int method, final CallbackOk callback, Request request){
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
@@ -236,31 +268,15 @@ public class OkHttpUtil {
             @Override
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
-                handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
+                Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
+                        callback,
+                        dealResponse(info,res,call))
+                        .build();
+                OkMainHandler.getInstance().sendMessage(msg);
                 BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
             }
         });
     }
-
-    /**
-     * 主线程业务调度
-     */
-    private static Handler handler = new Handler(Looper.getMainLooper()){
-        @Override
-        public void handleMessage(Message msg) {
-            final int what = msg.what;
-            switch (what){
-                case WHAT_CALLBACK:
-                    try {
-                        CallbackMessage callMsg = (CallbackMessage) msg.obj;
-                        callMsg.callback.onResponse(callMsg.info);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    break;
-            }
-        }
-    };
 
     private HttpInfo dealResponse(HttpInfo info, Response res, Call call){
         try {
@@ -289,9 +305,9 @@ public class OkHttpUtil {
         }
     }
 
-    private Request fetchRequest(HttpInfo info, Method method){
+    private Request fetchRequest(HttpInfo info, @Method int method){
         Request request;
-        if(method == Method.POST){
+        if(method == POST){
             FormBody.Builder builder = new FormBody.Builder();
             if(null != info.getParams() && !info.getParams().isEmpty()){
                 StringBuilder log = new StringBuilder("PostParams: ");
@@ -360,20 +376,20 @@ public class OkHttpUtil {
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
             switch (cacheType){
-                case CacheType.FORCE_CACHE:
+                case FORCE_CACHE:
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     break;
-                case CacheType.FORCE_NETWORK:
+                case FORCE_NETWORK:
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     break;
-                case CacheType.NETWORK_THEN_CACHE:
+                case NETWORK_THEN_CACHE:
                     if(!isNetworkAvailable(application)){
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     }else {
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     }
                     break;
-                case CacheType.CACHE_THEN_NETWORK:
+                case CACHE_THEN_NETWORK:
                     if(!isNetworkAvailable(application)){
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     }
@@ -409,15 +425,6 @@ public class OkHttpUtil {
         }
     };
 
-    /**
-     *主机名验证
-     */
-    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
-
     private OkHttpUtil(Builder builder) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
@@ -443,47 +450,64 @@ public class OkHttpUtil {
         this.showHttpLog = builder.showHttpLog;
         if(this.cacheSurvivalTime == 0){
             switch (this.cacheLevel){
-                case CacheLevel.FIRST_LEVEL:
+                case FIRST_LEVEL:
                     this.cacheSurvivalTime = 0;
                     break;
-                case CacheLevel.SECOND_LEVEL:
+                case SECOND_LEVEL:
                     this.cacheSurvivalTime = 15 + deviation;
                     break;
-                case CacheLevel.THIRD_LEVEL:
+                case THIRD_LEVEL:
                     this.cacheSurvivalTime = 30 + deviation;
                     break;
-                case CacheLevel.FOURTH_LEVEL:
+                case FOURTH_LEVEL:
                     this.cacheSurvivalTime = 60 + deviation;
                     break;
             }
         }
         if(this.cacheSurvivalTime > 0)
-            cacheType = CacheType.CACHE_THEN_NETWORK;
+            cacheType = CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
+        executorService = Executors.newCachedThreadPool();
     }
 
     /**
      * 设置HTTPS认证
-     * @param clientBuilder
      */
     private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
         clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
         try {
             SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, new TrustManager[]{new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return new java.security.cert.X509Certificate[] {};
-                }
+            X509TrustManager trustManager = new X509TrustManager() {
+                @Override
                 public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
                 }
+
+                @Override
                 public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
                 }
-            }}, new SecureRandom());
-            clientBuilder.sslSocketFactory(sc.getSocketFactory());
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            };
+            sc.init(null,new TrustManager[]{trustManager}, new SecureRandom());
+            clientBuilder.sslSocketFactory(sc.getSocketFactory(),trustManager);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     *主机名验证
+     */
+    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
 
     public static Builder Builder() {
         return new Builder(false);
@@ -552,8 +576,8 @@ public class OkHttpUtil {
             setWriteTimeout(30);
             setRetryOnConnectionFailure(true);
             setCacheSurvivalTime(0);
-            setCacheType(CacheType.NETWORK_THEN_CACHE);
-            setCacheLevel(CacheLevel.FIRST_LEVEL);
+            setCacheType(NETWORK_THEN_CACHE);
+            setCacheLevel(FIRST_LEVEL);
             setNetworkInterceptors(null);
             setInterceptors(null);
             setShowHttpLog(true);
@@ -681,6 +705,15 @@ public class OkHttpUtil {
         if(this.showHttpLog)
             Log.d(TAG+"["+timeStamp+"]", msg);
     }
+
+    /**
+     * 请求方法
+     */
+    @IntDef({POST,GET})
+    @Retention(RetentionPolicy.SOURCE)
+    private  @interface Method{}
+    private static final int POST = 1;
+    private static final int GET = 2;
 
 
 }

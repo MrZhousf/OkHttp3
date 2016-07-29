@@ -3,7 +3,6 @@ package com.okhttplib;
 import android.app.Activity;
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
 
@@ -108,6 +107,23 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 增加上传文件
+         * @param url 上传文件接口地址
+         * @param filePathWithName 上传的文件路径：包含文件名
+         * @param interfaceParamName 接口参数名称
+         * @param progressCallback 上传进度回调接口
+         */
+        public Builder addUploadFile(String url, String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+            if(null == this.uploadFile){
+                this.uploadFile = new ArrayList<UploadFileInfo>();
+            }
+            if(!TextUtils.isEmpty(filePathWithName)){
+                this.uploadFile.add(new UploadFileInfo(url,filePathWithName,interfaceParamName,progressCallback));
+            }
+            return this;
+        }
+
         public Builder setTag(Object object) {
             if(object instanceof Activity){
                 Activity activity = (Activity) object;
@@ -191,10 +207,6 @@ public class HttpInfo {
         return retDetail;
     }
 
-    public <T> T getRetDetail(Class<T> clazz){
-        return new Gson().fromJson(retDetail, clazz);
-    }
-
     public void setRetDetail(String retDetail) {
         this.retDetail = retDetail;
     }
@@ -210,4 +222,5 @@ public class HttpInfo {
     public List<UploadFileInfo> getUploadFile() {
         return uploadFile;
     }
+
 }

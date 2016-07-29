@@ -5,6 +5,8 @@ import com.okhttplib.callback.ProgressCallback;
 
 public class UploadFileInfo {
 
+    //上传文件接口地址
+    private String url;
     //上传的文件路径：包含文件名
     private String filePathWithName;
     //接口参数名称
@@ -12,8 +14,14 @@ public class UploadFileInfo {
     //上传进度回调接口
     private ProgressCallback progressCallback;
 
-
     public UploadFileInfo(String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+        this.filePathWithName = filePathWithName;
+        this.interfaceParamName = interfaceParamName;
+        this.progressCallback = progressCallback;
+    }
+
+    public UploadFileInfo(String url, String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+        this.url = url;
         this.filePathWithName = filePathWithName;
         this.interfaceParamName = interfaceParamName;
         this.progressCallback = progressCallback;
@@ -43,5 +51,11 @@ public class UploadFileInfo {
         this.progressCallback = progressCallback;
     }
 
+    public String getUrl() {
+        return url;
+    }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }
