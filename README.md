@@ -6,12 +6,12 @@
 ##功能点
 * 支持Http/Https等协议
 * 支持缓存响应，缓存等级
-* 断网请求
-* 同步/异步请求
+* 支持同步/异步请求、断网请求、缓存响应
 * Json自动解析
 * 请求与Activity/Fragment生命周期绑定，自动取消请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
+* 支持文件上传/批量上传进度提示
 * 完善的日志跟踪
 * 后续优化中...
 
@@ -21,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2.2'
+compile 'com.zhousf.lib:okhttp3:1.2.3'
 ```
 
 ##提交记录
@@ -38,6 +38,9 @@ compile 'com.zhousf.lib:okhttp3:1.2.2'
     *  增加Application中全局配置
     *  增加系统默认配置
     *  修复内存释放bug
+* 2016-7-29
+    *  增加图片上传功能
+    *  修复已知bug
 
 ##权限
 ```java
@@ -106,9 +109,37 @@ OkHttpUtil.init(this)
     }
 ```
 
+##在Activity上传图片示例
+```java
+ /**
+     * 上传图片
+     */
+    private void doUploadImg() {
+        HttpInfo info = HttpInfo.Builder()
+                .setUrl(url)
+                .addUploadFile(filePath, "file", new ProgressCallback() {
+                    @Override
+                    public void onProgress(long bytesWritten, long contentLength, boolean done) {
+                        int percent = (int) ((100 * bytesWritten) / contentLength);
+                        uploadProgress.setProgress(percent);
+                        Log.d(TAG, "上传进度：" + percent);
+                    }
+                })
+                .build();
+        OkHttpUtil.getDefault(this).doUploadFile(info, new CallbackOk() {
+            @Override
+            public void onResponse(HttpInfo info) throws IOException {
+                tvResult.setText("上传结果：" + info.getRetDetail());
+            }
+        });
+    }
+```
+
 ##相关截图
-### 界面
+###网络请求界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
+###上传图片界面
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
 ### 日志
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
 * GET-URL：请求地址

@@ -15,7 +15,7 @@ import com.okhttplib.OkHttpUtil;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import util.NetWorkUtil;
+import com.okhttp3.util.NetWorkUtil;
 
 public class MainActivity extends ActionBarActivity {
 
