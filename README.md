@@ -5,10 +5,8 @@
 
 ##功能点
 * 支持Http/Https等协议
-* 支持缓存响应，缓存等级
-* 支持同步/异步请求、断网请求、缓存响应
-* Json自动解析
-* 请求与Activity/Fragment生命周期绑定，自动取消请求
+* 支持同步/异步请求、断网请求、缓存响应、缓存等级
+* 当Activity/Fragment销毁时自动取消相应的所有网络请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
 * 支持文件上传/批量上传进度提示
@@ -21,26 +19,30 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2.4</version>
+  <version>1.2.7</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2.4'
+compile 'com.zhousf.lib:okhttp3:1.2.7'
 ```
 
 ##提交记录
 * 2016-6-29 项目提交
 * 2016-7-4 
     *  项目框架调整
-    *  代码优化、降低耦合
     *  增加Application中全局配置
     *  增加系统默认配置
     *  修复内存释放bug
-* 2016-7-29
-    *  增加图片上传功能
+* 2016-7-19
+    *  代码优化、降低耦合
     *  修复已知bug
+* 2016-7-27
+    *  改进https协议    
+* 2016-8-8
+    *  增加图片上传功能
+
 
 ##权限
 ```java
@@ -58,12 +60,14 @@ compile 'com.zhousf.lib:okhttp3:1.2.4'
 ##自定义全局配置
 在Application中配置如下：
 ```java
-OkHttpUtil.init(this)
-                .setConnectTimeout(30)//超时设置
-                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存空间
+ OkHttpUtil.init(this)
+                .setConnectTimeout(30)//超时时间设置
+                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存空间大小
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
+                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)
+                .setShowLifecycleLog(false)//不显示Activity销毁日志
+                .setRetryOnConnectionFailure(true)
                 .build();
 ```
 
@@ -94,9 +98,7 @@ OkHttpUtil.init(this)
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.Builder()
-                .setCacheLevel(CacheLevel.FIRST_LEVEL)
-                .setConnectTimeout(25).build(this)
+        OkHttpUtil.getDefault(MainActivity.this)
                 .doGetAsync(
                 HttpInfo.Builder().setUrl(url).build(),
                 info -> {
@@ -105,14 +107,13 @@ OkHttpUtil.init(this)
                         resultTV.setText("异步请求："+result);
                     }
                 });
-
     }
 ```
 
 ##在Activity上传图片示例
 ```java
  /**
-     * 上传图片
+     * 上传图片：显示上传进度
      */
     private void doUploadImg() {
         HttpInfo info = HttpInfo.Builder()
@@ -126,12 +127,7 @@ OkHttpUtil.init(this)
                     }
                 })
                 .build();
-        OkHttpUtil.getDefault(this).doUploadFile(info, new CallbackOk() {
-            @Override
-            public void onResponse(HttpInfo info) throws IOException {
-                tvResult.setText("上传结果：" + info.getRetDetail());
-            }
-        });
+        OkHttpUtil.getDefault(this).doUploadFile(info);
     }
 ```
 
@@ -142,7 +138,7 @@ OkHttpUtil.init(this)
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
 ### 日志
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
-* GET-URL：请求地址
+* GET-URL/POST-URL：请求地址
 * CostTime：请求耗时（单位：秒）
 * Response：响应串
 
