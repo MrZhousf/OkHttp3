@@ -119,7 +119,7 @@ compile 'com.zhousf.lib:okhttp3:1.2.8'
     private void doUploadImg() {
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
-                .addUploadFile(filePath, "file", new ProgressCallback() {
+                .addUploadFile("file", filePath, new ProgressCallback() {
                     @Override
                     public void onProgress(int percent, long bytesWritten, long contentLength, boolean done) {
                         uploadProgress.setProgress(percent);
