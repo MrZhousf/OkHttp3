@@ -47,6 +47,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -74,6 +75,8 @@ public class OkHttpUtil {
     private int cacheSurvivalTime;
     private Class<?> tag;
     private boolean showHttpLog;
+    private ExecutorService executorService;
+
     /**
      * 请求时间戳：区别每次请求标识
      */
@@ -138,13 +141,11 @@ public class OkHttpUtil {
         doRequestAsync(info, GET, callback, null);
     }
 
-    private ExecutorService executorService;
-
     /**
-     * 上传文件
+     * 异步上传文件
      * @param info 请求信息体
      */
-    public void doUploadFile(final HttpInfo info){
+    public void doUploadFileAsync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFile();
         for(final UploadFileInfo fileInfo : uploadFiles){
             executorService.execute(new Runnable() {
@@ -153,6 +154,17 @@ public class OkHttpUtil {
                     uploadFile(fileInfo, info);
                 }
             });
+        }
+    }
+
+    /**
+     * 同步上传文件
+     * @param info 请求信息体
+     */
+    public void doUploadFileSync(final HttpInfo info){
+        List<UploadFileInfo> uploadFiles = info.getUploadFile();
+        for(final UploadFileInfo fileInfo : uploadFiles){
+            uploadFile(fileInfo, info);
         }
     }
 
@@ -179,7 +191,9 @@ public class OkHttpUtil {
             }
         }
         showLog(log.toString());
-        mBuilder.addFormDataPart(interfaceParamName, file.getName(), RequestBody.create(null, file));
+        mBuilder.addFormDataPart(interfaceParamName,
+                file.getName(),
+                RequestBody.create(fetchFileMediaType(filePath), file));
         RequestBody requestBody = mBuilder.build();
         final Request request = new Request
                 .Builder()
@@ -194,6 +208,29 @@ public class OkHttpUtil {
                 progressCallback)
                 .build();
         OkMainHandler.getInstance().sendMessage(msg);
+    }
+
+    private MediaType fetchFileMediaType(String filePath){
+        if(!TextUtils.isEmpty(filePath) && filePath.contains(".")){
+            String extension = filePath.substring(filePath.lastIndexOf(".") + 1);
+            if("png".equals(extension)){
+                extension = "image/png";
+            }else if("jpg".equals(extension)){
+                extension = "image/jpg";
+            }else if("jpeg".equals(extension)){
+                extension = "image/jpeg";
+            }else if("gif".equals(extension)){
+                extension = "image/gif";
+            }else if("bmp".equals(extension)){
+                extension = "image/bmp";
+            }else if("tiff".equals(extension)){
+                extension = "image/tiff";
+            }else{
+                return null;
+            }
+            return MediaType.parse(extension);
+        }
+        return null;
     }
 
 

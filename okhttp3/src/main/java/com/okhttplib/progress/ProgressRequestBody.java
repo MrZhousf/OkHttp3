@@ -60,10 +60,12 @@ public class ProgressRequestBody extends RequestBody {
                 }
                 bytesWritten += byteCount;
                 if(null != progressCallback){
-                    progressCallback.onProgressAsync(bytesWritten,contentLength,bytesWritten == contentLength);
+                    int percent = (int) ((100 * bytesWritten) / contentLength);
+                    progressCallback.onProgressAsync(percent, bytesWritten,contentLength,bytesWritten == contentLength);
                     //主线程回调
                     Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
                             progressCallback,
+                            percent,
                             bytesWritten,
                             contentLength,
                             bytesWritten == contentLength)

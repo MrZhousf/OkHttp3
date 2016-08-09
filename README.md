@@ -9,7 +9,7 @@
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求
 * 异步请求切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
-* 支持文件上传/批量上传进度提示
+* 支持文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
 * 完善的日志跟踪
 * 后续优化中...
 
@@ -19,13 +19,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2.7</version>
+  <version>1.2.8</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2.7'
+compile 'com.zhousf.lib:okhttp3:1.2.8'
 ```
 
 ##提交记录
@@ -41,8 +41,9 @@ compile 'com.zhousf.lib:okhttp3:1.2.7'
 * 2016-7-27
     *  改进https协议    
 * 2016-8-8
-    *  增加图片上传功能
-
+    *  增加图片上传功能，支持批量上传
+* 2016-8-9
+    *  增加文件上传功能，支持批量上传
 
 ##权限
 ```java
@@ -113,21 +114,20 @@ compile 'com.zhousf.lib:okhttp3:1.2.7'
 ##在Activity上传图片示例
 ```java
  /**
-     * 上传图片：显示上传进度
+     * 异步上传图片：显示上传进度
      */
     private void doUploadImg() {
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
                 .addUploadFile(filePath, "file", new ProgressCallback() {
                     @Override
-                    public void onProgress(long bytesWritten, long contentLength, boolean done) {
-                        int percent = (int) ((100 * bytesWritten) / contentLength);
+                    public void onProgress(int percent, long bytesWritten, long contentLength, boolean done) {
                         uploadProgress.setProgress(percent);
                         Log.d(TAG, "上传进度：" + percent);
                     }
                 })
                 .build();
-        OkHttpUtil.getDefault(this).doUploadFile(info);
+        OkHttpUtil.getDefault(this).doUploadFileAsync(info);
     }
 ```
 

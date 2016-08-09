@@ -36,6 +36,8 @@
         </activity>
         <activity android:name=".activity.DownloadActivity">
         </activity>
+        <activity android:name=".activity.UploadImageActivity">
+        </activity>
     </application>
 
 </manifest>

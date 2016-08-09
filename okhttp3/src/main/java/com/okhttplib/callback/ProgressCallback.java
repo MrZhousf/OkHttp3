@@ -19,23 +19,25 @@ public class ProgressCallback extends ProgressCallbackAbs {
 
     /**
      * 非UI线程：除了更新ProgressBar进度外进行其他UI操作
+     * @param percent 已经写入的百分比
      * @param bytesWritten 已经写入的字节数
      * @param contentLength 文件总长度
      * @param done 是否完成即：bytesWritten==contentLength
      */
     @Override
-    public void onProgressAsync(long bytesWritten, long contentLength, boolean done) {
+    public void onProgressAsync(int percent, long bytesWritten, long contentLength, boolean done) {
 
     }
 
     /**
      * UI线程：可以直接操作UI
+     * @param percent 已经写入的百分比
      * @param bytesWritten 已经写入的字节数
      * @param contentLength 文件总长度
      * @param done 是否完成即：bytesWritten==contentLength
      */
     @Override
-    public void onProgressMain(long bytesWritten, long contentLength, boolean done) {
+    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
 
     }
 

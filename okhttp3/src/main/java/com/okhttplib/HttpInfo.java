@@ -93,11 +93,11 @@ public class HttpInfo {
 
         /**
          * 增加上传文件
-         * @param filePathWithName 上传的文件路径：包含文件名
          * @param interfaceParamName 接口参数名称
+         * @param filePathWithName 上传的文件路径：包含文件名
          * @param progressCallback 上传进度回调接口
          */
-        public Builder addUploadFile(String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+        public Builder addUploadFile(String interfaceParamName, String filePathWithName, ProgressCallback progressCallback) {
             if(null == this.uploadFile){
                 this.uploadFile = new ArrayList<UploadFileInfo>();
             }
@@ -110,11 +110,11 @@ public class HttpInfo {
         /**
          * 增加上传文件
          * @param url 上传文件接口地址
-         * @param filePathWithName 上传的文件路径：包含文件名
          * @param interfaceParamName 接口参数名称
+         * @param filePathWithName 上传的文件路径：包含文件名
          * @param progressCallback 上传进度回调接口
          */
-        public Builder addUploadFile(String url, String filePathWithName, String interfaceParamName, ProgressCallback progressCallback) {
+        public Builder addUploadFile(String url, String interfaceParamName, String filePathWithName, ProgressCallback progressCallback) {
             if(null == this.uploadFile){
                 this.uploadFile = new ArrayList<UploadFileInfo>();
             }

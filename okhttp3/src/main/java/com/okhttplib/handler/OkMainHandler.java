@@ -58,7 +58,7 @@ public class OkMainHandler extends Handler {
                 case PROGRESS_CALLBACK:
                     ProgressMessage proMsg = (ProgressMessage) msg.obj;
                     if(null != proMsg.progressCallback)
-                        proMsg.progressCallback.onProgressMain(proMsg.bytesWritten,proMsg.contentLength,proMsg.done);
+                        proMsg.progressCallback.onProgressMain(proMsg.percent,proMsg.bytesWritten,proMsg.contentLength,proMsg.done);
                     break;
                 case RESPONSE_UPLOAD_CALLBACK:
                     UploadMessage uploadMsg = (UploadMessage) msg.obj;

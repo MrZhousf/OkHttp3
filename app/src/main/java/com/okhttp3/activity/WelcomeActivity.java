@@ -20,13 +20,16 @@ public class WelcomeActivity extends ActionBarActivity {
         ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.httpBtn, R.id.uploadBtn, R.id.downloadBtn})
+    @OnClick({R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.httpBtn:
                 startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 break;
-            case R.id.uploadBtn:
+            case R.id.uploadImgBtn:
+                startActivity(new Intent(WelcomeActivity.this, UploadImageActivity.class));
+                break;
+            case R.id.uploadFileBtn:
                 startActivity(new Intent(WelcomeActivity.this, UploadFileActivity.class));
                 break;
             case R.id.downloadBtn:

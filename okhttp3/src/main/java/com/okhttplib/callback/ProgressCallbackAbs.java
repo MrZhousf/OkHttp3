@@ -9,8 +9,8 @@ public abstract class ProgressCallbackAbs {
 
     public abstract void onResponse(String filePath, HttpInfo info);
 
-    public abstract void onProgressAsync(long bytesWritten, long contentLength, boolean done);
+    public abstract void onProgressAsync(int percent, long bytesWritten, long contentLength, boolean done);
 
-    public abstract void onProgressMain(long bytesWritten, long contentLength, boolean done);
+    public abstract void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done);
 
 }

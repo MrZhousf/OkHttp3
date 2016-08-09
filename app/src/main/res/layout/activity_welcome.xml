@@ -15,7 +15,13 @@
         android:text="网络请求示例"/>
 
     <Button
-        android:id="@+id/uploadBtn"
+        android:id="@+id/uploadImgBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="上传图片示例"/>
+
+    <Button
+        android:id="@+id/uploadFileBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="上传文件示例"/>
