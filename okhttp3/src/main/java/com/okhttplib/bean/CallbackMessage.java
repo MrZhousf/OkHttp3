@@ -4,7 +4,7 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.callback.CallbackOk;
 
 /**
- * 响应回调信息封装实体类
+ * 响应回调信息体
  */
 public class CallbackMessage extends OkMessage{
 

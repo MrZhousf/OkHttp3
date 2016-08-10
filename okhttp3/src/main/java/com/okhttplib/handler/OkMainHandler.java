@@ -5,6 +5,7 @@ import android.os.Looper;
 import android.os.Message;
 
 import com.okhttplib.bean.CallbackMessage;
+import com.okhttplib.bean.DownloadMessage;
 import com.okhttplib.bean.ProgressMessage;
 import com.okhttplib.bean.UploadMessage;
 
@@ -44,6 +45,11 @@ public class OkMainHandler extends Handler {
      */
     public static final int RESPONSE_UPLOAD_CALLBACK = 0x03;
 
+    /**
+     * 下载结果回调标识
+     */
+    public static final int RESPONSE_DOWNLOAD_CALLBACK = 0x04;
+
 
     @Override
     public void handleMessage(Message msg) {
@@ -64,6 +70,11 @@ public class OkMainHandler extends Handler {
                     UploadMessage uploadMsg = (UploadMessage) msg.obj;
                     if(null != uploadMsg.progressCallback)
                         uploadMsg.progressCallback.onResponse(uploadMsg.filePath,uploadMsg.info);
+                    break;
+                case RESPONSE_DOWNLOAD_CALLBACK:
+                    DownloadMessage downloadMsg = (DownloadMessage) msg.obj;
+                    if(null != downloadMsg)
+                        downloadMsg.progressCallback.onResponse(downloadMsg.filePath,downloadMsg.info);
                     break;
                 default:
                     super.handleMessage(msg);

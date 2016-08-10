@@ -81,7 +81,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
             SparseArray<Call> callList = callsMap.get(t);
             if(null != callList){
                 Call c = callList.get(call.hashCode());
-                if(!c.isCanceled())
+                if(null != c && !c.isCanceled())
                     c.cancel();
                 callList.delete(call.hashCode());
                 if(callList.size() == 0)

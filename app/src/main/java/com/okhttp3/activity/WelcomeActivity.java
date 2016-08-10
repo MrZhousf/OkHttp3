@@ -2,22 +2,26 @@ package com.okhttp3.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 
 import com.okhttp3.R;
 
-import butterknife.ButterKnife;
+import base.BaseActivity;
 import butterknife.OnClick;
 
-public class WelcomeActivity extends ActionBarActivity {
+/**
+ * 欢迎页
+ */
+public class WelcomeActivity extends BaseActivity {
 
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_welcome;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_welcome);
-        ButterKnife.bind(this);
     }
 
     @OnClick({R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn})

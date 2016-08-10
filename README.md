@@ -10,7 +10,8 @@
 * 异步请求切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
 * 支持文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
-* 完善的日志跟踪
+* 支持文件下载/批量下载，支持同步/异步下载，支持进度提示
+* 完整的日志跟踪与异常处理
 * 后续优化中...
 
 ##引用方式
@@ -19,13 +20,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2.8</version>
+  <version>1.2.9</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2.8'
+compile 'com.zhousf.lib:okhttp3:1.2.9'
 ```
 
 ##提交记录
@@ -44,6 +45,8 @@ compile 'com.zhousf.lib:okhttp3:1.2.8'
     *  增加图片上传功能，支持批量上传
 * 2016-8-9
     *  增加文件上传功能，支持批量上传
+* 2016-8-10
+    *  增加文件下载功能，支持批量下载
 
 ##权限
 ```java
@@ -61,14 +64,17 @@ compile 'com.zhousf.lib:okhttp3:1.2.8'
 ##自定义全局配置
 在Application中配置如下：
 ```java
- OkHttpUtil.init(this)
-                .setConnectTimeout(30)//超时时间设置
-                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存空间大小
+OkHttpUtil.init(this)
+                .setConnectTimeout(30)//连接超时时间
+                .setWriteTimeout(30)//写超时时间
+                .setReadTimeout(30)//读超时时间
+                .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(false)//不显示Activity销毁日志
-                .setRetryOnConnectionFailure(true)
+                .setShowLifecycleLog(true)//显示Activity销毁日志
+                .setRetryOnConnectionFailure(false)//失败后不自动重连
+                .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .build();
 ```
 

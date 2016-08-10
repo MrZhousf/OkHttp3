@@ -3,6 +3,7 @@ package com.okhttplib;
 import android.app.Activity;
 import android.text.TextUtils;
 
+import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
 
@@ -20,6 +21,7 @@ public class HttpInfo {
     private String url;//请求地址
     private Map<String,String> params;//请求参数
     private List<UploadFileInfo> uploadFile;//上传文件参数
+    private List<DownloadFileInfo> downloadFile;//下载文件参数
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -27,11 +29,22 @@ public class HttpInfo {
 
     private Class<?> tag;
 
+    public HttpInfo newFromCopy(){
+        return HttpInfo.Builder()
+                .setUrl(this.url)
+                .addParams(this.params)
+                .addDownloadFiles(this.downloadFile)
+                .addUploadFiles(this.uploadFile)
+                .setTag(this.tag)
+                .build();
+    }
+
     public HttpInfo(Builder builder) {
         this.url = builder.url;
         this.params = builder.params;
         this.tag = builder.tag;
         this.uploadFile = builder.uploadFile;
+        this.downloadFile = builder.downloadFile;
     }
 
     public static Builder Builder() {
@@ -44,6 +57,7 @@ public class HttpInfo {
         private String url;
         private Map<String,String> params;
         private List<UploadFileInfo> uploadFile;
+        private List<DownloadFileInfo> downloadFile;
         private Class<?> tag;
 
 
@@ -65,6 +79,8 @@ public class HttpInfo {
         }
 
         public Builder addParams(Map<String, String> params) {
+            if(null == params)
+                return this;
             if(null == this.params){
                 this.params = params;
             }else{
@@ -83,10 +99,10 @@ public class HttpInfo {
 
         /**
          * 增加上传文件
-         * @param filePathWithName 上传的文件路径：包含文件名
          * @param interfaceParamName 接口参数名称
+         * @param filePathWithName 上传的文件路径：包含文件名
          */
-        public Builder addUploadFile(String filePathWithName, String interfaceParamName) {
+        public Builder addUploadFile(String interfaceParamName, String filePathWithName) {
             addUploadFile(filePathWithName,interfaceParamName,null);
             return this;
         }
@@ -120,6 +136,67 @@ public class HttpInfo {
             }
             if(!TextUtils.isEmpty(filePathWithName)){
                 this.uploadFile.add(new UploadFileInfo(url,filePathWithName,interfaceParamName,progressCallback));
+            }
+            return this;
+        }
+
+        public Builder addUploadFiles(List<UploadFileInfo> uploadFile){
+            if(null == uploadFile)
+                return this;
+            if(null == this.uploadFile){
+                this.uploadFile = uploadFile;
+            }else{
+                this.uploadFile.addAll(uploadFile);
+            }
+            return this;
+        }
+
+
+        /**
+         * 增加下载文件
+         * @param url 下载文件的网络地址
+         * @param saveFileName 文件保存名称：不包括扩展名
+         */
+        public Builder addDownloadFile(String url,String saveFileName){
+            addDownloadFile(url,null,saveFileName,null);
+            return this;
+        }
+
+        /**
+         * 增加下载文件
+         * @param url 下载文件的网络地址
+         * @param saveFileName 文件保存名称：不包括扩展名
+         * @param progressCallback 下载进度回调接口
+         */
+        public Builder addDownloadFile(String url,String saveFileName,ProgressCallback progressCallback){
+            addDownloadFile(url,null,saveFileName,progressCallback);
+            return this;
+        }
+
+        /**
+         * 增加下载文件
+         * @param url 下载文件的网络地址
+         * @param saveFileDir 文件保存目录路径：不包括名称
+         * @param saveFileName 文件保存名称：不包括扩展名
+         * @param progressCallback 下载进度回调接口
+         */
+        public Builder addDownloadFile(String url,String saveFileDir,String saveFileName,ProgressCallback progressCallback){
+            if(null == this.downloadFile){
+                this.downloadFile = new ArrayList<DownloadFileInfo>();
+            }
+            if(!TextUtils.isEmpty(url)){
+                this.downloadFile.add(new DownloadFileInfo(url,saveFileDir,saveFileName,progressCallback));
+            }
+            return this;
+        }
+
+        public Builder addDownloadFiles(List<DownloadFileInfo> downloadFile){
+            if(null == downloadFile)
+                return this;
+            if(null == this.downloadFile){
+                this.downloadFile = downloadFile;
+            }else {
+                this.downloadFile.addAll(downloadFile);
             }
             return this;
         }
@@ -160,6 +237,10 @@ public class HttpInfo {
     final String ConnectionTimeOut_Detail = "连接超时";
     final int WriteAndReadTimeOut = 8;
     final String WriteAndReadTimeOut_Detail = "读写超时";
+    final int ConnectionInterruption = 9;
+    final String ConnectionInterruption_Detail = "连接中断";
+    final int NetworkOnMainThreadException = 10;
+    final String NetworkOnMainThreadException_Detail = "不允许在UI线程中进行网络操作";
 
     public HttpInfo packInfo(int retCode, String retDetail){
         this.retCode = retCode;
@@ -188,6 +269,12 @@ public class HttpInfo {
             case WriteAndReadTimeOut:
                 this.retDetail = WriteAndReadTimeOut_Detail;
                 break;
+            case ConnectionInterruption:
+                this.retDetail = ConnectionInterruption_Detail;
+                break;
+            case NetworkOnMainThreadException:
+                this.retDetail = NetworkOnMainThreadException_Detail;
+                break;
         }
         if(!TextUtils.isEmpty(retDetail)){
             this.retDetail = retDetail;
@@ -201,6 +288,10 @@ public class HttpInfo {
 
     public String getUrl() {
         return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getRetDetail() {
@@ -221,6 +312,10 @@ public class HttpInfo {
 
     public List<UploadFileInfo> getUploadFile() {
         return uploadFile;
+    }
+
+    public List<DownloadFileInfo> getDownloadFile() {
+        return downloadFile;
     }
 
 }

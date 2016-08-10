@@ -5,7 +5,9 @@ import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Environment;
 import android.os.Message;
+import android.os.NetworkOnMainThreadException;
 import android.support.annotation.IntDef;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +15,8 @@ import android.util.Log;
 import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.bean.CallbackMessage;
+import com.okhttplib.bean.DownloadFileInfo;
+import com.okhttplib.bean.DownloadMessage;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
@@ -20,9 +24,12 @@ import com.okhttplib.callback.CallbackOk;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.progress.ProgressRequestBody;
+import com.okhttplib.progress.ProgressResponseBody;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.SocketTimeoutException;
@@ -69,18 +76,35 @@ public class OkHttpUtil {
     private final String TAG = getClass().getSimpleName();
     private static Application application;
     private static OkHttpClient httpClient;
+    private OkHttpClient.Builder clientBuilder;
     private static Builder builderGlobal;
-    private int cacheLevel;
-    private int cacheType;
-    private int cacheSurvivalTime;
-    private Class<?> tag;
-    private boolean showHttpLog;
     private ExecutorService executorService;
 
     /**
      * 请求时间戳：区别每次请求标识
      */
     private long timeStamp;
+
+
+    int maxCacheSize;//缓存大小
+    File cachedDir;//缓存目录
+    int connectTimeout;//连接超时
+    int readTimeout;//读超时
+    int writeTimeout;//写超时
+    boolean retryOnConnectionFailure;//失败重新连接
+    List<Interceptor> networkInterceptors;//网络拦截器
+    List<Interceptor> interceptors;//应用拦截器
+    int cacheSurvivalTime;//缓存存活时间（秒）
+    int cacheType;//缓存类型
+    int cacheLevel;//缓存级别
+    boolean isGlobalConfig;//是否全局配置
+    boolean showHttpLog;//是否显示Http请求日志
+    boolean showLifecycleLog;//是否显示ActivityLifecycle日志
+    String downloadFileDir;//下载文件保存目录
+    Class<?> tag;
+
+
+
 
     /**
      * 初始化：请在Application中调用
@@ -111,7 +135,7 @@ public class OkHttpUtil {
      * @return HttpInfo
      */
     public HttpInfo doPostSync(HttpInfo info){
-        return doRequestSync(info, POST, null);
+        return doRequestSync(info, POST);
     }
 
     /**
@@ -120,7 +144,7 @@ public class OkHttpUtil {
      * @return HttpInfo
      */
     public HttpInfo doGetSync(HttpInfo info){
-        return doRequestSync(info, GET, null);
+        return doRequestSync(info, GET);
     }
 
     /**
@@ -168,46 +192,87 @@ public class OkHttpUtil {
         }
     }
 
-    private void uploadFile(UploadFileInfo fileInfo, HttpInfo info){
-        String filePath = fileInfo.getFilePathWithName();
-        String interfaceParamName = fileInfo.getInterfaceParamName();
-        String url = fileInfo.getUrl();
-        url = TextUtils.isEmpty(url) ? info.getUrl() : url;
-        if(TextUtils.isEmpty(url)){
-            showLog("文件上传接口地址不能为空["+filePath+"]");
-            return ;
+    /**
+     * 异步下载文件
+     * @param info 请求信息体
+     */
+    public void doDownloadFileAsync(final HttpInfo info){
+        List<DownloadFileInfo> downloadFiles = info.getDownloadFile();
+        for(final DownloadFileInfo fileInfo : downloadFiles){
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        HttpInfo newInfo = info.newFromCopy();
+                        downloadFile(fileInfo,newInfo);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
-        ProgressCallback progressCallback = fileInfo.getProgressCallback();
-        File file = new File(filePath);
-        MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-        StringBuilder log = new StringBuilder("PostParams: ");
-        log.append(interfaceParamName+"="+filePath);
-        String logInfo;
-        if(null != info.getParams() && !info.getParams().isEmpty()){
-            for (String key : info.getParams().keySet()) {
-                mBuilder.addFormDataPart(key, info.getParams().get(key));
-                logInfo = key+" ="+info.getParams().get(key)+", ";
-                log.append(logInfo);
+    }
+
+    /**
+     * 同步下载文件
+     * @param info 请求信息体
+     */
+    public void doDownloadFileSync(final HttpInfo info){
+        List<DownloadFileInfo> downloadFiles = info.getDownloadFile();
+        for(final DownloadFileInfo fileInfo : downloadFiles){
+            try {
+                HttpInfo newInfo = info.newFromCopy();
+                downloadFile(fileInfo,newInfo);
+            }catch (Exception e){
+                e.printStackTrace();
             }
         }
-        showLog(log.toString());
-        mBuilder.addFormDataPart(interfaceParamName,
-                file.getName(),
-                RequestBody.create(fetchFileMediaType(filePath), file));
-        RequestBody requestBody = mBuilder.build();
-        final Request request = new Request
-                .Builder()
-                .url(url)
-                .post(new ProgressRequestBody(requestBody,progressCallback))
-                .build();
-        doRequestSync(info,POST,request);
-        Message msg = new UploadMessage(
-                OkMainHandler.RESPONSE_UPLOAD_CALLBACK,
-                filePath,
-                info,
-                progressCallback)
-                .build();
-        OkMainHandler.getInstance().sendMessage(msg);
+    }
+
+    private void uploadFile(UploadFileInfo fileInfo, HttpInfo info){
+        try {
+            String filePath = fileInfo.getFilePathWithName();
+            String interfaceParamName = fileInfo.getInterfaceParamName();
+            String url = fileInfo.getUrl();
+            url = TextUtils.isEmpty(url) ? info.getUrl() : url;
+            if(TextUtils.isEmpty(url)){
+                showLog("文件上传接口地址不能为空["+filePath+"]");
+                return ;
+            }
+            ProgressCallback progressCallback = fileInfo.getProgressCallback();
+            File file = new File(filePath);
+            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+            StringBuilder log = new StringBuilder("PostParams: ");
+            log.append(interfaceParamName+"="+filePath);
+            String logInfo;
+            if(null != info.getParams() && !info.getParams().isEmpty()){
+                for (String key : info.getParams().keySet()) {
+                    mBuilder.addFormDataPart(key, info.getParams().get(key));
+                    logInfo = key+" ="+info.getParams().get(key)+", ";
+                    log.append(logInfo);
+                }
+            }
+            showLog(log.toString());
+            mBuilder.addFormDataPart(interfaceParamName,
+                    file.getName(),
+                    RequestBody.create(fetchFileMediaType(filePath), file));
+            RequestBody requestBody = mBuilder.build();
+            final Request request = new Request
+                    .Builder()
+                    .url(url)
+                    .post(new ProgressRequestBody(requestBody,progressCallback))
+                    .build();
+            doRequestSync(info,POST,request,null);
+            Message msg = new UploadMessage(
+                    OkMainHandler.RESPONSE_UPLOAD_CALLBACK,
+                    filePath,
+                    info,
+                    progressCallback)
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private MediaType fetchFileMediaType(String filePath){
@@ -225,6 +290,8 @@ public class OkHttpUtil {
                 extension = "image/bmp";
             }else if("tiff".equals(extension)){
                 extension = "image/tiff";
+            }else if("ico".equals(extension)){
+                extension = "image/ico";
             }else{
                 return null;
             }
@@ -233,29 +300,46 @@ public class OkHttpUtil {
         return null;
     }
 
-
-    /**
-     * 下载文件
-     * @param info 请求信息体
-     * @param callback 回调接口
-     */
-    public void doDownloadFile(final HttpInfo info, final CallbackOk callback){
-        if(TextUtils.isEmpty(info.getUrl())){
+    private void downloadFile(DownloadFileInfo fileInfo, HttpInfo info){
+        String url = fileInfo.getUrl();
+        if(TextUtils.isEmpty(url)){
             showLog("下载文件失败：文件下载地址不能为空！");
             return ;
         }
+        info.setUrl(url);
+        final ProgressCallback progressCallback = fileInfo.getProgressCallback();
+        Interceptor interceptor = new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                Response originalResponse = chain.proceed(chain.request());
+                return originalResponse.newBuilder()
+                        .body(new ProgressResponseBody(originalResponse.body(), progressCallback))
+                        .build();
+            }
+        };
+        httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
+        doRequestSync(info,GET,null,fileInfo);
+        Message msg = new DownloadMessage(
+                OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,
+                url,
+                info,
+                progressCallback)
+                .build();
+        OkMainHandler.getInstance().sendMessage(msg);
+    }
 
-
-
+    private HttpInfo doRequestSync(HttpInfo info,@Method int method){
+        return doRequestSync(info,method,null,null);
     }
 
     /**
      * 同步请求
      * @param info 请求信息体
      * @param method 请求方法
-     * @return HttpInfo
+     * @param request 请求
+     * @param downloadFile 下载文件
      */
-    private HttpInfo doRequestSync(HttpInfo info, @Method int method, Request request){
+    private HttpInfo doRequestSync(HttpInfo info,@Method int method,Request request,DownloadFileInfo downloadFile){
         Call call = null;
         try {
             String url = info.getUrl();
@@ -265,7 +349,7 @@ public class OkHttpUtil {
             call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
             BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
-            return dealResponse(info, res, call);
+            return dealResponse(info, res, call, downloadFile);
         } catch (IllegalArgumentException e){
             return retInfo(info,info.ProtocolException);
         } catch (SocketTimeoutException e){
@@ -278,7 +362,9 @@ public class OkHttpUtil {
             return retInfo(info,info.WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
             return retInfo(info,info.CheckNet);
-        } catch (Exception e) {
+        } catch(NetworkOnMainThreadException e){
+            return retInfo(info,info.NetworkOnMainThreadException);
+        } catch(Exception e) {
             return retInfo(info,info.NoResult);
         }finally {
             BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
@@ -307,7 +393,7 @@ public class OkHttpUtil {
                 //主线程回调
                 Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                         callback,
-                        dealResponse(info,res,call))
+                        dealResponse(info,res,call,null))
                         .build();
                 OkMainHandler.getInstance().sendMessage(msg);
                 BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
@@ -315,11 +401,15 @@ public class OkHttpUtil {
         });
     }
 
-    private HttpInfo dealResponse(HttpInfo info, Response res, Call call){
+    private HttpInfo dealResponse(HttpInfo info,Response res,Call call,DownloadFileInfo downloadFile){
         try {
             if(null != res){
                 if(res.isSuccessful() && null != res.body()){
-                    return retInfo(info,info.SUCCESS,res.body().string());
+                    if(null == downloadFile){
+                        return retInfo(info,info.SUCCESS,res.body().string());
+                    }else{ //下载文件
+                        return dealDownloadFile(info,downloadFile,res);
+                    }
                 }else{
                     showLog("HttpStatus: "+res.code());
                     if(res.code() == 404)//请求页面路径错误
@@ -340,6 +430,59 @@ public class OkHttpUtil {
             if(null != res)
                 res.close();
         }
+    }
+
+    private HttpInfo dealDownloadFile(HttpInfo info,DownloadFileInfo fileInfo,Response res){
+        FileOutputStream outputStream = null;
+        InputStream inputStream = null;
+        String saveFileDir = fileInfo.getSaveFileDir();
+        String saveFileName = fileInfo.getSaveFileName();
+        String url = fileInfo.getUrl();
+        String extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
+        saveFileName += "."+extension;
+        saveFileDir = TextUtils.isEmpty(saveFileDir) ? downloadFileDir : saveFileDir;
+        try {
+            int len;
+            inputStream = res.body().byteStream();
+            byte[] buf = new byte[res.body().bytes().length];
+            File file = new File(saveFileDir,saveFileName);
+            mkDirNotExists(saveFileDir);
+            outputStream = new FileOutputStream(file);
+            while ((len = inputStream.read(buf)) != -1) {
+                outputStream.write(buf, 0, len);
+            }
+        }catch(SocketTimeoutException e){
+            return retInfo(info,info.WriteAndReadTimeOut);
+        }catch (Exception e){
+            e.printStackTrace();
+            return retInfo(info,info.ConnectionInterruption);
+        }finally {
+            try {
+                if(null != outputStream){
+                    outputStream.flush();
+                    outputStream.close();
+                }
+                if(null != inputStream){
+                    inputStream.close();
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+                return retInfo(info,info.ConnectionInterruption);
+            }
+        }
+        return retInfo(info,info.SUCCESS,saveFileDir+saveFileName);
+    }
+
+    private boolean mkDirNotExists(String dir) {
+        File file = new File(dir);
+        if (!file.exists()) {
+            if (file.mkdirs()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Request fetchRequest(HttpInfo info, @Method int method){
@@ -462,8 +605,25 @@ public class OkHttpUtil {
         }
     };
 
+    private OkHttpClient.Builder newBuilderFromCopy(){
+        OkHttpClient.Builder newBuilder = new OkHttpClient.Builder()
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
+                .cache(new Cache(cachedDir,maxCacheSize))
+                .retryOnConnectionFailure(retryOnConnectionFailure)
+                .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
+                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
+        if(null != networkInterceptors && !networkInterceptors.isEmpty())
+            newBuilder.networkInterceptors().addAll(networkInterceptors);
+        if(null != interceptors && !interceptors.isEmpty())
+            newBuilder.interceptors().addAll(interceptors);
+        newBuilder.addInterceptor(LOG_INTERCEPTOR);
+        return newBuilder;
+    }
+
     private OkHttpUtil(Builder builder) {
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+        clientBuilder = new OkHttpClient.Builder()
                 .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
                 .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
@@ -479,13 +639,8 @@ public class OkHttpUtil {
         setSslSocketFactory(clientBuilder);
         httpClient = clientBuilder.build();
         timeStamp = System.currentTimeMillis();
-        final int deviation = 5;
-        this.cacheLevel = builder.cacheLevel;
-        this.cacheType = builder.cacheType;
-        this.cacheSurvivalTime = builder.cacheSurvivalTime;
-        this.tag = builder.tag;
-        this.showHttpLog = builder.showHttpLog;
         if(this.cacheSurvivalTime == 0){
+            final int deviation = 5;
             switch (this.cacheLevel){
                 case FIRST_LEVEL:
                     this.cacheSurvivalTime = 0;
@@ -505,6 +660,23 @@ public class OkHttpUtil {
             cacheType = CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
         executorService = Executors.newCachedThreadPool();
+        //初始化参数
+        maxCacheSize = builder.maxCacheSize;
+        cachedDir = builder.cachedDir;
+        connectTimeout = builder.connectTimeout;
+        readTimeout = builder.readTimeout;
+        writeTimeout = builder.writeTimeout;
+        retryOnConnectionFailure = builder.retryOnConnectionFailure;
+        networkInterceptors = builder.networkInterceptors;
+        interceptors = builder.interceptors;
+        cacheSurvivalTime = builder.cacheSurvivalTime;
+        cacheType = builder.cacheType;
+        cacheLevel = builder.cacheLevel;
+        isGlobalConfig = builder.isGlobalConfig;
+        showHttpLog = builder.showHttpLog;
+        showLifecycleLog = builder.showLifecycleLog;
+        downloadFileDir = builder.downloadFileDir;
+        tag = builder.tag;
     }
 
     /**
@@ -570,6 +742,7 @@ public class OkHttpUtil {
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
+        private String downloadFileDir;//下载文件保存目录
         private Class<?> tag;
 
         public Builder() {
@@ -619,6 +792,7 @@ public class OkHttpUtil {
             setInterceptors(null);
             setShowHttpLog(true);
             setShowLifecycleLog(false);
+            setDownloadFileDir(Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/");
         }
 
         /**
@@ -639,6 +813,9 @@ public class OkHttpUtil {
             setInterceptors(builder.interceptors);
             setShowHttpLog(builder.showHttpLog);
             setShowLifecycleLog(builder.showLifecycleLog);
+            if(!TextUtils.isEmpty(builder.downloadFileDir)){
+                setDownloadFileDir(builder.downloadFileDir);
+            }
         }
 
         public Builder setMaxCacheSize(int maxCacheSize) {
@@ -730,6 +907,11 @@ public class OkHttpUtil {
                 android.app.Fragment fragment = (android.app.Fragment) object;
                 this.tag = fragment.getActivity().getClass();
             }
+            return this;
+        }
+
+        public Builder setDownloadFileDir(String downloadFileDir) {
+            this.downloadFileDir = downloadFileDir;
             return this;
         }
     }

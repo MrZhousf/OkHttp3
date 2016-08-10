@@ -5,12 +5,10 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.okhttp3.R;
@@ -22,11 +20,14 @@ import com.okhttplib.callback.ProgressCallback;
 
 import java.io.IOException;
 
+import base.BaseActivity;
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class UploadImageActivity extends ActionBarActivity {
+/**
+ * 上传图片：支持批量上传、进度显示
+ */
+public class UploadImageActivity extends BaseActivity {
 
     @Bind(R.id.uploadProgressOne)
     ProgressBar uploadProgressOne;
@@ -36,8 +37,6 @@ public class UploadImageActivity extends ActionBarActivity {
     ProgressBar uploadProgressTwo;
     @Bind(R.id.ivImageTwo)
     ImageView ivImageTwo;
-    @Bind(R.id.tvResult)
-    TextView tvResult;
 
     private final String TAG = UploadImageActivity.class.getSimpleName();
 
@@ -49,12 +48,14 @@ public class UploadImageActivity extends ActionBarActivity {
     private String filePathOne;
     private String filePathTwo;
 
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_upload_image;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_upload_image);
-        ButterKnife.bind(this);
     }
 
 

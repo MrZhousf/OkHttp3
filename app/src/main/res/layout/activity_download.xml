@@ -10,13 +10,34 @@
     tools:context="com.okhttp3.activity.DownloadActivity">
 
     <ProgressBar
-        android:id="@+id/downloadProgress"
+        android:id="@+id/downloadProgressOne"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="100"
         android:progress="0"
         />
+    <TextView
+        android:id="@+id/tvResultOne"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"/>
+
+    <ProgressBar
+        android:id="@+id/downloadProgressTwo"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="0"
+        />
+    <TextView
+        android:id="@+id/tvResultTwo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,12 +50,6 @@
             android:layout_height="wrap_content"
             android:text="下载文件"/>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvResult"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
 
 
 </LinearLayout>

@@ -3,10 +3,8 @@ package com.okhttp3.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,11 +16,14 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
 
+import base.BaseActivity;
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class UploadFileActivity extends ActionBarActivity {
+/**
+ * 上传文件：支持批量上传、进度显示
+ */
+public class UploadFileActivity extends BaseActivity {
 
     private final String TAG = UploadFileActivity.class.getSimpleName();
 
@@ -32,10 +33,6 @@ public class UploadFileActivity extends ActionBarActivity {
     TextView tvResult;
     @Bind(R.id.tvFile)
     TextView tvFile;
-    @Bind(R.id.chooseFileBtn)
-    Button chooseFileBtn;
-    @Bind(R.id.uploadFileBtn)
-    Button uploadFileBtn;
 
     /**
      * 文件上传地址
@@ -43,12 +40,14 @@ public class UploadFileActivity extends ActionBarActivity {
     private String url = "";
     private String filePath;
 
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_upload_file;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_upload_file);
-        ButterKnife.bind(this);
     }
 
     @OnClick({R.id.chooseFileBtn, R.id.uploadFileBtn})

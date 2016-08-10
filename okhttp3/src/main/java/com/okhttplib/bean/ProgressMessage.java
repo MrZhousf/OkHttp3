@@ -3,7 +3,7 @@ package com.okhttplib.bean;
 import com.okhttplib.callback.ProgressCallback;
 
 /**
- * 上传/下载进度回调信息封装实体类
+ * 上传/下载进度回调信息体
  */
 public class ProgressMessage extends OkMessage{
 

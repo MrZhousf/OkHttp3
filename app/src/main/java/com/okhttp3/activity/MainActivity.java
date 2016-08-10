@@ -1,7 +1,6 @@
 package com.okhttp3.activity;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -14,15 +13,18 @@ import com.okhttplib.callback.CallbackOk;
 
 import java.io.IOException;
 
+import base.BaseActivity;
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
 import static com.okhttplib.annotation.CacheLevel.SECOND_LEVEL;
 import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 
-public class MainActivity extends ActionBarActivity {
+/**
+ * 网络请求：支持同步/异步、GET/POST、缓存请求
+ */
+public class MainActivity extends BaseActivity {
 
     @Bind(R.id.syncBtn)
     Button syncBtn;
@@ -40,12 +42,14 @@ public class MainActivity extends ActionBarActivity {
      */
     private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
 
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_main;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
     }
 
     @OnClick({R.id.syncBtn, R.id.asyncBtn, R.id.cacheBtn, R.id.offlineBtn})

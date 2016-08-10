@@ -3,6 +3,9 @@ package com.okhttplib.bean;
 
 import com.okhttplib.callback.ProgressCallback;
 
+/**
+ * 上传文件信息体
+ */
 public class UploadFileInfo {
 
     //上传文件接口地址
