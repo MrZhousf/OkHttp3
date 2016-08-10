@@ -444,7 +444,7 @@ public class OkHttpUtil {
         try {
             int len;
             inputStream = res.body().byteStream();
-            byte[] buf = new byte[res.body().bytes().length];
+            byte[] buf = new byte[4096];
             File file = new File(saveFileDir,saveFileName);
             mkDirNotExists(saveFileDir);
             outputStream = new FileOutputStream(file);

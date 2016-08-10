@@ -59,7 +59,7 @@ public class DownloadActivity extends BaseActivity {
             return;
         }
         final HttpInfo info = HttpInfo.Builder()
-                .addDownloadFile("http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4", "name1", new ProgressCallback() {
+                .addDownloadFile("http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4", "file1", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         downloadProgressOne.setProgress(percent);
@@ -73,7 +73,7 @@ public class DownloadActivity extends BaseActivity {
                         LogUtil.d(TAG, "下载结果1：" + info.getRetDetail());
                     }
                 })
-                .addDownloadFile(url, "name2", new ProgressCallback() {
+                .addDownloadFile(url, "file2", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         downloadProgressTwo.setProgress(percent);
