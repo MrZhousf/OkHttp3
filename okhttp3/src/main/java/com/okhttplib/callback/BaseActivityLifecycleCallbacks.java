@@ -18,6 +18,8 @@ import okhttp3.Call;
  */
 public class BaseActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 
+    private static final String TAG = "ActivityLifecycle";
+
     /**
      * 是否显示ActivityLifecycle日志
      */
@@ -40,33 +42,33 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
             SparseArray<Call> callList = callsMap.get(t);
             if(null == callList){
                 callList = new SparseArray<>();
-                callList.put(call.hashCode(),call);
-                callsMap.put(t,callList);
-            }else{
-                callList.put(call.hashCode(),call);
             }
+            callList.put(call.hashCode(),call);
+            callsMap.put(t,callList);
+            showLog(false);
         }
-        showLog(false);
+
     }
 
     /**
      * 取消请求
      * @param tag 请求标识
      */
-    public static void cancelCall(Class<?> tag){
+    private static void cancelCallByActivityDestroy(Class<?> tag){
         if(null == tag)
             return ;
         SparseArray<Call> callList = callsMap.get(tag);
         if(null != callList){
-            for(int i=0;i<callList.size();i++){
+            final int len = callList.size();
+            for(int i=0;i<len;i++){
                 Call call = callList.valueAt(i);
                 if(!call.isCanceled())
                     call.cancel();
             }
             callList.clear();
             callsMap.remove(tag);
+            showLog(true);
         }
-        showLog(true);
     }
 
     /**
@@ -86,9 +88,9 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
                 callList.delete(call.hashCode());
                 if(callList.size() == 0)
                     callsMap.remove(t);
+                showLog(true);
             }
         }
-        showLog(true);
     }
 
     private static Class<?> fetchTag(Class<?> tag, HttpInfo info){
@@ -100,18 +102,22 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
         return t;
     }
 
-    public static void showLog(boolean isCancel){
+    private static void showLog(boolean isCancel){
+        if(!showLifecycleLog){
+            return;
+        }
         String callDetail = "增加请求";
         if(isCancel)
             callDetail = "取消请求";
-        if(showLifecycleLog){
-            if(callsMap.size() > 0){
-                for(Map.Entry<Class<?>,SparseArray<Call>> entry : callsMap.entrySet()){
-                    Log.d(BaseActivityLifecycleCallbacks.class.getSimpleName(),"###"+callDetail+": size = "+entry.getValue().size()+" ["+entry.getKey().getName()+"]");
-                }
-            }else{
-                Log.d(BaseActivityLifecycleCallbacks.class.getSimpleName(),"###"+callDetail+": size = 0 ");
+        int originalSize = callsMap.size();
+        int rest ;
+        if(originalSize > 0){
+            for(Map.Entry<Class<?>,SparseArray<Call>> entry : callsMap.entrySet()){
+                rest = entry.getValue().size();
+                Log.d(TAG,callDetail+": size = "+rest+" ["+entry.getKey().getName()+"]");
             }
+        }else{
+            Log.d(TAG,callDetail+": size = 0 ");
         }
     }
 
@@ -148,7 +154,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        cancelCall(activity.getClass());
+        cancelCallByActivityDestroy(activity.getClass());
     }
 
     public static void setShowLifecycleLog(boolean showLifecycle) {

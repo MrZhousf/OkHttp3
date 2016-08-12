@@ -69,19 +69,19 @@ public class OkMainHandler extends Handler {
                 case RESPONSE_UPLOAD_CALLBACK:
                     UploadMessage uploadMsg = (UploadMessage) msg.obj;
                     if(null != uploadMsg.progressCallback)
-                        uploadMsg.progressCallback.onResponse(uploadMsg.filePath,uploadMsg.info);
+                        uploadMsg.progressCallback.onResponseMain(uploadMsg.filePath,uploadMsg.info);
                     break;
                 case RESPONSE_DOWNLOAD_CALLBACK:
                     DownloadMessage downloadMsg = (DownloadMessage) msg.obj;
                     if(null != downloadMsg)
-                        downloadMsg.progressCallback.onResponse(downloadMsg.filePath,downloadMsg.info);
+                        downloadMsg.progressCallback.onResponseMain(downloadMsg.filePath,downloadMsg.info);
                     break;
                 default:
                     super.handleMessage(msg);
                     break;
             }
         }catch (Exception e){
-            e.printStackTrace();
+
         }
     }
 

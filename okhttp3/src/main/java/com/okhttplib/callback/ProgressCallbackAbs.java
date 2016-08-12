@@ -7,7 +7,9 @@ import com.okhttplib.HttpInfo;
  */
 public abstract class ProgressCallbackAbs {
 
-    public abstract void onResponse(String filePath, HttpInfo info);
+    public abstract void onResponseMain(String filePath, HttpInfo info);
+
+    public abstract void onResponseSync(String filePath, HttpInfo info);
 
     public abstract void onProgressAsync(int percent, long bytesWritten, long contentLength, boolean done);
 

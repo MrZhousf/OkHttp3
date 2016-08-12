@@ -80,7 +80,7 @@ public class UploadFileActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onResponse(String filePath, HttpInfo info) {
+                    public void onResponseMain(String filePath, HttpInfo info) {
                         tvResult.setText(info.getRetDetail());
                     }
                 })

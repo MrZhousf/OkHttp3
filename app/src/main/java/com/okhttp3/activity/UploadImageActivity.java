@@ -147,7 +147,7 @@ public class UploadImageActivity extends BaseActivity {
                         LogUtil.d(TAG, "上传进度1：" + percent);
                     }
                     @Override
-                    public void onResponse(String filePath, HttpInfo info) {
+                    public void onResponseMain(String filePath, HttpInfo info) {
                         LogUtil.d(TAG, "上传结果1：\n" + filePath+"\n"+info.getRetDetail());
                     }
                 })
@@ -158,7 +158,7 @@ public class UploadImageActivity extends BaseActivity {
                         LogUtil.d(TAG, "上传进度2：" + percent);
                     }
                     @Override
-                    public void onResponse(String filePath, HttpInfo info) {
+                    public void onResponseMain(String filePath, HttpInfo info) {
                         LogUtil.d(TAG, "上传结果2：\n" + filePath+"\n"+info.getRetDetail());
                     }
                 })

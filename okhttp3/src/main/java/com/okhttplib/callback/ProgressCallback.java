@@ -8,17 +8,27 @@ import com.okhttplib.HttpInfo;
 public class ProgressCallback extends ProgressCallbackAbs {
 
     /**
-     * UI线程
-     * @param filePath 长传文件途径
-     * @param info 上传结果信息类
+     * 异步UI线程：返回请求结果
+     * @param filePath 文件路径
+     * @param info 结果信息类
      */
     @Override
-    public void onResponse(String filePath, HttpInfo info) {
+    public void onResponseMain(String filePath, HttpInfo info) {
 
     }
 
     /**
-     * 非UI线程：除了更新ProgressBar进度外进行其他UI操作
+     * 同步非UI线程：返回请求结果
+     * @param filePath 文件路径
+     * @param info 结果信息类
+     */
+    @Override
+    public void onResponseSync(String filePath, HttpInfo info) {
+
+    }
+
+    /**
+     * 非UI线程：除了更新ProgressBar进度外不要进行其他UI操作
      * @param percent 已经写入的百分比
      * @param bytesWritten 已经写入的字节数
      * @param contentLength 文件总长度

@@ -263,6 +263,10 @@ public class OkHttpUtil {
                     .post(new ProgressRequestBody(requestBody,progressCallback))
                     .build();
             doRequestSync(info,POST,request,null);
+            //同步结果回调
+            if(null != progressCallback)
+                progressCallback.onResponseSync(filePath,info);
+            //异步主线程结果回调
             Message msg = new UploadMessage(
                     OkMainHandler.RESPONSE_UPLOAD_CALLBACK,
                     filePath,
@@ -319,6 +323,10 @@ public class OkHttpUtil {
         };
         httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
         doRequestSync(info,GET,null,fileInfo);
+        //同步结果回调
+        if(null != progressCallback)
+            progressCallback.onResponseSync(url,info);
+        //异步主线程结果回调
         Message msg = new DownloadMessage(
                 OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,
                 url,
@@ -408,7 +416,7 @@ public class OkHttpUtil {
                     if(null == downloadFile){
                         return retInfo(info,info.SUCCESS,res.body().string());
                     }else{ //下载文件
-                        return dealDownloadFile(info,downloadFile,res);
+                        return dealDownloadFile(info,downloadFile,res,call);
                     }
                 }else{
                     showLog("HttpStatus: "+res.code());
@@ -432,7 +440,7 @@ public class OkHttpUtil {
         }
     }
 
-    private HttpInfo dealDownloadFile(HttpInfo info,DownloadFileInfo fileInfo,Response res){
+    private HttpInfo dealDownloadFile(HttpInfo info,DownloadFileInfo fileInfo,Response res,Call call){
         FileOutputStream outputStream = null;
         InputStream inputStream = null;
         String saveFileDir = fileInfo.getSaveFileDir();
@@ -454,7 +462,6 @@ public class OkHttpUtil {
         }catch(SocketTimeoutException e){
             return retInfo(info,info.WriteAndReadTimeOut);
         }catch (Exception e){
-            e.printStackTrace();
             return retInfo(info,info.ConnectionInterruption);
         }finally {
             try {
@@ -466,9 +473,9 @@ public class OkHttpUtil {
                     inputStream.close();
                 }
             }catch (IOException e){
-                e.printStackTrace();
                 return retInfo(info,info.ConnectionInterruption);
             }
+            BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
         }
         return retInfo(info,info.SUCCESS,saveFileDir+saveFileName);
     }
