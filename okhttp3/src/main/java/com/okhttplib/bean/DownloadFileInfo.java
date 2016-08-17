@@ -1,6 +1,7 @@
 package com.okhttplib.bean;
 
 
+import com.okhttplib.annotation.DownloadStatus;
 import com.okhttplib.callback.ProgressCallback;
 
 /**
@@ -14,8 +15,18 @@ public class DownloadFileInfo {
     private String saveFileDir;
     //文件保存名称
     private String saveFileName;
-    //上传进度回调接口
+    //下载进度回调接口
     private ProgressCallback progressCallback;
+    //下载状态
+    private int downloadStatus = DownloadStatus.INIT;
+    //已下载字节数
+    private long completedSize;
+
+    public DownloadFileInfo(String url, String saveFileName, ProgressCallback progressCallback) {
+        this.url = url;
+        this.saveFileName = saveFileName;
+        this.progressCallback = progressCallback;
+    }
 
     public DownloadFileInfo(String url, String saveFileDir, String saveFileName, ProgressCallback progressCallback) {
         this.url = url;
@@ -54,5 +65,21 @@ public class DownloadFileInfo {
 
     public void setSaveFileName(String saveFileName) {
         this.saveFileName = saveFileName;
+    }
+
+    public int getDownloadStatus() {
+        return downloadStatus;
+    }
+
+    public void setDownloadStatus(@DownloadStatus int downloadStatus) {
+        this.downloadStatus = downloadStatus;
+    }
+
+    public long getCompletedSize() {
+        return completedSize;
+    }
+
+    public void setCompletedSize(long completedSize) {
+        this.completedSize = completedSize;
     }
 }

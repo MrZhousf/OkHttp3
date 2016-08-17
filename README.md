@@ -7,10 +7,11 @@
 * 支持Http/Https等协议
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求
-* 异步请求切换到UI线程，摒弃runOnUiThread
+* 异步请求响应自动切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
 * 支持文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
 * 支持文件下载/批量下载，支持同步/异步下载，支持进度提示
+* 支持文件断点下载，独立下载的模块摒弃了数据库记录断点的过时方法
 * 完整的日志跟踪与异常处理
 * 后续优化中...
 
@@ -20,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.2.9</version>
+  <version>1.4</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.2.9'
+compile 'com.zhousf.lib:okhttp3:1.4'
 ```
 
 ##提交记录
@@ -47,6 +48,8 @@ compile 'com.zhousf.lib:okhttp3:1.2.9'
     *  增加文件上传功能，支持批量上传
 * 2016-8-10
     *  增加文件下载功能，支持批量下载
+* 2016-8-17
+    *  增加文件断点下载功能
 
 ##权限
 ```java
@@ -137,11 +140,54 @@ OkHttpUtil.init(this)
     }
 ```
 
+##在Activity断点下载文件示例
+```java
+ @OnClick({R.id.downloadBtn, R.id.pauseBtn, R.id.continueBtn})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.downloadBtn://下载
+                download();
+                break;
+            case R.id.pauseBtn://暂停下载
+                if(null != fileInfo)
+                    fileInfo.setDownloadStatus(DownloadStatus.PAUSE);
+                break;
+            case R.id.continueBtn://继续下载
+                download();
+                break;
+        }
+    }
+
+    private void download(){
+        if(null == fileInfo)
+            fileInfo = new DownloadFileInfo(url,"fileName",new ProgressCallback(){
+                @Override
+                public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                    downloadProgress.setProgress(percent);
+                    tvResult.setText(percent+"%");
+                    LogUtil.d(TAG, "下载进度：" + percent);
+                }
+                @Override
+                public void onResponseMain(String filePath, HttpInfo info) {
+                    if(info.isSuccessful()){
+                        tvResult.setText(info.getRetDetail()+"\n下载状态："+fileInfo.getDownloadStatus());
+                    }else{
+                        Toast.makeText(DownloadBreakpointsActivity.this,info.getRetDetail(),Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        HttpInfo info = HttpInfo.Builder().addDownloadFile(fileInfo).build();
+        OkHttpUtil.Builder().setReadTimeout(120).build(this).doDownloadFileAsync(info);
+    }
+```
+
 ##相关截图
 ###网络请求界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
 ###上传图片界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
+###断点下载文件界面
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/4.jpg?raw=true)
 ### 日志
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
 * GET-URL/POST-URL：请求地址

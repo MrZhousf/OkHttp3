@@ -32,5 +32,10 @@
         android:layout_height="wrap_content"
         android:text="下载文件示例"/>
 
+    <Button
+        android:id="@+id/downloadPointBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="断点下载文件示例"/>
 
 </LinearLayout>

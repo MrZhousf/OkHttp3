@@ -20,8 +20,8 @@ public class HttpInfo {
     //**请求参数定义**/
     private String url;//请求地址
     private Map<String,String> params;//请求参数
-    private List<UploadFileInfo> uploadFile;//上传文件参数
-    private List<DownloadFileInfo> downloadFile;//下载文件参数
+    private List<UploadFileInfo> uploadFiles;//上传文件参数
+    private List<DownloadFileInfo> downloadFiles;//下载文件参数
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -33,8 +33,8 @@ public class HttpInfo {
         return HttpInfo.Builder()
                 .setUrl(this.url)
                 .addParams(this.params)
-                .addDownloadFiles(this.downloadFile)
-                .addUploadFiles(this.uploadFile)
+                .addDownloadFiles(this.downloadFiles)
+                .addUploadFiles(this.uploadFiles)
                 .setTag(this.tag)
                 .build();
     }
@@ -43,8 +43,8 @@ public class HttpInfo {
         this.url = builder.url;
         this.params = builder.params;
         this.tag = builder.tag;
-        this.uploadFile = builder.uploadFile;
-        this.downloadFile = builder.downloadFile;
+        this.uploadFiles = builder.uploadFiles;
+        this.downloadFiles = builder.downloadFiles;
     }
 
     public static Builder Builder() {
@@ -56,8 +56,8 @@ public class HttpInfo {
 
         private String url;
         private Map<String,String> params;
-        private List<UploadFileInfo> uploadFile;
-        private List<DownloadFileInfo> downloadFile;
+        private List<UploadFileInfo> uploadFiles;
+        private List<DownloadFileInfo> downloadFiles;
         private Class<?> tag;
 
 
@@ -114,11 +114,11 @@ public class HttpInfo {
          * @param progressCallback 上传进度回调接口
          */
         public Builder addUploadFile(String interfaceParamName, String filePathWithName, ProgressCallback progressCallback) {
-            if(null == this.uploadFile){
-                this.uploadFile = new ArrayList<UploadFileInfo>();
+            if(null == this.uploadFiles){
+                this.uploadFiles = new ArrayList<UploadFileInfo>();
             }
             if(!TextUtils.isEmpty(filePathWithName)){
-                this.uploadFile.add(new UploadFileInfo(filePathWithName,interfaceParamName,progressCallback));
+                this.uploadFiles.add(new UploadFileInfo(filePathWithName,interfaceParamName,progressCallback));
             }
             return this;
         }
@@ -131,26 +131,25 @@ public class HttpInfo {
          * @param progressCallback 上传进度回调接口
          */
         public Builder addUploadFile(String url, String interfaceParamName, String filePathWithName, ProgressCallback progressCallback) {
-            if(null == this.uploadFile){
-                this.uploadFile = new ArrayList<UploadFileInfo>();
+            if(null == this.uploadFiles){
+                this.uploadFiles = new ArrayList<UploadFileInfo>();
             }
             if(!TextUtils.isEmpty(filePathWithName)){
-                this.uploadFile.add(new UploadFileInfo(url,filePathWithName,interfaceParamName,progressCallback));
+                this.uploadFiles.add(new UploadFileInfo(url,filePathWithName,interfaceParamName,progressCallback));
             }
             return this;
         }
 
-        public Builder addUploadFiles(List<UploadFileInfo> uploadFile){
-            if(null == uploadFile)
+        public Builder addUploadFiles(List<UploadFileInfo> uploadFiles){
+            if(null == uploadFiles)
                 return this;
-            if(null == this.uploadFile){
-                this.uploadFile = uploadFile;
+            if(null == this.uploadFiles){
+                this.uploadFiles = uploadFiles;
             }else{
-                this.uploadFile.addAll(uploadFile);
+                this.uploadFiles.addAll(uploadFiles);
             }
             return this;
         }
-
 
         /**
          * 增加下载文件
@@ -181,22 +180,32 @@ public class HttpInfo {
          * @param progressCallback 下载进度回调接口
          */
         public Builder addDownloadFile(String url,String saveFileDir,String saveFileName,ProgressCallback progressCallback){
-            if(null == this.downloadFile){
-                this.downloadFile = new ArrayList<DownloadFileInfo>();
+            if(null == this.downloadFiles){
+                this.downloadFiles = new ArrayList<DownloadFileInfo>();
             }
             if(!TextUtils.isEmpty(url)){
-                this.downloadFile.add(new DownloadFileInfo(url,saveFileDir,saveFileName,progressCallback));
+                this.downloadFiles.add(new DownloadFileInfo(url,saveFileDir,saveFileName,progressCallback));
             }
             return this;
         }
 
-        public Builder addDownloadFiles(List<DownloadFileInfo> downloadFile){
+        public Builder addDownloadFile(DownloadFileInfo downloadFile){
             if(null == downloadFile)
                 return this;
-            if(null == this.downloadFile){
-                this.downloadFile = downloadFile;
+            if(null == this.downloadFiles){
+                this.downloadFiles = new ArrayList<DownloadFileInfo>();
+            }
+            this.downloadFiles.add(downloadFile);
+            return this;
+        }
+
+        public Builder addDownloadFiles(List<DownloadFileInfo> downloadFiles){
+            if(null == downloadFiles)
+                return this;
+            if(null == this.downloadFiles){
+                this.downloadFiles = downloadFiles;
             }else {
-                this.downloadFile.addAll(downloadFile);
+                this.downloadFiles.addAll(downloadFiles);
             }
             return this;
         }
@@ -241,6 +250,8 @@ public class HttpInfo {
     final String ConnectionInterruption_Detail = "连接中断";
     final int NetworkOnMainThreadException = 10;
     final String NetworkOnMainThreadException_Detail = "不允许在UI线程中进行网络操作";
+    final int Message = 11;
+    final String Message_Detail = "";
 
     public HttpInfo packInfo(int retCode, String retDetail){
         this.retCode = retCode;
@@ -274,6 +285,9 @@ public class HttpInfo {
                 break;
             case NetworkOnMainThreadException:
                 this.retDetail = NetworkOnMainThreadException_Detail;
+                break;
+            case Message:
+                this.retDetail = Message_Detail;
                 break;
         }
         if(!TextUtils.isEmpty(retDetail)){
@@ -310,12 +324,12 @@ public class HttpInfo {
         return tag;
     }
 
-    public List<UploadFileInfo> getUploadFile() {
-        return uploadFile;
+    public List<UploadFileInfo> getUploadFiles() {
+        return uploadFiles;
     }
 
-    public List<DownloadFileInfo> getDownloadFile() {
-        return downloadFile;
+    public List<DownloadFileInfo> getDownloadFiles() {
+        return downloadFiles;
     }
 
 }

@@ -73,20 +73,20 @@ public class DownloadActivity extends BaseActivity {
                         LogUtil.d(TAG, "下载结果1：" + info.getRetDetail());
                     }
                 })
-                .addDownloadFile("http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4", "file2", new ProgressCallback() {
-                    @Override
-                    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        downloadProgressTwo.setProgress(percent);
-                        tvResultTwo.setText(percent+"%");
-                        LogUtil.d(TAG, "下载进度2：" + percent);
-                    }
-
-                    @Override
-                    public void onResponseMain(String filePath, HttpInfo info) {
-                        tvResultTwo.setText(info.getRetDetail());
-                        LogUtil.d(TAG, "下载结果2：" + info.getRetDetail());
-                    }
-                })
+//                .addDownloadFile(url, "file2", new ProgressCallback() {
+//                    @Override
+//                    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+//                        downloadProgressTwo.setProgress(percent);
+//                        tvResultTwo.setText(percent+"%");
+//                        LogUtil.d(TAG, "下载进度2：" + percent);
+//                    }
+//
+//                    @Override
+//                    public void onResponseMain(String filePath, HttpInfo info) {
+//                        tvResultTwo.setText(info.getRetDetail());
+//                        LogUtil.d(TAG, "下载结果2：" + info.getRetDetail());
+//                    }
+//                })
                 .build();
         OkHttpUtil.Builder().setReadTimeout(120).build(this).doDownloadFileAsync(info);
 

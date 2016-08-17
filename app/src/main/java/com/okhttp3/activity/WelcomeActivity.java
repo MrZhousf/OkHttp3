@@ -24,7 +24,7 @@ public class WelcomeActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
     }
 
-    @OnClick({R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn})
+    @OnClick({R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn,R.id.downloadPointBtn})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.httpBtn:
@@ -38,6 +38,9 @@ public class WelcomeActivity extends BaseActivity {
                 break;
             case R.id.downloadBtn:
                 startActivity(new Intent(WelcomeActivity.this, DownloadActivity.class));
+                break;
+            case R.id.downloadPointBtn:
+                startActivity(new Intent(WelcomeActivity.this, DownloadBreakpointsActivity.class));
                 break;
         }
     }

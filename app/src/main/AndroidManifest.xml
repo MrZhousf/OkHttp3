@@ -38,6 +38,8 @@
         </activity>
         <activity android:name=".activity.UploadImageActivity">
         </activity>
+        <activity android:name=".activity.DownloadBreakpointsActivity">
+        </activity>
     </application>
 
 </manifest>

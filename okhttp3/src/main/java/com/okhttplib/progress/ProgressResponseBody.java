@@ -2,7 +2,9 @@ package com.okhttplib.progress;
 
 
 import android.os.Message;
+import android.util.Log;
 
+import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.ProgressMessage;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
@@ -22,10 +24,17 @@ public class ProgressResponseBody extends ResponseBody{
     private final ResponseBody originalResponseBody;
     private final ProgressCallback progressCallback;
     private BufferedSource bufferedSink;
+    private DownloadFileInfo downloadFileInfo;
 
     public ProgressResponseBody(ResponseBody originalResponseBody, ProgressCallback progressCallback) {
         this.originalResponseBody = originalResponseBody;
         this.progressCallback = progressCallback;
+    }
+
+    public ProgressResponseBody(ResponseBody originalResponseBody, ProgressCallback progressCallback, DownloadFileInfo downloadFileInfo) {
+        this.originalResponseBody = originalResponseBody;
+        this.progressCallback = progressCallback;
+        this.downloadFileInfo = downloadFileInfo;
     }
 
     @Override
@@ -53,8 +62,12 @@ public class ProgressResponseBody extends ResponseBody{
             @Override
             public long read(Buffer sink, long byteCount) throws IOException {
                 long bytesRead = super.read(sink, byteCount);
+                if(totalBytesRead == 0){
+                    totalBytesRead = downloadFileInfo.getCompletedSize();
+                    Log.d("ProgressResponseBody","从节点["+totalBytesRead+"]开始下载");
+                }
                 if (contentLength == 0) {
-                    contentLength = contentLength();
+                    contentLength = contentLength() + totalBytesRead;//文件总长度=当前需要下载长度+完成长度
                 }
                 totalBytesRead += bytesRead != -1 ? bytesRead : 0;
                 if(null != progressCallback){
