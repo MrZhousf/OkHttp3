@@ -26,6 +26,7 @@ import butterknife.OnClick;
 
 /**
  * 上传图片：支持批量上传、进度显示
+ * @author zhousf
  */
 public class UploadImageActivity extends BaseActivity {
 

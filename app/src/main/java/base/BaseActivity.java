@@ -6,6 +6,10 @@ import android.support.v7.app.ActionBarActivity;
 
 import butterknife.ButterKnife;
 
+/**
+ * Activity基类
+ * @author zhousf
+ */
 public abstract class BaseActivity extends ActionBarActivity {
 
     protected abstract int initLayout();

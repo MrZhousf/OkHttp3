@@ -4,6 +4,7 @@ import com.okhttplib.HttpInfo;
 
 /**
  * 进度回调抽象类
+ * @author zhousf
  */
 public abstract class ProgressCallbackAbs {
 

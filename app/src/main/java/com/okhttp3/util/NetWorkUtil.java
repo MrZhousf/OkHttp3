@@ -5,6 +5,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 
+/**
+ * 网络状态工具类
+ * @author zhousf
+ */
 public class NetWorkUtil {
 
     public static boolean isWifi(Context context) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 /**
  * 异步请求回调接口
+ * @author zhousf
  */
 public interface CallbackOk {
     /**

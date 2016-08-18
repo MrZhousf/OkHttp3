@@ -23,6 +23,7 @@ import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 
 /**
  * 网络请求：支持同步/异步、GET/POST、缓存请求
+ * @author zhousf
  */
 public class MainActivity extends BaseActivity {
 

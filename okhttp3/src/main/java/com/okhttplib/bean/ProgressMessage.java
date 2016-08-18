@@ -4,6 +4,7 @@ import com.okhttplib.callback.ProgressCallback;
 
 /**
  * 上传/下载进度回调信息体
+ * @author zhousf
  */
 public class ProgressMessage extends OkMessage{
 

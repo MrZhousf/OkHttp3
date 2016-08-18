@@ -2,6 +2,10 @@ package com.okhttp3.util;
 
 import android.util.Log;
 
+/**
+ * 日志打印
+ * @author zhousf
+ */
 public class LogUtil {
 
     /** 是否开启debug模式 */

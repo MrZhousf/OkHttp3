@@ -2,7 +2,6 @@
 ##OkHttp3
 基于OkHttp3封装的网络请求工具类
 
-
 ##功能点
 * 支持Http/Https等协议
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
@@ -21,13 +20,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.4</version>
+  <version>1.5</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.4'
+compile 'com.zhousf.lib:okhttp3:1.5'
 ```
 
 ##提交记录

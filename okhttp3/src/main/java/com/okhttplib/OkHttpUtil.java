@@ -19,7 +19,6 @@ import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.DownloadMessage;
 import com.okhttplib.bean.UploadFileInfo;
-import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
 import com.okhttplib.callback.ProgressCallback;
@@ -27,6 +26,7 @@ import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.progress.ProgressRequestBody;
 import com.okhttplib.progress.ProgressResponseBody;
 import com.okhttplib.util.EncryptUtil;
+import com.okhttplib.util.MediaTypeUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -59,7 +59,6 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
-import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -77,11 +76,24 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
 
 
+/**
+ * 网络请求工具类
+ * 1、同步/异步，GET/POST网络请求，缓存响应
+ * 2、http/https
+ * 3、当Activity/Fragment销毁时自动取消相应的所有网络请求
+ * 4、自动切换UI线程，摒弃runOnUiThread
+ * 5、Application中自定义全局配置/增加系统默认配置
+ * 6、文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
+ * 7、文件断点下载，独立下载的模块摒弃了数据库记录断点
+ * 8、日志跟踪与异常处理
+ * 9、引入版本com.squareup.okhttp3:okhttp:3.4.1
+ * @author zhousf
+ */
 public class OkHttpUtil {
 
     private final String TAG = getClass().getSimpleName();
     private static Application application;
-    private static OkHttpClient httpClient;
+    private OkHttpClient httpClient;
     private static Builder builderGlobal;
     private ExecutorService executorService;
     /**
@@ -107,13 +119,7 @@ public class OkHttpUtil {
     Class<?> tag;//请求标识
     /********  构建属性-定义结束  ***********/
 
-    String saveFileDir;//保存文件目录
-    String saveFileName;//保存文件名称
-    String saveFileNameCopy;//保存文件备用名称：用于文件名称冲突
-    String saveFileNameEncrypt;//保存文件名称（加密后）
     private static Map<String,String> downloadTaskMap;
-
-
 
     /**
      * 初始化：请在Application中调用
@@ -212,8 +218,7 @@ public class OkHttpUtil {
                 @Override
                 public void run() {
                     try {
-                        HttpInfo newInfo = info.newFromCopy();
-                        downloadFile(fileInfo,newInfo);
+                        downloadFile(fileInfo,info);
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -230,8 +235,7 @@ public class OkHttpUtil {
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
             try {
-                HttpInfo newInfo = info.newFromCopy();
-                downloadFile(fileInfo,newInfo);
+                downloadFile(fileInfo,info);
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -264,53 +268,18 @@ public class OkHttpUtil {
             showLog(log.toString());
             mBuilder.addFormDataPart(interfaceParamName,
                     file.getName(),
-                    RequestBody.create(fetchFileMediaType(filePath), file));
+                    RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
             RequestBody requestBody = mBuilder.build();
             final Request request = new Request
                     .Builder()
                     .url(url)
                     .post(new ProgressRequestBody(requestBody,progressCallback))
                     .build();
-            doRequestSync(info,POST,request,null);
-            //同步结果回调
-            if(null != progressCallback)
-                progressCallback.onResponseSync(filePath,info);
-            //异步主线程结果回调
-            Message msg = new UploadMessage(
-                    OkMainHandler.RESPONSE_UPLOAD_CALLBACK,
-                    filePath,
-                    info,
-                    progressCallback)
-                    .build();
-            OkMainHandler.getInstance().sendMessage(msg);
+            doRequestSync(null,info,POST,request,null);
+            responseCallback(info,progressCallback,OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-    private MediaType fetchFileMediaType(String filePath){
-        if(!TextUtils.isEmpty(filePath) && filePath.contains(".")){
-            String extension = filePath.substring(filePath.lastIndexOf(".") + 1);
-            if("png".equals(extension)){
-                extension = "image/png";
-            }else if("jpg".equals(extension)){
-                extension = "image/jpg";
-            }else if("jpeg".equals(extension)){
-                extension = "image/jpeg";
-            }else if("gif".equals(extension)){
-                extension = "image/gif";
-            }else if("bmp".equals(extension)){
-                extension = "image/bmp";
-            }else if("tiff".equals(extension)){
-                extension = "image/tiff";
-            }else if("ico".equals(extension)){
-                extension = "image/ico";
-            }else{
-                return null;
-            }
-            return MediaType.parse(extension);
-        }
-        return null;
     }
 
     private void downloadFile(final DownloadFileInfo fileInfo, HttpInfo info){
@@ -320,51 +289,49 @@ public class OkHttpUtil {
             return ;
         }
         info.setUrl(url);
-        final ProgressCallback progressCallback = fileInfo.getProgressCallback();
-        Interceptor interceptor = new Interceptor() {
-            @Override
-            public Response intercept(Chain chain) throws IOException {
-                Response originalResponse = chain.proceed(chain.request());
-                return originalResponse.newBuilder()
-                        .body(new ProgressResponseBody(originalResponse.body(), progressCallback,fileInfo))
-                        .build();
-            }
-        };
-        httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
+        ProgressCallback progressCallback = fileInfo.getProgressCallback();
         //获取文件断点
         long completedSize = fetchCompletedSize(fileInfo);
         fileInfo.setCompletedSize(completedSize);
         //添加下载任务
         if(null == downloadTaskMap)
             downloadTaskMap = new ConcurrentHashMap<>();
-        if(downloadTaskMap.containsKey(saveFileNameEncrypt)){
-            info = retInfo(info,info.Message,saveFileName+" 已在下载任务中");
-            progressCallback.onResponseSync(url,info);
-            Message msg = new DownloadMessage(
-                    OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,
-                    url,
-                    info,
-                    progressCallback)
-                    .build();
-            OkMainHandler.getInstance().sendMessage(msg);
+        if(downloadTaskMap.containsKey(fileInfo.getSaveFileNameEncrypt())){
+            info = retInfo(info,info.Message,fileInfo.getSaveFileName()+" 已在下载任务中");
+            responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
             return ;
         }
-        downloadTaskMap.put(saveFileNameEncrypt,saveFileNameEncrypt);
+        downloadTaskMap.put(fileInfo.getSaveFileNameEncrypt(),fileInfo.getSaveFileNameEncrypt());
+        Interceptor interceptor = new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                Response originalResponse = chain.proceed(chain.request());
+                return originalResponse.newBuilder()
+                        .body(new ProgressResponseBody(originalResponse.body(), fileInfo))
+                        .build();
+            }
+        };
+        OkHttpClient httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
         Request request = new Request.Builder()
                 .url(url)
                 .header("RANGE", "bytes=" + completedSize + "-")
                 .build();
-        doRequestSync(info,GET,request,fileInfo);
+        doRequestSync(httpClient,info,GET,request,fileInfo);
         //删除下载任务
         if(null != downloadTaskMap)
-            downloadTaskMap.remove(saveFileNameEncrypt);
+            downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
+        responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
+
+    }
+
+    private void responseCallback(HttpInfo info,ProgressCallback progressCallback,int code){
         //同步结果回调
         if(null != progressCallback)
-            progressCallback.onResponseSync(url,info);
+            progressCallback.onResponseSync(info.getUrl(),info);
         //异步主线程结果回调
         Message msg = new DownloadMessage(
-                OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,
-                url,
+                code,
+                info.getUrl(),
                 info,
                 progressCallback)
                 .build();
@@ -372,17 +339,21 @@ public class OkHttpUtil {
     }
 
     private long fetchCompletedSize(DownloadFileInfo fileInfo){
-        saveFileDir = fileInfo.getSaveFileDir();
-        saveFileName = fileInfo.getSaveFileName();
+        String saveFileDir = fileInfo.getSaveFileDir();
+        String saveFileName = fileInfo.getSaveFileName();
         String url = fileInfo.getUrl();
         String extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
-        saveFileNameCopy = saveFileName+"["+timeStamp+"]"+"."+extension;
+        String saveFileNameCopy = saveFileName+"["+timeStamp+"]"+"."+extension;
         saveFileName += "."+extension;
         saveFileDir = TextUtils.isEmpty(saveFileDir) ? downloadFileDir : saveFileDir;
         mkDirNotExists(saveFileDir);
+        fileInfo.setSaveFileDir(saveFileDir);
+        fileInfo.setSaveFileNameCopy(saveFileNameCopy);
+        fileInfo.setSaveFileNameWithExtension(saveFileName);
+        String saveFileNameEncrypt = url;
         try {
-            saveFileNameEncrypt = url;
             saveFileNameEncrypt = EncryptUtil.MD5StringTo32Bit(url,true);
+            fileInfo.setSaveFileNameEncrypt(saveFileNameEncrypt);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -396,7 +367,7 @@ public class OkHttpUtil {
     }
 
     private HttpInfo doRequestSync(HttpInfo info,@Method int method){
-        return doRequestSync(info,method,null,null);
+        return doRequestSync(null,info,method,null,null);
     }
 
     /**
@@ -406,14 +377,18 @@ public class OkHttpUtil {
      * @param request 请求
      * @param downloadFile 下载文件
      */
-    private HttpInfo doRequestSync(HttpInfo info,@Method int method,Request request,DownloadFileInfo downloadFile){
+    private HttpInfo doRequestSync(OkHttpClient httpClient,HttpInfo info,@Method int method,Request request,DownloadFileInfo downloadFile){
         Call call = null;
         try {
             String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
                 return retInfo(info,info.CheckURL);
             }
-            call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+            if(null == httpClient){
+                call = this.httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+            }else{
+                call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+            }
             BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
             return dealResponse(info, res, call, downloadFile);
@@ -505,12 +480,12 @@ public class OkHttpUtil {
         RandomAccessFile accessFile = null;
         InputStream inputStream = null;
         BufferedInputStream bis = null;
-        String filePath = saveFileDir+saveFileName;
+        String filePath = fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameWithExtension();
         try {
             ResponseBody responseBody = res.body();
             int length;
             long completedSize = fileInfo.getCompletedSize();
-            accessFile = new RandomAccessFile(saveFileDir + saveFileNameEncrypt, "rwd");
+            accessFile = new RandomAccessFile(fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameEncrypt(),"rwd");
             //服务器不支持断点下载时重新下载
             if(TextUtils.isEmpty(res.header("Content-Range"))){
                 completedSize = 0L;
@@ -522,23 +497,23 @@ public class OkHttpUtil {
             bis = new BufferedInputStream(inputStream);
             fileInfo.setDownloadStatus(DownloadStatus.DOWNLOADING);
             while ( (length = bis.read(buffer)) > 0 &&
-                    (fileInfo.getDownloadStatus() == DownloadStatus.DOWNLOADING)) {
+                    (DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus()))) {
                 accessFile.write(buffer, 0, length);
                 completedSize += length;
             }
-            if(fileInfo.getDownloadStatus() == DownloadStatus.PAUSE){
+            if(DownloadStatus.PAUSE.equals(fileInfo.getDownloadStatus())){
                 return retInfo(info,info.Message,"暂停下载");
             }
             //下载完成
-            if(fileInfo.getDownloadStatus() == DownloadStatus.DOWNLOADING){
+            if(DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus())){
                 fileInfo.setDownloadStatus(DownloadStatus.COMPLETED);
-                File newFile = new File(saveFileDir,saveFileName);
+                File newFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameWithExtension());
                 //处理文件已存在逻辑
                 if(newFile.exists() && newFile.isFile()){
-                    filePath = saveFileDir+saveFileNameCopy;
-                    newFile = new File(saveFileDir,saveFileNameCopy);
+                    filePath = fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameCopy();
+                    newFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameCopy());
                 }
-                File oldFile = new File(saveFileDir,saveFileNameEncrypt);
+                File oldFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameEncrypt());
                 if(oldFile.exists() && oldFile.isFile()){
                     oldFile.renameTo(newFile);
                 }
@@ -560,6 +535,9 @@ public class OkHttpUtil {
                 e.printStackTrace();
             }
             BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
+            //删除下载任务
+            if(null != downloadTaskMap)
+                downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
         }
         return retInfo(info,info.SUCCESS,filePath);
     }
@@ -585,9 +563,6 @@ public class OkHttpUtil {
                     log.append(logInfo);
                 }
                 showLog(log.toString());
-            }
-            if(null != info.getUploadFiles() && !info.getUploadFiles().isEmpty()){
-
             }
             request = new Request.Builder()
                     .url(info.getUrl())
@@ -776,14 +751,10 @@ public class OkHttpUtil {
             X509TrustManager trustManager = new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
                 }
-
                 @Override
                 public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
                 }
-
                 @Override
                 public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];

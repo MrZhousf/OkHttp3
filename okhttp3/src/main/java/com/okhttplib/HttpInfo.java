@@ -14,6 +14,7 @@ import java.util.Map;
 
 /**
  * Http请求实体类
+ * @author zhousf
  */
 public class HttpInfo {
 
@@ -28,16 +29,6 @@ public class HttpInfo {
     private String retDetail;//返回结果
 
     private Class<?> tag;
-
-    public HttpInfo newFromCopy(){
-        return HttpInfo.Builder()
-                .setUrl(this.url)
-                .addParams(this.params)
-                .addDownloadFiles(this.downloadFiles)
-                .addUploadFiles(this.uploadFiles)
-                .setTag(this.tag)
-                .build();
-    }
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;

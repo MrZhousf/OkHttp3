@@ -11,6 +11,7 @@ import butterknife.OnClick;
 
 /**
  * 欢迎页
+ * @author zhousf
  */
 public class WelcomeActivity extends BaseActivity {
 

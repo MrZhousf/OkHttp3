@@ -19,21 +19,18 @@ import okio.ForwardingSource;
 import okio.Okio;
 import okio.Source;
 
+/**
+ * 进度响应体
+ * @author zhousf
+ */
 public class ProgressResponseBody extends ResponseBody{
 
     private final ResponseBody originalResponseBody;
-    private final ProgressCallback progressCallback;
     private BufferedSource bufferedSink;
     private DownloadFileInfo downloadFileInfo;
 
-    public ProgressResponseBody(ResponseBody originalResponseBody, ProgressCallback progressCallback) {
+    public ProgressResponseBody(ResponseBody originalResponseBody, DownloadFileInfo downloadFileInfo) {
         this.originalResponseBody = originalResponseBody;
-        this.progressCallback = progressCallback;
-    }
-
-    public ProgressResponseBody(ResponseBody originalResponseBody, ProgressCallback progressCallback, DownloadFileInfo downloadFileInfo) {
-        this.originalResponseBody = originalResponseBody;
-        this.progressCallback = progressCallback;
         this.downloadFileInfo = downloadFileInfo;
     }
 
@@ -59,17 +56,22 @@ public class ProgressResponseBody extends ResponseBody{
         return new ForwardingSource(source) {
             long totalBytesRead = 0L;
             long contentLength = 0L;
+            ProgressCallback progressCallback;
             @Override
             public long read(Buffer sink, long byteCount) throws IOException {
                 long bytesRead = super.read(sink, byteCount);
                 if(totalBytesRead == 0){
                     totalBytesRead = downloadFileInfo.getCompletedSize();
-                    Log.d("ProgressResponseBody","从节点["+totalBytesRead+"]开始下载");
+                    Log.d("ProgressResponseBody","从节点["+totalBytesRead+"]开始下载"
+                            +downloadFileInfo.getSaveFileNameWithExtension());
                 }
                 if (contentLength == 0) {
-                    contentLength = contentLength() + totalBytesRead;//文件总长度=当前需要下载长度+完成长度
+                    //文件总长度=当前需要下载长度+已完成长度
+                    contentLength = contentLength() + totalBytesRead;
                 }
                 totalBytesRead += bytesRead != -1 ? bytesRead : 0;
+                if(null == progressCallback)
+                    progressCallback = downloadFileInfo.getProgressCallback();
                 if(null != progressCallback){
                     int percent = (int) ((100 * totalBytesRead) / contentLength);
                     progressCallback.onProgressAsync(percent, totalBytesRead,contentLength,totalBytesRead == -1);

@@ -21,6 +21,7 @@ import butterknife.OnClick;
 
 /**
  * 文件下载：支持断点下载、进度显示
+ * @author zhousf
  */
 public class DownloadBreakpointsActivity extends BaseActivity {
 

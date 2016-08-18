@@ -5,6 +5,7 @@ import com.okhttplib.callback.CallbackOk;
 
 /**
  * 响应回调信息体
+ * @author zhousf
  */
 public class CallbackMessage extends OkMessage{
 

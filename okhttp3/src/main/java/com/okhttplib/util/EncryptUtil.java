@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 /**
  * 加密工具类
  * 支持MD5加密
+ * @author zhousf
  */
 public class EncryptUtil {
 

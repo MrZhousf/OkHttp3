@@ -5,6 +5,10 @@ import android.os.Message;
 
 import java.io.Serializable;
 
+/**
+ * Handler信息体基类
+ * @author zhousf
+ */
 public class OkMessage implements Serializable {
 
     public int what;

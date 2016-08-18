@@ -4,8 +4,18 @@ import com.okhttplib.HttpInfo;
 
 /**
  * 进度回调
+ * @author zhousf
  */
 public class ProgressCallback extends ProgressCallbackAbs {
+
+    private String tag;
+
+    public ProgressCallback() {
+    }
+
+    public ProgressCallback(String tag) {
+        this.tag = tag;
+    }
 
     /**
      * 异步UI线程：返回请求结果
@@ -52,7 +62,11 @@ public class ProgressCallback extends ProgressCallbackAbs {
     }
 
 
+    public String getTag() {
+        return tag;
+    }
 
-
-
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 }

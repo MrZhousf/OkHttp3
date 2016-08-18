@@ -11,10 +11,9 @@ import android.provider.MediaStore;
 
 /**
  * 获取文件路径工具类
+ * @author zhousf
  */
-
 public class FilePathUtil {
-
 
     /**
      * Get the value of the data column for this Uri. This is useful for
@@ -59,12 +58,10 @@ public class FilePathUtil {
                 } else if ("audio".equals(type)) {
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 }
-
                 final String selection = "_id=?";
                 final String[] selectionArgs = new String[] {
                         split[1]
                 };
-
                 return getDataColumn(context, contentUri, selection, selectionArgs);
             }
         }
@@ -91,13 +88,11 @@ public class FilePathUtil {
      */
     public static String getDataColumn(Context context, Uri uri, String selection,
                                        String[] selectionArgs) {
-
         Cursor cursor = null;
         final String column = "_data";
         final String[] projection = {
                 column
         };
-
         try {
             cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
                     null);

@@ -5,6 +5,7 @@ import com.okhttplib.callback.ProgressCallback;
 
 /**
  * 上传文件信息体
+ * @author zhousf
  */
 public class UploadFileInfo {
 

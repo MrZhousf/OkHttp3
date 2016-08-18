@@ -15,6 +15,7 @@ import okhttp3.Call;
 
 /**
  * Activity声明周期回调
+ * @author zhousf
  */
 public class BaseActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 
@@ -62,7 +63,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
             final int len = callList.size();
             for(int i=0;i<len;i++){
                 Call call = callList.valueAt(i);
-                if(!call.isCanceled())
+                if(null != call &&!call.isCanceled())
                     call.cancel();
             }
             callList.clear();
