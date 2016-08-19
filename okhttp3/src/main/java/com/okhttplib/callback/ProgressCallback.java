@@ -8,15 +8,6 @@ import com.okhttplib.HttpInfo;
  */
 public class ProgressCallback extends ProgressCallbackAbs {
 
-    private String tag;
-
-    public ProgressCallback() {
-    }
-
-    public ProgressCallback(String tag) {
-        this.tag = tag;
-    }
-
     /**
      * 异步UI线程：返回请求结果
      * @param filePath 文件路径
@@ -62,11 +53,4 @@ public class ProgressCallback extends ProgressCallbackAbs {
     }
 
 
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
 }
