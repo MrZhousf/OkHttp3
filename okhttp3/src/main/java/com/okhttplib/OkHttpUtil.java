@@ -5,6 +5,7 @@ import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Message;
 import android.os.NetworkOnMainThreadException;
@@ -552,6 +553,7 @@ public class OkHttpUtil {
 
     private Request fetchRequest(HttpInfo info, @Method int method){
         Request request;
+        Request.Builder requestBuilder = new Request.Builder();
         if(method == POST){
             FormBody.Builder builder = new FormBody.Builder();
             if(null != info.getParams() && !info.getParams().isEmpty()){
@@ -564,10 +566,9 @@ public class OkHttpUtil {
                 }
                 showLog(log.toString());
             }
-            request = new Request.Builder()
+            requestBuilder
                     .url(info.getUrl())
-                    .post(builder.build())
-                    .build();
+                    .post(builder.build());
         }else{
             StringBuilder params = new StringBuilder();
             params.append(info.getUrl());
@@ -578,11 +579,14 @@ public class OkHttpUtil {
                     params.append(logInfo);
                 }
             }
-            request = new Request.Builder()
+            requestBuilder
                     .url(params.toString())
-                    .get()
-                    .build();
+                    .get();
         }
+        if (Build.VERSION.SDK_INT > 13) {
+            requestBuilder.addHeader("Connection", "close");
+        }
+        request = requestBuilder.build();
         return request;
     }
 
@@ -699,6 +703,24 @@ public class OkHttpUtil {
             clientBuilder.interceptors().addAll(builder.interceptors);
         clientBuilder.addInterceptor(LOG_INTERCEPTOR);
         setSslSocketFactory(clientBuilder);
+        //初始化参数
+        maxCacheSize = builder.maxCacheSize;
+        cachedDir = builder.cachedDir;
+        connectTimeout = builder.connectTimeout;
+        readTimeout = builder.readTimeout;
+        writeTimeout = builder.writeTimeout;
+        retryOnConnectionFailure = builder.retryOnConnectionFailure;
+        networkInterceptors = builder.networkInterceptors;
+        interceptors = builder.interceptors;
+        cacheSurvivalTime = builder.cacheSurvivalTime;
+        cacheType = builder.cacheType;
+        cacheLevel = builder.cacheLevel;
+        isGlobalConfig = builder.isGlobalConfig;
+        showHttpLog = builder.showHttpLog;
+        showLifecycleLog = builder.showLifecycleLog;
+        downloadFileDir = builder.downloadFileDir;
+        tag = builder.tag;
+        //实例化client
         httpClient = clientBuilder.build();
         timeStamp = System.currentTimeMillis();
         if(this.cacheSurvivalTime == 0){
@@ -720,25 +742,10 @@ public class OkHttpUtil {
         }
         if(this.cacheSurvivalTime > 0)
             cacheType = CACHE_THEN_NETWORK;
+        if(null == application)
+            cacheType = FORCE_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
         executorService = Executors.newCachedThreadPool();
-        //初始化参数
-        maxCacheSize = builder.maxCacheSize;
-        cachedDir = builder.cachedDir;
-        connectTimeout = builder.connectTimeout;
-        readTimeout = builder.readTimeout;
-        writeTimeout = builder.writeTimeout;
-        retryOnConnectionFailure = builder.retryOnConnectionFailure;
-        networkInterceptors = builder.networkInterceptors;
-        interceptors = builder.interceptors;
-        cacheSurvivalTime = builder.cacheSurvivalTime;
-        cacheType = builder.cacheType;
-        cacheLevel = builder.cacheLevel;
-        isGlobalConfig = builder.isGlobalConfig;
-        showHttpLog = builder.showHttpLog;
-        showLifecycleLog = builder.showLifecycleLog;
-        downloadFileDir = builder.downloadFileDir;
-        tag = builder.tag;
     }
 
     /**
@@ -838,13 +845,17 @@ public class OkHttpUtil {
          */
         private void initDefaultConfig(){
             setMaxCacheSize(10 * 1024 * 1024);
-            setCachedDir(application.getExternalCacheDir());
+            if(null != application){
+                setCachedDir(application.getExternalCacheDir());
+            }else{
+                setCachedDir(Environment.getExternalStorageDirectory());
+            }
             setConnectTimeout(30);
             setReadTimeout(30);
             setWriteTimeout(30);
             setRetryOnConnectionFailure(true);
             setCacheSurvivalTime(0);
-            setCacheType(NETWORK_THEN_CACHE);
+            setCacheType(CACHE_THEN_NETWORK);
             setCacheLevel(FIRST_LEVEL);
             setNetworkInterceptors(null);
             setInterceptors(null);

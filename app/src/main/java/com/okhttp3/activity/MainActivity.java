@@ -9,6 +9,7 @@ import com.okhttp3.R;
 import com.okhttp3.util.NetWorkUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.annotation.CacheType;
 import com.okhttplib.callback.CallbackOk;
 
 import java.io.IOException;
@@ -18,7 +19,6 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
-import static com.okhttplib.annotation.CacheLevel.SECOND_LEVEL;
 import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 
 /**
@@ -118,8 +118,7 @@ public class MainActivity extends BaseActivity {
      * 缓存请求：请连续点击缓存请求，会发现在缓存有效期内，从第一次请求后的每一次请求花费为0秒，说明该次请求为缓存响应
      */
     private void doHttpCache() {
-        OkHttpUtil.Builder()
-                .setCacheLevel(SECOND_LEVEL)
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_CACHE)
                 .build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
