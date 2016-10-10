@@ -221,27 +221,27 @@ public class HttpInfo {
 
 
     //**请求返回常量定义**/
-    final int NonNetwork = 1;
-    final String NonNetwork_Detail = "网络中断";
-    final int SUCCESS = 2;
+    public final static int SUCCESS = 1;
     final String SUCCESS_Detail = "发送请求成功";
-    final int ProtocolException = 3;
+    public final static int NonNetwork = 2;
+    final String NonNetwork_Detail = "网络中断";
+    public final static int ProtocolException = 3;
     final String ProtocolException_Detail = "请检查协议类型是否正确";
-    final int NoResult = 4;
+    public final static int NoResult = 4;
     final String NoResult_Detail = "无法获取返回信息(服务器内部错误)";
-    final int CheckURL = 5;
+    public final static int CheckURL = 5;
     final String CheckURL_Detail = "请检查请求地址是否正确";
-    final int CheckNet = 6;
+    public final static int CheckNet = 6;
     final String CheckNet_Detail = "请检查网络连接是否正常";
-    final int ConnectionTimeOut = 7;
+    public final static int ConnectionTimeOut = 7;
     final String ConnectionTimeOut_Detail = "连接超时";
-    final int WriteAndReadTimeOut = 8;
+    public final static int WriteAndReadTimeOut = 8;
     final String WriteAndReadTimeOut_Detail = "读写超时";
-    final int ConnectionInterruption = 9;
+    public final static int ConnectionInterruption = 9;
     final String ConnectionInterruption_Detail = "连接中断";
-    final int NetworkOnMainThreadException = 10;
+    public final static int NetworkOnMainThreadException = 10;
     final String NetworkOnMainThreadException_Detail = "不允许在UI线程中进行网络操作";
-    final int Message = 11;
+    public final static int Message = 11;
     final String Message_Detail = "";
 
     public HttpInfo packInfo(int retCode, String retDetail){
@@ -285,6 +285,10 @@ public class HttpInfo {
             this.retDetail = retDetail;
         }
         return this;
+    }
+
+    public int getRetCode() {
+        return retCode;
     }
 
     public boolean isSuccessful(){

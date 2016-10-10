@@ -24,6 +24,8 @@ import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
+import com.okhttplib.interceptor.ExceptionInterceptor;
+import com.okhttplib.interceptor.ResultInterceptor;
 import com.okhttplib.progress.ProgressRequestBody;
 import com.okhttplib.progress.ProgressResponseBody;
 import com.okhttplib.util.EncryptUtil;
@@ -41,6 +43,7 @@ import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -110,6 +113,8 @@ public class OkHttpUtil {
     boolean retryOnConnectionFailure;//失败重新连接
     List<Interceptor> networkInterceptors;//网络拦截器
     List<Interceptor> interceptors;//应用拦截器
+    List<ResultInterceptor> resultInterceptors;//请求结果拦截器
+    List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     int cacheSurvivalTime;//缓存存活时间（秒）
     int cacheType;//缓存类型
     int cacheLevel;//缓存级别
@@ -597,8 +602,38 @@ public class OkHttpUtil {
 
     private HttpInfo retInfo(HttpInfo info, int code, String resDetail){
         info.packInfo(code,resDetail);
+        //拦截请求结果
+        dealInterceptor(info);
         showLog("Response: "+info.getRetDetail());
         return info;
+    }
+
+    /**
+     * 处理拦截器
+     */
+    private void dealInterceptor(HttpInfo info){
+        try {
+            String original = "";
+            if(info.isSuccessful()){ //请求结果拦截器
+                if(null != resultInterceptors){
+                    for(ResultInterceptor interceptor : resultInterceptors){
+                        original = info.getRetDetail();
+                        interceptor.intercept(info);
+                        showLog("ResultInterceptor: "+original+" -> "+info.getRetDetail());
+                    }
+                }
+            }else{ //请求链路异常拦截器
+                if(null != exceptionInterceptors){
+                    for(ExceptionInterceptor interceptor : exceptionInterceptors){
+                        original = info.getRetDetail();
+                        interceptor.intercept(info);
+                        showLog("ExceptionInterceptor: "+original+" -> "+info.getRetDetail());
+                    }
+                }
+            }
+        }catch (Exception e){
+            showLog("拦截器处理异常："+e.getMessage());
+        }
     }
 
     /**
@@ -712,6 +747,8 @@ public class OkHttpUtil {
         retryOnConnectionFailure = builder.retryOnConnectionFailure;
         networkInterceptors = builder.networkInterceptors;
         interceptors = builder.interceptors;
+        resultInterceptors = builder.resultInterceptors;
+        exceptionInterceptors = builder.exceptionInterceptors;
         cacheSurvivalTime = builder.cacheSurvivalTime;
         cacheType = builder.cacheType;
         cacheLevel = builder.cacheLevel;
@@ -801,6 +838,8 @@ public class OkHttpUtil {
         private boolean retryOnConnectionFailure;//失败重新连接
         private List<Interceptor> networkInterceptors;//网络拦截器
         private List<Interceptor> interceptors;//应用拦截器
+        private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
+        private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
         private int cacheSurvivalTime;//缓存存活时间（秒）
         private int cacheType;//缓存类型
         private int cacheLevel;//缓存级别
@@ -859,6 +898,8 @@ public class OkHttpUtil {
             setCacheLevel(FIRST_LEVEL);
             setNetworkInterceptors(null);
             setInterceptors(null);
+            setResultInterceptors(null);
+            setExceptionInterceptors(null);
             setShowHttpLog(true);
             setShowLifecycleLog(false);
             setDownloadFileDir(Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/");
@@ -880,6 +921,8 @@ public class OkHttpUtil {
             setCacheLevel(builder.cacheLevel);
             setNetworkInterceptors(builder.networkInterceptors);
             setInterceptors(builder.interceptors);
+            setResultInterceptors(builder.resultInterceptors);
+            setExceptionInterceptors(builder.exceptionInterceptors);
             setShowHttpLog(builder.showHttpLog);
             setShowLifecycleLog(builder.showLifecycleLog);
             if(!TextUtils.isEmpty(builder.downloadFileDir)){
@@ -933,6 +976,36 @@ public class OkHttpUtil {
         public Builder setInterceptors(List<Interceptor> interceptors) {
             if(null != interceptors)
                 this.interceptors = interceptors;
+            return this;
+        }
+
+        public Builder setResultInterceptors(List<ResultInterceptor> resultInterceptors){
+            if(null != resultInterceptors)
+                this.resultInterceptors = resultInterceptors;
+            return this;
+        }
+
+        public Builder addResultInterceptor(ResultInterceptor resultInterceptor){
+            if(null != resultInterceptor){
+                if(null == this.resultInterceptors)
+                    this.resultInterceptors = new ArrayList<>();
+                this.resultInterceptors.add(resultInterceptor);
+            }
+            return this;
+        }
+
+        public Builder setExceptionInterceptors(List<ExceptionInterceptor> exceptionInterceptors){
+            if(null != exceptionInterceptors){
+                this.exceptionInterceptors = exceptionInterceptors;
+            }
+            return this;
+        }
+        public Builder addExceptionInterceptor(ExceptionInterceptor exceptionInterceptor){
+            if(null != exceptionInterceptor){
+                if(null == this.exceptionInterceptors)
+                    this.exceptionInterceptors = new ArrayList<>();
+                this.exceptionInterceptors.add(exceptionInterceptor);
+            }
             return this;
         }
 

@@ -12,6 +12,7 @@
 * 支持文件下载/批量下载，支持同步/异步下载，支持进度提示
 * 支持文件断点下载，独立下载的模块摒弃了数据库记录断点的过时方法
 * 完整的日志跟踪与异常处理
+* 支持请求结果拦截以及异常处理拦截
 * 后续优化中...
 
 ##引用方式
@@ -20,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.5</version>
+  <version>1.6</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.5'
+compile 'com.zhousf.lib:okhttp3:1.6'
 ```
 
 ##提交记录
@@ -49,6 +50,8 @@ compile 'com.zhousf.lib:okhttp3:1.5'
     *  增加文件下载功能，支持批量下载
 * 2016-8-17
     *  增加文件断点下载功能
+* 2016-10-10
+    *  增加请求结果拦截以及异常处理拦截
 
 ##权限
 ```java
@@ -77,7 +80,29 @@ OkHttpUtil.init(this)
                 .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
+                .addResultInterceptor(resultInterceptor)//请求结果拦截器
+                .addExceptionInterceptor(exceptionInterceptor)//请求链路异常拦截器
                 .build();
+                
+ private ExceptionInterceptor exceptionInterceptor = new ExceptionInterceptor() {
+        @Override
+        public HttpInfo intercept(HttpInfo info) throws Exception {
+            switch (info.getRetCode()){
+                case HttpInfo.CheckURL:
+                    info.setRetDetail("网络地址错误拦截器测试");
+                    break;
+                case HttpInfo.ProtocolException:
+                    info.setRetDetail("协议类型错误拦截器测试");
+                    break;
+                case HttpInfo.CheckNet:
+                    info.setRetDetail("网络连接是否正常拦截器测试");
+                    break;
+            }
+            return info;
+        }
+    };
+
+                
 ```
 
 ##在Activity中同步调用示例
