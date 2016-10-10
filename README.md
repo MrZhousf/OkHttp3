@@ -105,6 +105,25 @@ OkHttpUtil.init(this)
                 
 ```
 
+##Cookie持久化示例
+```java
+OkHttpUtil okHttpUtil = OkHttpUtil.Builder()
+            .setCacheLevel(FIRST_LEVEL)
+            .setConnectTimeout(25).build(this);
+//一个okHttpUtil即为一个网络连接
+okHttpUtil.doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                new CallbackOk() {
+                    @Override
+                    public void onResponse(HttpInfo info) throws IOException {
+                        if (info.isSuccessful()) {
+                            String result = info.getRetDetail();
+                            resultTV.setText("异步请求："+result);
+                        }
+                    }
+                });
+```
+
 ##在Activity中同步调用示例
 ```java
     /**
