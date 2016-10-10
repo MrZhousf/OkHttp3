@@ -303,7 +303,7 @@ public class OkHttpUtil {
         if(null == downloadTaskMap)
             downloadTaskMap = new ConcurrentHashMap<>();
         if(downloadTaskMap.containsKey(fileInfo.getSaveFileNameEncrypt())){
-            info = retInfo(info,info.Message,fileInfo.getSaveFileName()+" 已在下载任务中");
+            info = retInfo(info,HttpInfo.Message,fileInfo.getSaveFileName()+" 已在下载任务中");
             responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
             return ;
         }
@@ -388,7 +388,7 @@ public class OkHttpUtil {
         try {
             String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
-                return retInfo(info,info.CheckURL);
+                return retInfo(info,HttpInfo.CheckURL);
             }
             if(null == httpClient){
                 call = this.httpClient.newCall(request == null ? fetchRequest(info,method) : request);
@@ -399,21 +399,21 @@ public class OkHttpUtil {
             Response res = call.execute();
             return dealResponse(info, res, call, downloadFile);
         } catch (IllegalArgumentException e){
-            return retInfo(info,info.ProtocolException);
+            return retInfo(info,HttpInfo.ProtocolException);
         } catch (SocketTimeoutException e){
             if(null != e.getMessage()){
                 if(e.getMessage().contains("failed to connect to"))
-                    return retInfo(info,info.ConnectionTimeOut);
+                    return retInfo(info,HttpInfo.ConnectionTimeOut);
                 if(e.getMessage().equals("timeout"))
-                    return retInfo(info,info.WriteAndReadTimeOut);
+                    return retInfo(info,HttpInfo.WriteAndReadTimeOut);
             }
-            return retInfo(info,info.WriteAndReadTimeOut);
+            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,info.CheckNet);
+            return retInfo(info,HttpInfo.CheckNet);
         } catch(NetworkOnMainThreadException e){
-            return retInfo(info,info.NetworkOnMainThreadException);
+            return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
-            return retInfo(info,info.NoResult);
+            return retInfo(info,HttpInfo.NoResult);
         }finally {
             BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
         }
@@ -454,28 +454,28 @@ public class OkHttpUtil {
             if(null != res){
                 if(res.isSuccessful() && null != res.body()){
                     if(null == downloadFile){
-                        return retInfo(info,info.SUCCESS,res.body().string());
+                        return retInfo(info,HttpInfo.SUCCESS,res.body().string());
                     }else{ //下载文件
                         return dealDownloadFile(info,downloadFile,res,call);
                     }
                 }else{
                     showLog("HttpStatus: "+res.code());
                     if(res.code() == 404)//请求页面路径错误
-                        return retInfo(info,info.CheckURL);
+                        return retInfo(info,HttpInfo.CheckURL);
                     if(res.code() == 416)//请求数据流范围错误
-                        return retInfo(info,info.Message,"请求Http数据流范围错误\n"+res.body().string());
+                        return retInfo(info,HttpInfo.Message,"请求Http数据流范围错误\n"+res.body().string());
                     if(res.code() == 500)//服务器内部错误
-                        return retInfo(info,info.NoResult);
+                        return retInfo(info,HttpInfo.NoResult);
                     if(res.code() == 502)//错误网关
-                        return retInfo(info,info.CheckNet);
+                        return retInfo(info,HttpInfo.CheckNet);
                     if(res.code() == 504)//网关超时
-                        return retInfo(info,info.CheckNet);
+                        return retInfo(info,HttpInfo.CheckNet);
                 }
             }
-            return retInfo(info,info.CheckURL);
+            return retInfo(info,HttpInfo.CheckURL);
         } catch (Exception e) {
             e.printStackTrace();
-            return retInfo(info,info.NoResult);
+            return retInfo(info,HttpInfo.NoResult);
         } finally {
             if(null != res)
                 res.close();
@@ -508,7 +508,7 @@ public class OkHttpUtil {
                 completedSize += length;
             }
             if(DownloadStatus.PAUSE.equals(fileInfo.getDownloadStatus())){
-                return retInfo(info,info.Message,"暂停下载");
+                return retInfo(info,HttpInfo.Message,"暂停下载");
             }
             //下载完成
             if(DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus())){
@@ -523,12 +523,12 @@ public class OkHttpUtil {
                 if(oldFile.exists() && oldFile.isFile()){
                     oldFile.renameTo(newFile);
                 }
-                return retInfo(info,info.SUCCESS,filePath);
+                return retInfo(info,HttpInfo.SUCCESS,filePath);
             }
         }catch(SocketTimeoutException e){
-            return retInfo(info,info.WriteAndReadTimeOut);
+            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
         }catch (Exception e){
-            return retInfo(info,info.ConnectionInterruption);
+            return retInfo(info,HttpInfo.ConnectionInterruption);
         }finally {
             try {
                 if(null != bis)
@@ -545,7 +545,7 @@ public class OkHttpUtil {
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
         }
-        return retInfo(info,info.SUCCESS,filePath);
+        return retInfo(info,HttpInfo.SUCCESS,filePath);
     }
 
     private boolean mkDirNotExists(String dir) {
