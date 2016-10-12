@@ -91,7 +91,10 @@ import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
  * 6、文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
  * 7、文件断点下载，独立下载的模块摒弃了数据库记录断点
  * 8、日志跟踪与异常处理
- * 9、引入版本com.squareup.okhttp3:okhttp:3.4.1
+ * 9、支持请求结果拦截以及异常处理拦截
+ * 10、支持Cookie持久化
+ *
+ * 引入版本com.squareup.okhttp3:okhttp:3.4.1
  * @author zhousf
  */
 public class OkHttpUtil {
