@@ -397,10 +397,8 @@ public class OkHttpUtil {
             }
             if(null == httpClient){
                 call = this.httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-                showLog("cookie"+this.httpClient.cookieJar().toString());
             }else{
                 call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-                showLog("cookie"+httpClient.cookieJar().toString());
             }
             BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
@@ -436,7 +434,6 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-        showLog("cookie"+httpClient.cookieJar().toString());
         BaseActivityLifecycleCallbacks.putCall(tag,info,call);
         call.enqueue(new Callback() {
             @Override
@@ -621,21 +618,16 @@ public class OkHttpUtil {
      */
     private void dealInterceptor(HttpInfo info){
         try {
-            String original = "";
             if(info.isSuccessful()){ //请求结果拦截器
                 if(null != resultInterceptors){
                     for(ResultInterceptor interceptor : resultInterceptors){
-                        original = info.getRetDetail();
                         interceptor.intercept(info);
-                        showLog("ResultInterceptor: "+original+" -> "+info.getRetDetail());
                     }
                 }
             }else{ //请求链路异常拦截器
                 if(null != exceptionInterceptors){
                     for(ExceptionInterceptor interceptor : exceptionInterceptors){
-                        original = info.getRetDetail();
                         interceptor.intercept(info);
-                        showLog("ExceptionInterceptor: "+original+" -> "+info.getRetDetail());
                     }
                 }
             }

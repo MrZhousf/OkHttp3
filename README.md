@@ -83,31 +83,12 @@ OkHttpUtil.init(this)
                 .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
-                .addResultInterceptor(resultInterceptor)//请求结果拦截器
-                .addExceptionInterceptor(exceptionInterceptor)//请求链路异常拦截器
+                .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
+                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), 
                 new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
-                
- private ExceptionInterceptor exceptionInterceptor = new ExceptionInterceptor() {
-        @Override
-        public HttpInfo intercept(HttpInfo info) throws Exception {
-            switch (info.getRetCode()){
-                case HttpInfo.CheckURL:
-                    info.setRetDetail("网络地址错误");
-                    break;
-                case HttpInfo.ProtocolException:
-                    info.setRetDetail("协议类型错误");
-                    break;
-                case HttpInfo.CheckNet:
-                    info.setRetDetail("请检查网络连接是否正常");
-                    break;
-            }
-            return info;
-        }
-    };
-
-                
+            
 ```
 
 ##Cookie持久化示例
