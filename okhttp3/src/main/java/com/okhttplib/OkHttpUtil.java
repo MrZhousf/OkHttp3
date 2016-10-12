@@ -61,6 +61,7 @@ import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CookieJar;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.MultipartBody;
@@ -123,6 +124,7 @@ public class OkHttpUtil {
     boolean showLifecycleLog;//是否显示ActivityLifecycle日志
     String downloadFileDir;//下载文件保存目录
     Class<?> tag;//请求标识
+    CookieJar cookieJar;
     /********  构建属性-定义结束  ***********/
 
     private static Map<String,String> downloadTaskMap;
@@ -392,8 +394,10 @@ public class OkHttpUtil {
             }
             if(null == httpClient){
                 call = this.httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+                showLog("cookie"+this.httpClient.cookieJar().toString());
             }else{
                 call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+                showLog("cookie"+httpClient.cookieJar().toString());
             }
             BaseActivityLifecycleCallbacks.putCall(tag,info,call);
             Response res = call.execute();
@@ -429,6 +433,7 @@ public class OkHttpUtil {
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
+        showLog("cookie"+httpClient.cookieJar().toString());
         BaseActivityLifecycleCallbacks.putCall(tag,info,call);
         call.enqueue(new Callback() {
             @Override
@@ -757,6 +762,9 @@ public class OkHttpUtil {
         showLifecycleLog = builder.showLifecycleLog;
         downloadFileDir = builder.downloadFileDir;
         tag = builder.tag;
+        cookieJar = builder.cookieJar;
+        if(null != cookieJar)
+            clientBuilder.cookieJar(cookieJar);
         //实例化client
         httpClient = clientBuilder.build();
         timeStamp = System.currentTimeMillis();
@@ -848,6 +856,7 @@ public class OkHttpUtil {
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
         private String downloadFileDir;//下载文件保存目录
         private Class<?> tag;
+        private CookieJar cookieJar;
 
         public Builder() {
         }
@@ -928,6 +937,7 @@ public class OkHttpUtil {
             if(!TextUtils.isEmpty(builder.downloadFileDir)){
                 setDownloadFileDir(builder.downloadFileDir);
             }
+            setCookieJar(builder.cookieJar);
         }
 
         public Builder setMaxCacheSize(int maxCacheSize) {
@@ -1054,6 +1064,12 @@ public class OkHttpUtil {
 
         public Builder setDownloadFileDir(String downloadFileDir) {
             this.downloadFileDir = downloadFileDir;
+            return this;
+        }
+
+        public Builder setCookieJar(CookieJar cookieJar) {
+            if (cookieJar == null) throw new NullPointerException("cookieJar == null");
+            this.cookieJar = cookieJar;
             return this;
         }
     }

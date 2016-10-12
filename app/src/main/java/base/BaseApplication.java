@@ -7,6 +7,9 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
+import com.okhttplib.cookie.PersistentCookieJar;
+import com.okhttplib.cookie.cache.SetCookieCache;
+import com.okhttplib.cookie.persistence.SharedPrefsCookiePersistor;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
@@ -41,8 +44,8 @@ public class BaseApplication extends Application {
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
 //                .addResultInterceptor(resultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(exceptionInterceptor)//请求链路异常拦截器
+                .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
-
     }
 
     private ResultInterceptor resultInterceptor = new ResultInterceptor() {

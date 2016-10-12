@@ -4,6 +4,7 @@
 
 ##功能点
 * 支持Http/Https等协议
+* 支持Cookie持久化
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
@@ -21,13 +22,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.6</version>
+  <version>1.7</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.6'
+compile 'com.zhousf.lib:okhttp3:1.7'
 ```
 
 ##提交记录
@@ -52,6 +53,8 @@ compile 'com.zhousf.lib:okhttp3:1.6'
     *  增加文件断点下载功能
 * 2016-10-10
     *  增加请求结果拦截以及异常处理拦截
+* 2016-10-12
+    *  增加Cookie持久化
 
 ##权限
 ```java
@@ -82,6 +85,8 @@ OkHttpUtil.init(this)
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .addResultInterceptor(resultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(exceptionInterceptor)//请求链路异常拦截器
+                .setCookieJar(new PersistentCookieJar(new SetCookieCache(), 
+                new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
                 
  private ExceptionInterceptor exceptionInterceptor = new ExceptionInterceptor() {
@@ -89,13 +94,13 @@ OkHttpUtil.init(this)
         public HttpInfo intercept(HttpInfo info) throws Exception {
             switch (info.getRetCode()){
                 case HttpInfo.CheckURL:
-                    info.setRetDetail("网络地址错误拦截器测试");
+                    info.setRetDetail("网络地址错误");
                     break;
                 case HttpInfo.ProtocolException:
-                    info.setRetDetail("协议类型错误拦截器测试");
+                    info.setRetDetail("协议类型错误");
                     break;
                 case HttpInfo.CheckNet:
-                    info.setRetDetail("网络连接是否正常拦截器测试");
+                    info.setRetDetail("请检查网络连接是否正常");
                     break;
             }
             return info;
@@ -106,6 +111,7 @@ OkHttpUtil.init(this)
 ```
 
 ##Cookie持久化示例
+没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
 ```java
 OkHttpUtil okHttpUtil = OkHttpUtil.Builder()
             .setCacheLevel(FIRST_LEVEL)

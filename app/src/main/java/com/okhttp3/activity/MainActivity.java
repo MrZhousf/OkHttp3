@@ -78,7 +78,9 @@ public class MainActivity extends BaseActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build();
+                HttpInfo info = HttpInfo.Builder()
+                        .setUrl(url)
+                        .build();
                 OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
                     final String result = info.getRetDetail();
