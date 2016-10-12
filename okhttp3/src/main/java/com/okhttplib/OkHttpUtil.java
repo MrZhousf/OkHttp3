@@ -1063,8 +1063,8 @@ public class OkHttpUtil {
         }
 
         public Builder setCookieJar(CookieJar cookieJar) {
-            if (cookieJar == null) throw new NullPointerException("cookieJar == null");
-            this.cookieJar = cookieJar;
+            if (null != cookieJar)
+                this.cookieJar = cookieJar;
             return this;
         }
     }
