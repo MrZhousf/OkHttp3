@@ -569,9 +569,12 @@ public class OkHttpUtil {
             if(null != info.getParams() && !info.getParams().isEmpty()){
                 StringBuilder log = new StringBuilder("PostParams: ");
                 String logInfo;
+                String value;
                 for (String key : info.getParams().keySet()) {
-                    builder.add(key, info.getParams().get(key));
-                    logInfo = key+" ="+info.getParams().get(key)+", ";
+                    value = info.getParams().get(key);
+                    value = value == null ? "" : value;
+                    builder.add(key, value);
+                    logInfo = key+"="+value+", ";
                     log.append(logInfo);
                 }
                 showLog(log.toString());
@@ -584,8 +587,11 @@ public class OkHttpUtil {
             params.append(info.getUrl());
             if(null != info.getParams() && !info.getParams().isEmpty()){
                 String logInfo;
+                String value;
                 for (String name : info.getParams().keySet()) {
-                    logInfo = "&" + name + "=" + info.getParams().get(name);
+                    value = info.getParams().get(name);
+                    value = value == null ? "" : value;
+                    logInfo = "&" + name + "=" + value;
                     params.append(logInfo);
                 }
             }

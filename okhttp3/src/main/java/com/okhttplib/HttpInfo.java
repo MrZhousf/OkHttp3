@@ -83,8 +83,10 @@ public class HttpInfo {
         public Builder addParam(String key, String value){
             if(null == this.params)
                 this.params = new HashMap<String,String>();
-            if(!TextUtils.isEmpty(key))
+            if(!TextUtils.isEmpty(key)){
+                value = value == null ? "" : value;
                 this.params.put(key,value);
+            }
             return this;
         }
 
