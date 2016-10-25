@@ -5,6 +5,7 @@
 ##功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
+* 支持协议头参数Head设置
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
@@ -22,13 +23,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>1.7</version>
+  <version>2.0</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:1.7'
+compile 'com.zhousf.lib:okhttp3:2.0'
 ```
 
 ##提交记录
@@ -55,6 +56,8 @@ compile 'com.zhousf.lib:okhttp3:1.7'
     *  增加请求结果拦截以及异常处理拦截
 * 2016-10-12
     *  增加Cookie持久化
+* 2016-10-25
+    *  支持协议头参数Head设置
 
 ##权限
 ```java
@@ -118,7 +121,10 @@ okHttpUtil.doGetAsync(
      */
     private void doHttpSync() {
         new Thread(()-> {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build();
+                HttpInfo info = HttpInfo.Builder()
+                .setUrl(url)
+                .addHead("head","test")//协议头参数设置
+                .build();
                 OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
                     final String result = info.getRetDetail();

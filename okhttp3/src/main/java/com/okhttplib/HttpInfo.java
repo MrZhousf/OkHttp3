@@ -23,6 +23,8 @@ public class HttpInfo {
     private Map<String,String> params;//请求参数
     private List<UploadFileInfo> uploadFiles;//上传文件参数
     private List<DownloadFileInfo> downloadFiles;//下载文件参数
+    private Map<String,String> heads;//请求头参数http head
+
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -36,6 +38,7 @@ public class HttpInfo {
         this.tag = builder.tag;
         this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
+        this.heads = builder.heads;
     }
 
     public static Builder Builder() {
@@ -49,6 +52,7 @@ public class HttpInfo {
         private Map<String,String> params;
         private List<UploadFileInfo> uploadFiles;
         private List<DownloadFileInfo> downloadFiles;
+        private Map<String,String> heads;
         private Class<?> tag;
 
 
@@ -69,6 +73,10 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 添加接口参数
+         * @param params 参数集合
+         */
         public Builder addParams(Map<String, String> params) {
             if(null == params)
                 return this;
@@ -80,6 +88,11 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 添加接口参数
+         * @param key 参数名
+         * @param value 参数值
+         */
         public Builder addParam(String key, String value){
             if(null == this.params)
                 this.params = new HashMap<String,String>();
@@ -91,7 +104,37 @@ public class HttpInfo {
         }
 
         /**
-         * 增加上传文件
+         * 添加协议头参数
+         * @param heads 头参数集合
+         */
+        public Builder addHeads(Map<String, String> heads) {
+            if(null == heads)
+                return this;
+            if(null == this.heads){
+                this.heads = heads;
+            }else{
+                this.heads.putAll(heads);
+            }
+            return this;
+        }
+
+        /**
+         * 添加协议头参数
+         * @param key 头参数名
+         * @param value 头参数值
+         */
+        public Builder addHead(String key, String value){
+            if(null == this.heads)
+                this.heads = new HashMap<String,String>();
+            if(!TextUtils.isEmpty(key)){
+                value = value == null ? "" : value;
+                this.heads.put(key,value);
+            }
+            return this;
+        }
+
+        /**
+         * 添加上传文件
          * @param interfaceParamName 接口参数名称
          * @param filePathWithName 上传的文件路径：包含文件名
          */
@@ -101,7 +144,7 @@ public class HttpInfo {
         }
 
         /**
-         * 增加上传文件
+         * 添加上传文件
          * @param interfaceParamName 接口参数名称
          * @param filePathWithName 上传的文件路径：包含文件名
          * @param progressCallback 上传进度回调接口
@@ -117,7 +160,7 @@ public class HttpInfo {
         }
 
         /**
-         * 增加上传文件
+         * 添加上传文件
          * @param url 上传文件接口地址
          * @param interfaceParamName 接口参数名称
          * @param filePathWithName 上传的文件路径：包含文件名
@@ -145,7 +188,7 @@ public class HttpInfo {
         }
 
         /**
-         * 增加下载文件
+         * 添加下载文件
          * @param url 下载文件的网络地址
          * @param saveFileName 文件保存名称：不包括扩展名
          */
@@ -155,7 +198,7 @@ public class HttpInfo {
         }
 
         /**
-         * 增加下载文件
+         * 添加下载文件
          * @param url 下载文件的网络地址
          * @param saveFileName 文件保存名称：不包括扩展名
          * @param progressCallback 下载进度回调接口
@@ -166,7 +209,7 @@ public class HttpInfo {
         }
 
         /**
-         * 增加下载文件
+         * 添加下载文件
          * @param url 下载文件的网络地址
          * @param saveFileDir 文件保存目录路径：不包括名称
          * @param saveFileName 文件保存名称：不包括扩展名
@@ -329,4 +372,7 @@ public class HttpInfo {
         return downloadFiles;
     }
 
+    public Map<String, String> getHeads() {
+        return heads;
+    }
 }

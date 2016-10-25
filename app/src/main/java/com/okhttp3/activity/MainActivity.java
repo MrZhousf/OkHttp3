@@ -53,6 +53,16 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
     @OnClick({R.id.syncBtn, R.id.asyncBtn, R.id.cacheBtn, R.id.offlineBtn})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -80,6 +90,7 @@ public class MainActivity extends BaseActivity {
             public void run() {
                 HttpInfo info = HttpInfo.Builder()
                         .setUrl(url)
+                        .addHead("head","test")
                         .build();
                 OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {

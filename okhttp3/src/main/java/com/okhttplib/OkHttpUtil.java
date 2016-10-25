@@ -9,13 +9,13 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Message;
 import android.os.NetworkOnMainThreadException;
-import android.support.annotation.IntDef;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.DownloadStatus;
+import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.DownloadMessage;
@@ -36,8 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
@@ -93,11 +91,12 @@ import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
  * 8、日志跟踪与异常处理
  * 9、支持请求结果拦截以及异常处理拦截
  * 10、支持Cookie持久化
+ * 11、支持协议头参数Head设置
  *
  * 引入版本com.squareup.okhttp3:okhttp:3.4.1
  * @author zhousf
  */
-public class OkHttpUtil {
+public class OkHttpUtil extends OkHttpUtilAbs{
 
     private final String TAG = getClass().getSimpleName();
     private static Application application;
@@ -160,8 +159,9 @@ public class OkHttpUtil {
      * @param info 请求信息体
      * @return HttpInfo
      */
+    @Override
     public HttpInfo doPostSync(HttpInfo info){
-        return doRequestSync(info, POST);
+        return doRequestSync(info, RequestMethod.POST);
     }
 
     /**
@@ -169,8 +169,9 @@ public class OkHttpUtil {
      * @param info 请求信息体
      * @param callback 回调接口
      */
+    @Override
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, POST, callback, null);
+        doRequestAsync(info, RequestMethod.POST, callback, null);
     }
 
     /**
@@ -178,8 +179,9 @@ public class OkHttpUtil {
      * @param info 请求信息体
      * @return HttpInfo
      */
+    @Override
     public HttpInfo doGetSync(HttpInfo info){
-        return doRequestSync(info, GET);
+        return doRequestSync(info, RequestMethod.GET);
     }
 
     /**
@@ -187,14 +189,16 @@ public class OkHttpUtil {
      * @param info 请求信息体
      * @param callback 回调接口
      */
+    @Override
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, GET, callback, null);
+        doRequestAsync(info, RequestMethod.GET, callback, null);
     }
 
     /**
      * 异步上传文件
      * @param info 请求信息体
      */
+    @Override
     public void doUploadFileAsync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
@@ -211,6 +215,7 @@ public class OkHttpUtil {
      * 同步上传文件
      * @param info 请求信息体
      */
+    @Override
     public void doUploadFileSync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
@@ -222,6 +227,7 @@ public class OkHttpUtil {
      * 异步下载文件
      * @param info 请求信息体
      */
+    @Override
     public void doDownloadFileAsync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
@@ -242,6 +248,7 @@ public class OkHttpUtil {
      * 同步下载文件
      * @param info 请求信息体
      */
+    @Override
     public void doDownloadFileSync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
@@ -281,12 +288,11 @@ public class OkHttpUtil {
                     file.getName(),
                     RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
             RequestBody requestBody = mBuilder.build();
-            final Request request = new Request
-                    .Builder()
-                    .url(url)
-                    .post(new ProgressRequestBody(requestBody,progressCallback))
-                    .build();
-            doRequestSync(null,info,POST,request,null);
+            Request.Builder requestBuilder = new Request.Builder();
+            requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback));
+            addHeadsToRequest(info,requestBuilder);
+            final Request request = requestBuilder.build();
+            doRequestSync(null,info,RequestMethod.POST,request,null);
             responseCallback(info,progressCallback,OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
         }catch (Exception e){
             e.printStackTrace();
@@ -323,11 +329,12 @@ public class OkHttpUtil {
             }
         };
         OkHttpClient httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
-        Request request = new Request.Builder()
-                .url(url)
-                .header("RANGE", "bytes=" + completedSize + "-")
-                .build();
-        doRequestSync(httpClient,info,GET,request,fileInfo);
+        Request.Builder requestBuilder = new Request.Builder();
+        requestBuilder.url(url)
+                .header("RANGE", "bytes=" + completedSize + "-");
+        addHeadsToRequest(info, requestBuilder);
+        Request request = requestBuilder.build();
+        doRequestSync(httpClient,info,RequestMethod.GET,request,fileInfo);
         //删除下载任务
         if(null != downloadTaskMap)
             downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
@@ -377,7 +384,7 @@ public class OkHttpUtil {
         return 0L;
     }
 
-    private HttpInfo doRequestSync(HttpInfo info,@Method int method){
+    private HttpInfo doRequestSync(HttpInfo info,@RequestMethod int method){
         return doRequestSync(null,info,method,null,null);
     }
 
@@ -388,7 +395,7 @@ public class OkHttpUtil {
      * @param request 请求
      * @param downloadFile 下载文件
      */
-    private HttpInfo doRequestSync(OkHttpClient httpClient,HttpInfo info,@Method int method,Request request,DownloadFileInfo downloadFile){
+    private HttpInfo doRequestSync(OkHttpClient httpClient,HttpInfo info,@RequestMethod int method,Request request,DownloadFileInfo downloadFile){
         Call call = null;
         try {
             String url = info.getUrl();
@@ -430,7 +437,7 @@ public class OkHttpUtil {
      * @param method 请求方法
      * @param callback 回调接口
      */
-    private void doRequestAsync(final HttpInfo info, @Method int method, final CallbackOk callback, Request request){
+    private void doRequestAsync(final HttpInfo info, @RequestMethod int method, final CallbackOk callback, Request request){
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
@@ -561,10 +568,10 @@ public class OkHttpUtil {
         return true;
     }
 
-    private Request fetchRequest(HttpInfo info, @Method int method){
+    private Request fetchRequest(HttpInfo info, @RequestMethod int method){
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
-        if(method == POST){
+        if(method == RequestMethod.POST){
             FormBody.Builder builder = new FormBody.Builder();
             if(null != info.getParams() && !info.getParams().isEmpty()){
                 StringBuilder log = new StringBuilder("PostParams: ");
@@ -602,8 +609,19 @@ public class OkHttpUtil {
         if (Build.VERSION.SDK_INT > 13) {
             requestBuilder.addHeader("Connection", "close");
         }
+        addHeadsToRequest(info,requestBuilder);
         request = requestBuilder.build();
         return request;
+    }
+
+    //添加头参数
+    private Request.Builder addHeadsToRequest(HttpInfo info,Request.Builder requestBuilder){
+        if(null != info.getHeads() && !info.getHeads().isEmpty()){
+            for (String key : info.getHeads().keySet()) {
+                requestBuilder.addHeader(key,info.getHeads().get(key));
+            }
+        }
+        return requestBuilder;
     }
 
     private HttpInfo retInfo(HttpInfo info, int code){
@@ -1084,14 +1102,6 @@ public class OkHttpUtil {
             Log.d(TAG+"["+timeStamp+"]", msg);
     }
 
-    /**
-     * 请求方法
-     */
-    @IntDef({POST,GET})
-    @Retention(RetentionPolicy.SOURCE)
-    private  @interface Method{}
-    private static final int POST = 1;
-    private static final int GET = 2;
 
 
 }
