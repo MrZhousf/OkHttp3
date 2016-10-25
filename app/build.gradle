@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 //apply plugin: 'me.tatarka.retrolambda'
 android {
 
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 21
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion rootProject.minSdkVersion
         multiDexEnabled true
     }
 
