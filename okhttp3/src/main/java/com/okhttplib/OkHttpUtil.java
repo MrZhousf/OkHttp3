@@ -592,9 +592,9 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         }else{
             StringBuilder params = new StringBuilder();
             params.append(info.getUrl());
-            if(!info.getUrl().endsWith("?"))
-                params.append("?");
             if(null != info.getParams() && !info.getParams().isEmpty()){
+                if(!info.getUrl().endsWith("?"))
+                    params.append("?");
                 String logInfo;
                 String value;
                 boolean isFirst = true;
