@@ -592,13 +592,21 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         }else{
             StringBuilder params = new StringBuilder();
             params.append(info.getUrl());
+            if(!info.getUrl().endsWith("?"))
+                params.append("?");
             if(null != info.getParams() && !info.getParams().isEmpty()){
                 String logInfo;
                 String value;
+                boolean isFirst = true;
                 for (String name : info.getParams().keySet()) {
                     value = info.getParams().get(name);
                     value = value == null ? "" : value;
-                    logInfo = "&" + name + "=" + value;
+                    if(isFirst){
+                        logInfo = name + "=" + value;
+                        isFirst = false;
+                    }else{
+                        logInfo = "&" + name + "=" + value;
+                    }
                     params.append(logInfo);
                 }
             }
