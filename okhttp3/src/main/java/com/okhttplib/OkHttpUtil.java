@@ -571,6 +571,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
     private Request fetchRequest(HttpInfo info, @RequestMethod int method){
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
+        final String url = info.getUrl();
         if(method == RequestMethod.POST){
             FormBody.Builder builder = new FormBody.Builder();
             if(null != info.getParams() && !info.getParams().isEmpty()){
@@ -587,17 +588,17 @@ public class OkHttpUtil extends OkHttpUtilAbs{
                 showLog(log.toString());
             }
             requestBuilder
-                    .url(info.getUrl())
+                    .url(url)
                     .post(builder.build());
         }else{
             StringBuilder params = new StringBuilder();
-            params.append(info.getUrl());
+            params.append(url);
             if(null != info.getParams() && !info.getParams().isEmpty()){
-                if(!info.getUrl().endsWith("?"))
+                if(!url.contains("?") && !url.endsWith("?"))
                     params.append("?");
                 String logInfo;
                 String value;
-                boolean isFirst = true;
+                boolean isFirst = params.toString().endsWith("?");
                 for (String name : info.getParams().keySet()) {
                     value = info.getParams().get(name);
                     value = value == null ? "" : value;
