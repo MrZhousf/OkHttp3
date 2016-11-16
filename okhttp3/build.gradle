@@ -10,7 +10,7 @@ android {
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
-        versionName "2.2"
+        versionName "2.3"
     }
 
     buildTypes {
@@ -28,7 +28,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:21.+'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
 }

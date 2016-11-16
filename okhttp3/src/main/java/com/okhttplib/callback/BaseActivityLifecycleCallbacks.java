@@ -98,8 +98,8 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
         Class<?> t = null;
         if(null != tag)
             t = tag;
-        if(null != info.getTag() && null == t)
-            t = info.getTag();
+        if(null != info.getRequestTag() && null == t)
+            t = info.getRequestTag();
         return t;
     }
 
@@ -107,9 +107,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
         if(!showLifecycleLog){
             return;
         }
-        String callDetail = "增加请求";
-        if(isCancel)
-            callDetail = "取消请求";
+        String callDetail = isCancel ? "取消请求": "增加请求";
         int originalSize = callsMap.size();
         int rest ;
         if(originalSize > 0){

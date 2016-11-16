@@ -36,11 +36,11 @@ public class BaseApplication extends Application {
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(false)//显示Activity销毁日志
+                .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
-//                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
+                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
     }

@@ -1,6 +1,5 @@
 package com.okhttplib;
 
-import android.app.Activity;
 import android.text.TextUtils;
 
 import com.okhttplib.bean.DownloadFileInfo;
@@ -30,12 +29,12 @@ public class HttpInfo {
     private int retCode;//返回码
     private String retDetail;//返回结果
 
-    private Class<?> tag;//请求标识
+    private Class<?> requestTag;//请求标识
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
         this.params = builder.params;
-        this.tag = builder.tag;
+        this.requestTag = builder.requestTag;
         this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
@@ -53,14 +52,14 @@ public class HttpInfo {
         private List<UploadFileInfo> uploadFiles;
         private List<DownloadFileInfo> downloadFiles;
         private Map<String,String> heads;
-        private Class<?> tag;
+        private Class<?> requestTag;
 
 
         public Builder() {
         }
 
         public HttpInfo build(Object object){
-            setTag(object);
+            setRequestTag(object);
             return new HttpInfo(this);
         }
 
@@ -246,19 +245,9 @@ public class HttpInfo {
             return this;
         }
 
-        public Builder setTag(Object object) {
-            if(object instanceof Activity){
-                Activity activity = (Activity) object;
-                this.tag = activity.getClass();
-            }
-            if(object instanceof android.support.v4.app.Fragment){
-                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
-                this.tag = fragment.getActivity().getClass();
-            }
-            if(object instanceof android.app.Fragment){
-                android.app.Fragment fragment = (android.app.Fragment) object;
-                this.tag = fragment.getActivity().getClass();
-            }
+        //设置请求标识（与Activity/Fragment生命周期绑定）
+        public Builder setRequestTag(Object object) {
+            this.requestTag = object.getClass();
             return this;
         }
 
@@ -349,8 +338,8 @@ public class HttpInfo {
         return params;
     }
 
-    public Class<?> getTag() {
-        return tag;
+    public Class<?> getRequestTag() {
+        return requestTag;
     }
 
     public List<UploadFileInfo> getUploadFiles() {

@@ -1,6 +1,5 @@
 package com.okhttplib;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -16,11 +15,11 @@ import com.okhttplib.bean.HelperInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
-import com.okhttplib.interceptor.ExceptionInterceptor;
-import com.okhttplib.interceptor.ResultInterceptor;
 import com.okhttplib.helper.DownUpLoadHelper;
 import com.okhttplib.helper.HttpHelper;
 import com.okhttplib.helper.LogHelper;
+import com.okhttplib.interceptor.ExceptionInterceptor;
+import com.okhttplib.interceptor.ResultInterceptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,7 +97,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private boolean showHttpLog;//是否显示Http请求日志
     private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
     private String downloadFileDir;//下载文件保存目录
-    private Class<?> tag;//请求标识
+    private Class<?> requestTag;//请求标识
     private CookieJar cookieJar;
     /********  构建属性-定义结束  ***********/
 
@@ -326,7 +325,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         showHttpLog = builder.showHttpLog;
         showLifecycleLog = builder.showLifecycleLog;
         downloadFileDir = builder.downloadFileDir;
-        tag = builder.tag;
+        requestTag = builder.requestTag;
         cookieJar = builder.cookieJar;
         if(null != cookieJar)
             clientBuilder.cookieJar(cookieJar);
@@ -351,11 +350,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             cacheType = CACHE_THEN_NETWORK;
         if(null == application)
             cacheType = FORCE_NETWORK;
-        executorService = Executors.newCachedThreadPool();
+        if(null == executorService)
+            executorService = Executors.newCachedThreadPool();
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(showLifecycleLog);
         HelperInfo helperInfo = new HelperInfo();
         helperInfo.setShowHttpLog(showHttpLog);
-        helperInfo.setTag(tag);
+        helperInfo.setTag(requestTag);
         helperInfo.setTimeStamp(System.currentTimeMillis());
         helperInfo.setExceptionInterceptors(exceptionInterceptors);
         helperInfo.setResultInterceptors(resultInterceptors);
@@ -365,6 +365,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         initHelper(helperInfo);
     }
 
+    /**
+     * 初始化辅助类
+     */
     private void initHelper(HelperInfo helperInfo){
         HttpHelper.init(helperInfo);
         DownUpLoadHelper.init(helperInfo);
@@ -451,7 +454,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private boolean showHttpLog;//是否显示Http请求日志
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
         private String downloadFileDir;//下载文件保存目录
-        private Class<?> tag;
+        private Class<?> requestTag;
         private CookieJar cookieJar;
 
         public Builder() {
@@ -480,7 +483,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 }
             }
             if(null != object)
-                setTag(object);
+                setRequestTag(object);
             return new OkHttpUtil(this);
         }
 
@@ -536,17 +539,20 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setCookieJar(builder.cookieJar);
         }
 
+        //设置缓存大小
         public Builder setMaxCacheSize(int maxCacheSize) {
             this.maxCacheSize = maxCacheSize;
             return this;
         }
 
+        //设置缓存目录
         public Builder setCachedDir(File cachedDir) {
             if(null != cachedDir)
                 this.cachedDir = cachedDir;
             return this;
         }
 
+        //设置连接超时
         public Builder setConnectTimeout(int connectTimeout) {
             if(connectTimeout <= 0)
                 throw new IllegalArgumentException("connectTimeout must be > 0");
@@ -554,6 +560,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置读超时
         public Builder setReadTimeout(int readTimeout) {
             if(readTimeout <= 0)
                 throw new IllegalArgumentException("readTimeout must be > 0");
@@ -561,6 +568,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置写超时
         public Builder setWriteTimeout(int writeTimeout) {
             if(writeTimeout <= 0)
                 throw new IllegalArgumentException("writeTimeout must be > 0");
@@ -568,23 +576,27 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置失败重新连接
         public Builder setRetryOnConnectionFailure(boolean retryOnConnectionFailure) {
             this.retryOnConnectionFailure = retryOnConnectionFailure;
             return this;
         }
 
+        //设置网络拦截器：每次Http请求时都会执行该拦截器
         public Builder setNetworkInterceptors(List<Interceptor> networkInterceptors) {
             if(null != networkInterceptors)
                 this.networkInterceptors = networkInterceptors;
             return this;
         }
 
+        //设置应用拦截器：每次Http、缓存请求时都会执行该拦截器
         public Builder setInterceptors(List<Interceptor> interceptors) {
             if(null != interceptors)
                 this.interceptors = interceptors;
             return this;
         }
 
+        //设置请求结果拦截器
         public Builder setResultInterceptors(List<ResultInterceptor> resultInterceptors){
             if(null != resultInterceptors)
                 this.resultInterceptors = resultInterceptors;
@@ -600,12 +612,14 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置请求链路异常拦截器
         public Builder setExceptionInterceptors(List<ExceptionInterceptor> exceptionInterceptors){
             if(null != exceptionInterceptors){
                 this.exceptionInterceptors = exceptionInterceptors;
             }
             return this;
         }
+
         public Builder addExceptionInterceptor(ExceptionInterceptor exceptionInterceptor){
             if(null != exceptionInterceptor){
                 if(null == this.exceptionInterceptors)
@@ -615,6 +629,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置缓存存活时间（秒）
         public Builder setCacheSurvivalTime(int cacheSurvivalTime) {
             if(cacheSurvivalTime < 0)
                 throw new IllegalArgumentException("cacheSurvivalTime must be >= 0");
@@ -622,47 +637,43 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
+        //设置缓存类型
         public Builder setCacheType(@CacheType int cacheType) {
             this.cacheType = cacheType;
             return this;
         }
 
+        //设置缓存级别
         public Builder setCacheLevel(@CacheLevel int cacheLevel) {
             this.cacheLevel = cacheLevel;
             return this;
         }
 
+        //设置显示Http请求日志
         public Builder setShowHttpLog(boolean showHttpLog) {
             this.showHttpLog = showHttpLog;
             return this;
         }
 
+        //设置显示ActivityLifecycle日志
         public Builder setShowLifecycleLog(boolean showLifecycleLog) {
             this.showLifecycleLog = showLifecycleLog;
             return this;
         }
 
-        public Builder setTag(Object object) {
-            if(object instanceof Activity){
-                Activity activity = (Activity) object;
-                this.tag = activity.getClass();
-            }
-            if(object instanceof android.support.v4.app.Fragment){
-                android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
-                this.tag = fragment.getActivity().getClass();
-            }
-            if(object instanceof android.app.Fragment){
-                android.app.Fragment fragment = (android.app.Fragment) object;
-                this.tag = fragment.getActivity().getClass();
-            }
+        //设置请求标识（与Activity/Fragment生命周期绑定）
+        public Builder setRequestTag(Object object) {
+            this.requestTag = object.getClass();
             return this;
         }
 
+        //设置下载文件目录
         public Builder setDownloadFileDir(String downloadFileDir) {
             this.downloadFileDir = downloadFileDir;
             return this;
         }
 
+        //设置cookie持久化
         public Builder setCookieJar(CookieJar cookieJar) {
             if (null != cookieJar)
                 this.cookieJar = cookieJar;
