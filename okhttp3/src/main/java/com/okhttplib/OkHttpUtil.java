@@ -54,6 +54,8 @@ import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 import static com.okhttplib.annotation.CacheType.FORCE_CACHE;
 import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
+import static com.okhttplib.helper.DownUpLoadHelper.downloadFile;
+import static com.okhttplib.helper.DownUpLoadHelper.uploadFile;
 
 
 /**
@@ -135,7 +137,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public HttpInfo doPostSync(HttpInfo info){
-        return HttpHelper.get().doRequestSync(info, RequestMethod.POST);
+        return HttpHelper.doRequestSync(info, RequestMethod.POST);
     }
 
     /**
@@ -145,7 +147,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        HttpHelper.get().doRequestAsync(info, RequestMethod.POST, callback, null);
+        HttpHelper.doRequestAsync(info, RequestMethod.POST, callback, null);
     }
 
     /**
@@ -155,7 +157,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public HttpInfo doGetSync(HttpInfo info){
-        return HttpHelper.get().doRequestSync(info, RequestMethod.GET);
+        return HttpHelper.doRequestSync(info, RequestMethod.GET);
     }
 
     /**
@@ -165,7 +167,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        HttpHelper.get().doRequestAsync(info, RequestMethod.GET, callback, null);
+        HttpHelper.doRequestAsync(info, RequestMethod.GET, callback, null);
     }
 
     /**
@@ -179,7 +181,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    DownUpLoadHelper.get().uploadFile(info,fileInfo);
+                    DownUpLoadHelper.uploadFile(info,fileInfo);
                 }
             });
         }
@@ -193,7 +195,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doUploadFileSync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
-            DownUpLoadHelper.get().uploadFile(info,fileInfo);
+            uploadFile(info,fileInfo);
         }
     }
 
@@ -208,7 +210,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    DownUpLoadHelper.get().downloadFile(info,fileInfo,newBuilderFromCopy());
+                    downloadFile(info,fileInfo,newBuilderFromCopy());
                 }
             });
         }
@@ -222,7 +224,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doDownloadFileSync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
-            DownUpLoadHelper.get().downloadFile(info,fileInfo,newBuilderFromCopy());
+            DownUpLoadHelper.downloadFile(info,fileInfo,newBuilderFromCopy());
         }
     }
 
@@ -355,7 +357,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(showLifecycleLog);
         HelperInfo helperInfo = new HelperInfo();
         helperInfo.setShowHttpLog(showHttpLog);
-        helperInfo.setTag(requestTag);
+        helperInfo.setRequestTag(requestTag);
         helperInfo.setTimeStamp(System.currentTimeMillis());
         helperInfo.setExceptionInterceptors(exceptionInterceptors);
         helperInfo.setResultInterceptors(resultInterceptors);

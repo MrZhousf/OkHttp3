@@ -17,7 +17,7 @@ public class HelperInfo {
     private long timeStamp;//时间戳
     private boolean showHttpLog;//是否显示Http请求日志
     private OkHttpClient httpClient;
-    private Class<?> tag;//请求标识
+    private Class<?> requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     private String downloadFileDir;//下载文件保存目录
@@ -55,12 +55,12 @@ public class HelperInfo {
         this.httpClient = httpClient;
     }
 
-    public Class<?> getTag() {
-        return tag;
+    public Class<?> getRequestTag() {
+        return requestTag;
     }
 
-    public void setTag(Class<?> tag) {
-        this.tag = tag;
+    public void setRequestTag(Class<?> requestTag) {
+        this.requestTag = requestTag;
     }
 
     public List<ResultInterceptor> getResultInterceptors() {

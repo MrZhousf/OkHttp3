@@ -23,13 +23,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.2</version>
+  <version>2.4</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.2'
+compile 'com.zhousf.lib:okhttp3:2.4'
 ```
 
 ##提交记录

@@ -34,6 +34,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+import static com.okhttplib.helper.HttpHelper.addHeadsToRequest;
+import static com.okhttplib.helper.HttpHelper.responseCallback;
+
 /**
  * 上传/下载辅助类
  * @author: zhousf
@@ -49,20 +52,16 @@ public class DownUpLoadHelper {
     private DownUpLoadHelper() {
     }
 
-    public static DownUpLoadHelper get(){
-        return new DownUpLoadHelper();
-    }
-
     public static void init(HelperInfo helperInfo){
         timeStamp = helperInfo.getTimeStamp();
         downloadFileDir = helperInfo.getDownloadFileDir();
-        tag = helperInfo.getTag();
+        tag = helperInfo.getRequestTag();
     }
 
     /**
      * 文件上传
      */
-    public void uploadFile(HttpInfo info, UploadFileInfo fileInfo){
+    public static void uploadFile(HttpInfo info, UploadFileInfo fileInfo){
         try {
             String filePath = fileInfo.getFilePathWithName();
             String interfaceParamName = fileInfo.getInterfaceParamName();
@@ -94,10 +93,10 @@ public class DownUpLoadHelper {
             RequestBody requestBody = mBuilder.build();
             Request.Builder requestBuilder = new Request.Builder();
             requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback));
-            HttpHelper.get().addHeadsToRequest(info,requestBuilder);
+            addHeadsToRequest(info,requestBuilder);
             Request request = requestBuilder.build();
-            HttpHelper.get().doRequestSync(null,info, RequestMethod.POST,request,null);
-            HttpHelper.get().responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
+            HttpHelper.doRequestSync(null,info, RequestMethod.POST,request,null);
+            responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
         } catch (Exception e){
             LogHelper.get().showLog("上传文件失败："+e.getMessage());
         }
@@ -106,7 +105,7 @@ public class DownUpLoadHelper {
     /**
      * 文件下载
      */
-    public void downloadFile(HttpInfo info,final DownloadFileInfo fileInfo,OkHttpClient.Builder builder){
+    public static void downloadFile(HttpInfo info,final DownloadFileInfo fileInfo,OkHttpClient.Builder builder){
         try {
             String url = fileInfo.getUrl();
             if(TextUtils.isEmpty(url)){
@@ -140,13 +139,13 @@ public class DownUpLoadHelper {
             Request.Builder requestBuilder = new Request.Builder();
             requestBuilder.url(url)
                     .header("RANGE", "bytes=" + completedSize + "-");
-            HttpHelper.get().addHeadsToRequest(info, requestBuilder);
+            HttpHelper.addHeadsToRequest(info, requestBuilder);
             Request request = requestBuilder.build();
-            HttpHelper.get().doRequestSync(httpClient,info,RequestMethod.GET,request,fileInfo);
+            HttpHelper.doRequestSync(httpClient,info,RequestMethod.GET,request,fileInfo);
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
-            HttpHelper.get().responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
+            HttpHelper.responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
         } catch (Exception e){
             LogHelper.get().showLog("下载文件失败："+e.getMessage());
         }
@@ -156,7 +155,7 @@ public class DownUpLoadHelper {
     /**
      * 开始文件下载
      */
-    HttpInfo downloadingFile(HttpInfo info, DownloadFileInfo fileInfo, Response res, Call call){
+    static HttpInfo downloadingFile(HttpInfo info, DownloadFileInfo fileInfo, Response res, Call call){
         RandomAccessFile accessFile = null;
         InputStream inputStream = null;
         BufferedInputStream bis = null;
@@ -182,7 +181,7 @@ public class DownUpLoadHelper {
                 completedSize += length;
             }
             if(DownloadStatus.PAUSE.equals(fileInfo.getDownloadStatus())){
-                return HttpHelper.get().retInfo(info,HttpInfo.Message,"暂停下载");
+                return HttpHelper.retInfo(info,HttpInfo.Message,"暂停下载");
             }
             //下载完成
             if(DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus())){
@@ -198,12 +197,12 @@ public class DownUpLoadHelper {
                     boolean rename = oldFile.renameTo(newFile);
                     LogHelper.get().showLog("重命名["+rename+"]:"+newFile.getAbsolutePath());
                 }
-                return HttpHelper.get().retInfo(info,HttpInfo.SUCCESS,filePath);
+                return HttpHelper.retInfo(info,HttpInfo.SUCCESS,filePath);
             }
         }catch(SocketTimeoutException e){
-            return HttpHelper.get().retInfo(info,HttpInfo.WriteAndReadTimeOut);
+            return HttpHelper.retInfo(info,HttpInfo.WriteAndReadTimeOut);
         }catch (Exception e){
-            return HttpHelper.get().retInfo(info,HttpInfo.ConnectionInterruption);
+            return HttpHelper.retInfo(info,HttpInfo.ConnectionInterruption);
         }finally {
             try {
                 if(null != bis)
@@ -220,13 +219,13 @@ public class DownUpLoadHelper {
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
         }
-        return HttpHelper.get().retInfo(info,HttpInfo.SUCCESS,filePath);
+        return HttpHelper.retInfo(info,HttpInfo.SUCCESS,filePath);
     }
 
     /**
      * 获取断点文件已完成的节点
      */
-    private long fetchCompletedSize(DownloadFileInfo fileInfo){
+    private static long fetchCompletedSize(DownloadFileInfo fileInfo){
         String saveFileDir = fileInfo.getSaveFileDir();
         String saveFileName = fileInfo.getSaveFileName();
         String url = fileInfo.getUrl();
@@ -254,13 +253,9 @@ public class DownUpLoadHelper {
         return 0L;
     }
 
-    private boolean mkDirNotExists(String dir) {
+    private static boolean mkDirNotExists(String dir) {
         File file = new File(dir);
-        if (!file.exists()) {
-            return file.mkdirs();
-        }else{
-            return true;
-        }
+        return file.exists() || file.mkdirs();
     }
 
 

@@ -44,13 +44,9 @@ public class HttpHelper {
     private HttpHelper() {
     }
 
-    public static HttpHelper get(){
-        return new HttpHelper();
-    }
-
     public static void init(HelperInfo helperInfo){
         httpClient = helperInfo.getHttpClient();
-        requestTag = helperInfo.getTag();
+        requestTag = helperInfo.getRequestTag();
         resultInterceptors = helperInfo.getResultInterceptors();
         exceptionInterceptors = helperInfo.getExceptionInterceptors();
     }
@@ -58,7 +54,7 @@ public class HttpHelper {
     /**
      * 构建Request
      */
-    private Request buildRequest(HttpInfo info, @RequestMethod int method){
+    private static Request buildRequest(HttpInfo info, @RequestMethod int method){
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
@@ -119,7 +115,7 @@ public class HttpHelper {
      * @param request 请求
      * @param downloadFile 下载文件
      */
-     HttpInfo doRequestSync(OkHttpClient httpClient, HttpInfo info, @RequestMethod int method, Request request, DownloadFileInfo downloadFile){
+     static HttpInfo doRequestSync(OkHttpClient httpClient, HttpInfo info, @RequestMethod int method, Request request, DownloadFileInfo downloadFile){
         Call call = null;
         try {
             String url = info.getUrl();
@@ -152,7 +148,7 @@ public class HttpHelper {
         }
     }
 
-    public HttpInfo doRequestSync(HttpInfo info,@RequestMethod int method){
+    public static HttpInfo doRequestSync(HttpInfo info,@RequestMethod int method){
         return doRequestSync(null,info,method,null,null);
     }
 
@@ -163,7 +159,7 @@ public class HttpHelper {
      * @param callback 回调接口
      * @param request request
      */
-    public void doRequestAsync(final HttpInfo info, @RequestMethod int method, final CallbackOk callback, Request request){
+    public static void doRequestAsync(final HttpInfo info, @RequestMethod int method, final CallbackOk callback, Request request){
         if(null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
         Call call = httpClient.newCall(request == null ? buildRequest(info,method) : request);
@@ -190,14 +186,14 @@ public class HttpHelper {
     /**
      * 处理HTTP响应
      */
-    private HttpInfo dealResponse(HttpInfo info,Response res,Call call,DownloadFileInfo downloadFile){
+    private static HttpInfo dealResponse(HttpInfo info,Response res,Call call,DownloadFileInfo downloadFile){
         try {
             if(null != res){
                 if(res.isSuccessful() && null != res.body()){
                     if(null == downloadFile){
                         return retInfo(info,HttpInfo.SUCCESS,res.body().string());
                     }else{ //下载文件
-                        return DownUpLoadHelper.get().downloadingFile(info,downloadFile,res,call);
+                        return DownUpLoadHelper.downloadingFile(info,downloadFile,res,call);
                     }
                 }else{
                     LogHelper.get().showLog("HttpStatus: "+res.code());
@@ -223,7 +219,7 @@ public class HttpHelper {
         }
     }
 
-    HttpInfo retInfo(HttpInfo info, int code){
+    static HttpInfo retInfo(HttpInfo info, int code){
         retInfo(info,code,null);
         return info;
     }
@@ -231,7 +227,7 @@ public class HttpHelper {
     /**
      * 封装请求结果
      */
-    HttpInfo retInfo(HttpInfo info, int code, String resDetail){
+    static HttpInfo retInfo(HttpInfo info, int code, String resDetail){
         info.packInfo(code,resDetail);
         //拦截请求结果
         dealInterceptor(info);
@@ -242,7 +238,7 @@ public class HttpHelper {
     /**
      * 处理拦截器
      */
-    private void dealInterceptor(HttpInfo info){
+    private static void dealInterceptor(HttpInfo info){
         try {
             if(info.isSuccessful() && null != resultInterceptors){ //请求结果拦截器
                 for(ResultInterceptor interceptor : resultInterceptors){
@@ -263,7 +259,7 @@ public class HttpHelper {
     /**
      * 请求结果回调
      */
-    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code){
+    static void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code){
         //同步回调
         if(null != progressCallback)
             progressCallback.onResponseSync(info.getUrl(),info);
@@ -280,7 +276,7 @@ public class HttpHelper {
     /**
      * 添加请求头参数
      */
-    Request.Builder addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
+    static Request.Builder addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
         if(null != info.getHeads() && !info.getHeads().isEmpty()){
             for (String key : info.getHeads().keySet()) {
                 requestBuilder.addHeader(key,info.getHeads().get(key));
