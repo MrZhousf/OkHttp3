@@ -40,7 +40,7 @@ public class BaseApplication extends Application {
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
-                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
+//                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
     }

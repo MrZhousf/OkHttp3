@@ -23,13 +23,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.0</version>
+  <version>2.2</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.0'
+compile 'com.zhousf.lib:okhttp3:2.2'
 ```
 
 ##提交记录
@@ -58,6 +58,8 @@ compile 'com.zhousf.lib:okhttp3:2.0'
     *  增加Cookie持久化
 * 2016-10-25
     *  支持协议头参数Head设置
+* 2016-11-16
+    *  项目架构调整，简单的API提高代码可读性
 
 ##权限
 ```java
@@ -97,7 +99,7 @@ OkHttpUtil.init(this)
 ##Cookie持久化示例
 没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
 ```java
-OkHttpUtil okHttpUtil = OkHttpUtil.Builder()
+OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
             .setCacheLevel(FIRST_LEVEL)
             .setConnectTimeout(25).build(this);
 //一个okHttpUtil即为一个网络连接
@@ -241,6 +243,7 @@ okHttpUtil.doGetAsync(
 感谢以下的项目,排名不分先后
 
 * [OkHttp](https://github.com/square/okhttp/) 
+* [PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
 
 
 ##相关示例

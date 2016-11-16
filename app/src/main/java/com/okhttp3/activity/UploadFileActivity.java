@@ -56,7 +56,8 @@ public class UploadFileActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.chooseFileBtn:
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("video/*;image/*");//图片和视频
+//                intent.setType("video/*;image/*");//图片和视频
+                intent.setType("*/*");//文件
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 startActivityForResult(intent, 1);
                 break;

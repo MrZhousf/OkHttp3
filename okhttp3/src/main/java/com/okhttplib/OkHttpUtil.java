@@ -5,46 +5,30 @@ import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Environment;
-import android.os.Message;
-import android.os.NetworkOnMainThreadException;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
-import com.okhttplib.annotation.DownloadStatus;
 import com.okhttplib.annotation.RequestMethod;
-import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadFileInfo;
-import com.okhttplib.bean.DownloadMessage;
+import com.okhttplib.bean.HelperInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
-import com.okhttplib.callback.ProgressCallback;
-import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
-import com.okhttplib.progress.ProgressRequestBody;
-import com.okhttplib.progress.ProgressResponseBody;
-import com.okhttplib.util.EncryptUtil;
-import com.okhttplib.util.MediaTypeUtil;
+import com.okhttplib.helper.DownUpLoadHelper;
+import com.okhttplib.helper.HttpHelper;
+import com.okhttplib.helper.LogHelper;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -57,17 +41,11 @@ import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.CookieJar;
-import okhttp3.FormBody;
 import okhttp3.Interceptor;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
 import static com.okhttplib.annotation.CacheLevel.FOURTH_LEVEL;
@@ -96,40 +74,33 @@ import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
  * 引入版本com.squareup.okhttp3:okhttp:3.4.1
  * @author zhousf
  */
-public class OkHttpUtil extends OkHttpUtilAbs{
+public class OkHttpUtil implements OkHttpUtilInterface{
 
     private final String TAG = getClass().getSimpleName();
     private static Application application;
-    private OkHttpClient httpClient;
     private static Builder builderGlobal;
-    private ExecutorService executorService;
-    /**
-     * 请求时间戳：区别每次请求标识
-     */
-    private long timeStamp;
-    /********  构建属性-定义开始  ***********/
-    int maxCacheSize;//缓存大小
-    File cachedDir;//缓存目录
-    int connectTimeout;//连接超时
-    int readTimeout;//读超时
-    int writeTimeout;//写超时
-    boolean retryOnConnectionFailure;//失败重新连接
-    List<Interceptor> networkInterceptors;//网络拦截器
-    List<Interceptor> interceptors;//应用拦截器
-    List<ResultInterceptor> resultInterceptors;//请求结果拦截器
-    List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
-    int cacheSurvivalTime;//缓存存活时间（秒）
-    int cacheType;//缓存类型
-    int cacheLevel;//缓存级别
-    boolean isGlobalConfig;//是否全局配置
-    boolean showHttpLog;//是否显示Http请求日志
-    boolean showLifecycleLog;//是否显示ActivityLifecycle日志
-    String downloadFileDir;//下载文件保存目录
-    Class<?> tag;//请求标识
-    CookieJar cookieJar;
-    /********  构建属性-定义结束  ***********/
+    private static ExecutorService executorService;
 
-    private static Map<String,String> downloadTaskMap;
+    /********  构建属性-定义开始  ***********/
+    private int maxCacheSize;//缓存大小
+    private File cachedDir;//缓存目录
+    private int connectTimeout;//连接超时
+    private int readTimeout;//读超时
+    private int writeTimeout;//写超时
+    private int cacheSurvivalTime;//缓存存活时间（秒）
+    private int cacheType;//缓存类型
+    private boolean retryOnConnectionFailure;//失败重新连接
+    private List<Interceptor> networkInterceptors;//网络拦截器
+    private List<Interceptor> interceptors;//应用拦截器
+    private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
+    private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
+    private int cacheLevel;//缓存级别
+    private boolean showHttpLog;//是否显示Http请求日志
+    private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
+    private String downloadFileDir;//下载文件保存目录
+    private Class<?> tag;//请求标识
+    private CookieJar cookieJar;
+    /********  构建属性-定义结束  ***********/
 
     /**
      * 初始化：请在Application中调用
@@ -141,16 +112,20 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         return BuilderGlobal();
     }
 
-    public static OkHttpUtil getDefault(){
+    /**
+     * 获取默认请求配置
+     * @return OkHttpUtil
+     */
+    public static OkHttpUtilInterface getDefault(){
         return new Builder(false).build();
     }
 
     /**
-     * 获取默认请求配置
+     * 获取默认请求配置：该方法会绑定Activity、fragment生命周期
      * @param object 请求标识
      * @return OkHttpUtil
      */
-    public static OkHttpUtil getDefault(Object object){
+    public static OkHttpUtilInterface getDefault(Object object){
         return new Builder(false).build(object);
     }
 
@@ -161,7 +136,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
      */
     @Override
     public HttpInfo doPostSync(HttpInfo info){
-        return doRequestSync(info, RequestMethod.POST);
+        return HttpHelper.get().doRequestSync(info, RequestMethod.POST);
     }
 
     /**
@@ -171,7 +146,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
      */
     @Override
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, RequestMethod.POST, callback, null);
+        HttpHelper.get().doRequestAsync(info, RequestMethod.POST, callback, null);
     }
 
     /**
@@ -181,7 +156,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
      */
     @Override
     public HttpInfo doGetSync(HttpInfo info){
-        return doRequestSync(info, RequestMethod.GET);
+        return HttpHelper.get().doRequestSync(info, RequestMethod.GET);
     }
 
     /**
@@ -191,7 +166,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
      */
     @Override
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        doRequestAsync(info, RequestMethod.GET, callback, null);
+        HttpHelper.get().doRequestAsync(info, RequestMethod.GET, callback, null);
     }
 
     /**
@@ -205,7 +180,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    uploadFile(fileInfo, info);
+                    DownUpLoadHelper.get().uploadFile(info,fileInfo);
                 }
             });
         }
@@ -219,7 +194,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
     public void doUploadFileSync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
-            uploadFile(fileInfo, info);
+            DownUpLoadHelper.get().uploadFile(info,fileInfo);
         }
     }
 
@@ -234,11 +209,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        downloadFile(fileInfo,info);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
+                    DownUpLoadHelper.get().downloadFile(info,fileInfo,newBuilderFromCopy());
                 }
             });
         }
@@ -252,420 +223,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
     public void doDownloadFileSync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
-            try {
-                downloadFile(fileInfo,info);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void uploadFile(UploadFileInfo fileInfo, HttpInfo info){
-        try {
-            String filePath = fileInfo.getFilePathWithName();
-            String interfaceParamName = fileInfo.getInterfaceParamName();
-            String url = fileInfo.getUrl();
-            url = TextUtils.isEmpty(url) ? info.getUrl() : url;
-            if(TextUtils.isEmpty(url)){
-                showLog("文件上传接口地址不能为空["+filePath+"]");
-                return ;
-            }
-            ProgressCallback progressCallback = fileInfo.getProgressCallback();
-            File file = new File(filePath);
-            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-            StringBuilder log = new StringBuilder("PostParams: ");
-            log.append(interfaceParamName+"="+filePath);
-            String logInfo;
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                for (String key : info.getParams().keySet()) {
-                    mBuilder.addFormDataPart(key, info.getParams().get(key));
-                    logInfo = key+" ="+info.getParams().get(key)+", ";
-                    log.append(logInfo);
-                }
-            }
-            showLog(log.toString());
-            mBuilder.addFormDataPart(interfaceParamName,
-                    file.getName(),
-                    RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
-            RequestBody requestBody = mBuilder.build();
-            Request.Builder requestBuilder = new Request.Builder();
-            requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback));
-            addHeadsToRequest(info,requestBuilder);
-            final Request request = requestBuilder.build();
-            doRequestSync(null,info,RequestMethod.POST,request,null);
-            responseCallback(info,progressCallback,OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    private void downloadFile(final DownloadFileInfo fileInfo, HttpInfo info){
-        String url = fileInfo.getUrl();
-        if(TextUtils.isEmpty(url)){
-            showLog("下载文件失败：文件下载地址不能为空！");
-            return ;
-        }
-        info.setUrl(url);
-        ProgressCallback progressCallback = fileInfo.getProgressCallback();
-        //获取文件断点
-        long completedSize = fetchCompletedSize(fileInfo);
-        fileInfo.setCompletedSize(completedSize);
-        //添加下载任务
-        if(null == downloadTaskMap)
-            downloadTaskMap = new ConcurrentHashMap<>();
-        if(downloadTaskMap.containsKey(fileInfo.getSaveFileNameEncrypt())){
-            info = retInfo(info,HttpInfo.Message,fileInfo.getSaveFileName()+" 已在下载任务中");
-            responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
-            return ;
-        }
-        downloadTaskMap.put(fileInfo.getSaveFileNameEncrypt(),fileInfo.getSaveFileNameEncrypt());
-        Interceptor interceptor = new Interceptor() {
-            @Override
-            public Response intercept(Chain chain) throws IOException {
-                Response originalResponse = chain.proceed(chain.request());
-                return originalResponse.newBuilder()
-                        .body(new ProgressResponseBody(originalResponse.body(), fileInfo))
-                        .build();
-            }
-        };
-        OkHttpClient httpClient = newBuilderFromCopy().addInterceptor(interceptor).build();
-        Request.Builder requestBuilder = new Request.Builder();
-        requestBuilder.url(url)
-                .header("RANGE", "bytes=" + completedSize + "-");
-        addHeadsToRequest(info, requestBuilder);
-        Request request = requestBuilder.build();
-        doRequestSync(httpClient,info,RequestMethod.GET,request,fileInfo);
-        //删除下载任务
-        if(null != downloadTaskMap)
-            downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
-        responseCallback(info,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
-
-    }
-
-    private void responseCallback(HttpInfo info,ProgressCallback progressCallback,int code){
-        //同步结果回调
-        if(null != progressCallback)
-            progressCallback.onResponseSync(info.getUrl(),info);
-        //异步主线程结果回调
-        Message msg = new DownloadMessage(
-                code,
-                info.getUrl(),
-                info,
-                progressCallback)
-                .build();
-        OkMainHandler.getInstance().sendMessage(msg);
-    }
-
-    private long fetchCompletedSize(DownloadFileInfo fileInfo){
-        String saveFileDir = fileInfo.getSaveFileDir();
-        String saveFileName = fileInfo.getSaveFileName();
-        String url = fileInfo.getUrl();
-        String extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
-        String saveFileNameCopy = saveFileName+"["+timeStamp+"]"+"."+extension;
-        saveFileName += "."+extension;
-        saveFileDir = TextUtils.isEmpty(saveFileDir) ? downloadFileDir : saveFileDir;
-        mkDirNotExists(saveFileDir);
-        fileInfo.setSaveFileDir(saveFileDir);
-        fileInfo.setSaveFileNameCopy(saveFileNameCopy);
-        fileInfo.setSaveFileNameWithExtension(saveFileName);
-        String saveFileNameEncrypt = url;
-        try {
-            saveFileNameEncrypt = EncryptUtil.MD5StringTo32Bit(url,true);
-            fileInfo.setSaveFileNameEncrypt(saveFileNameEncrypt);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        File file = new File(saveFileDir,saveFileNameEncrypt);
-        if(file.exists() && file.isFile()){
-            long size = file.length();
-            showLog("断点文件下载，节点["+size+"]");
-            return size;
-        }
-        return 0L;
-    }
-
-    private HttpInfo doRequestSync(HttpInfo info,@RequestMethod int method){
-        return doRequestSync(null,info,method,null,null);
-    }
-
-    /**
-     * 同步请求
-     * @param info 请求信息体
-     * @param method 请求方法
-     * @param request 请求
-     * @param downloadFile 下载文件
-     */
-    private HttpInfo doRequestSync(OkHttpClient httpClient,HttpInfo info,@RequestMethod int method,Request request,DownloadFileInfo downloadFile){
-        Call call = null;
-        try {
-            String url = info.getUrl();
-            if(TextUtils.isEmpty(url)){
-                return retInfo(info,HttpInfo.CheckURL);
-            }
-            if(null == httpClient){
-                call = this.httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-            }else{
-                call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-            }
-            BaseActivityLifecycleCallbacks.putCall(tag,info,call);
-            Response res = call.execute();
-            return dealResponse(info, res, call, downloadFile);
-        } catch (IllegalArgumentException e){
-            return retInfo(info,HttpInfo.ProtocolException);
-        } catch (SocketTimeoutException e){
-            if(null != e.getMessage()){
-                if(e.getMessage().contains("failed to connect to"))
-                    return retInfo(info,HttpInfo.ConnectionTimeOut);
-                if(e.getMessage().equals("timeout"))
-                    return retInfo(info,HttpInfo.WriteAndReadTimeOut);
-            }
-            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
-        } catch (UnknownHostException e) {
-            return retInfo(info,HttpInfo.CheckNet);
-        } catch(NetworkOnMainThreadException e){
-            return retInfo(info,HttpInfo.NetworkOnMainThreadException);
-        } catch(Exception e) {
-            return retInfo(info,HttpInfo.NoResult);
-        }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
-        }
-    }
-
-    /**
-     * 异步请求
-     * @param info 请求信息体
-     * @param method 请求方法
-     * @param callback 回调接口
-     */
-    private void doRequestAsync(final HttpInfo info, @RequestMethod int method, final CallbackOk callback, Request request){
-        if(null == callback)
-            throw new NullPointerException("CallbackOk is null that not allowed");
-        Call call = httpClient.newCall(request == null ? fetchRequest(info,method) : request);
-        BaseActivityLifecycleCallbacks.putCall(tag,info,call);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                showLog(e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Call call, Response res) throws IOException {
-                //主线程回调
-                Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
-                        callback,
-                        dealResponse(info,res,call,null))
-                        .build();
-                OkMainHandler.getInstance().sendMessage(msg);
-                BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
-            }
-        });
-    }
-
-    private HttpInfo dealResponse(HttpInfo info,Response res,Call call,DownloadFileInfo downloadFile){
-        try {
-            if(null != res){
-                if(res.isSuccessful() && null != res.body()){
-                    if(null == downloadFile){
-                        return retInfo(info,HttpInfo.SUCCESS,res.body().string());
-                    }else{ //下载文件
-                        return dealDownloadFile(info,downloadFile,res,call);
-                    }
-                }else{
-                    showLog("HttpStatus: "+res.code());
-                    if(res.code() == 404)//请求页面路径错误
-                        return retInfo(info,HttpInfo.CheckURL);
-                    if(res.code() == 416)//请求数据流范围错误
-                        return retInfo(info,HttpInfo.Message,"请求Http数据流范围错误\n"+res.body().string());
-                    if(res.code() == 500)//服务器内部错误
-                        return retInfo(info,HttpInfo.NoResult);
-                    if(res.code() == 502)//错误网关
-                        return retInfo(info,HttpInfo.CheckNet);
-                    if(res.code() == 504)//网关超时
-                        return retInfo(info,HttpInfo.CheckNet);
-                }
-            }
-            return retInfo(info,HttpInfo.CheckURL);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return retInfo(info,HttpInfo.NoResult);
-        } finally {
-            if(null != res)
-                res.close();
-        }
-    }
-
-    private HttpInfo dealDownloadFile(HttpInfo info,DownloadFileInfo fileInfo,Response res,Call call){
-        RandomAccessFile accessFile = null;
-        InputStream inputStream = null;
-        BufferedInputStream bis = null;
-        String filePath = fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameWithExtension();
-        try {
-            ResponseBody responseBody = res.body();
-            int length;
-            long completedSize = fileInfo.getCompletedSize();
-            accessFile = new RandomAccessFile(fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameEncrypt(),"rwd");
-            //服务器不支持断点下载时重新下载
-            if(TextUtils.isEmpty(res.header("Content-Range"))){
-                completedSize = 0L;
-                fileInfo.setCompletedSize(completedSize);
-            }
-            accessFile.seek(completedSize);
-            inputStream = responseBody.byteStream();
-            byte[] buffer = new byte[2048];
-            bis = new BufferedInputStream(inputStream);
-            fileInfo.setDownloadStatus(DownloadStatus.DOWNLOADING);
-            while ( (length = bis.read(buffer)) > 0 &&
-                    (DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus()))) {
-                accessFile.write(buffer, 0, length);
-                completedSize += length;
-            }
-            if(DownloadStatus.PAUSE.equals(fileInfo.getDownloadStatus())){
-                return retInfo(info,HttpInfo.Message,"暂停下载");
-            }
-            //下载完成
-            if(DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus())){
-                fileInfo.setDownloadStatus(DownloadStatus.COMPLETED);
-                File newFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameWithExtension());
-                //处理文件已存在逻辑
-                if(newFile.exists() && newFile.isFile()){
-                    filePath = fileInfo.getSaveFileDir()+fileInfo.getSaveFileNameCopy();
-                    newFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameCopy());
-                }
-                File oldFile = new File(fileInfo.getSaveFileDir(),fileInfo.getSaveFileNameEncrypt());
-                if(oldFile.exists() && oldFile.isFile()){
-                    oldFile.renameTo(newFile);
-                }
-                return retInfo(info,HttpInfo.SUCCESS,filePath);
-            }
-        }catch(SocketTimeoutException e){
-            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
-        }catch (Exception e){
-            return retInfo(info,HttpInfo.ConnectionInterruption);
-        }finally {
-            try {
-                if(null != bis)
-                    bis.close();
-                if(null != inputStream)
-                    inputStream.close();
-                if(null != accessFile)
-                    accessFile.close();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-            BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
-            //删除下载任务
-            if(null != downloadTaskMap)
-                downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
-        }
-        return retInfo(info,HttpInfo.SUCCESS,filePath);
-    }
-
-    private boolean mkDirNotExists(String dir) {
-        File file = new File(dir);
-        if (!file.exists()) {
-            return file.mkdirs();
-        }
-        return true;
-    }
-
-    private Request fetchRequest(HttpInfo info, @RequestMethod int method){
-        Request request;
-        Request.Builder requestBuilder = new Request.Builder();
-        final String url = info.getUrl();
-        if(method == RequestMethod.POST){
-            FormBody.Builder builder = new FormBody.Builder();
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                StringBuilder log = new StringBuilder("PostParams: ");
-                String logInfo;
-                String value;
-                for (String key : info.getParams().keySet()) {
-                    value = info.getParams().get(key);
-                    value = value == null ? "" : value;
-                    builder.add(key, value);
-                    logInfo = key+"="+value+", ";
-                    log.append(logInfo);
-                }
-                showLog(log.toString());
-            }
-            requestBuilder
-                    .url(url)
-                    .post(builder.build());
-        }else{
-            StringBuilder params = new StringBuilder();
-            params.append(url);
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                if(!url.contains("?") && !url.endsWith("?"))
-                    params.append("?");
-                String logInfo;
-                String value;
-                boolean isFirst = params.toString().endsWith("?");
-                for (String name : info.getParams().keySet()) {
-                    value = info.getParams().get(name);
-                    value = value == null ? "" : value;
-                    if(isFirst){
-                        logInfo = name + "=" + value;
-                        isFirst = false;
-                    }else{
-                        logInfo = "&" + name + "=" + value;
-                    }
-                    params.append(logInfo);
-                }
-            }
-            requestBuilder
-                    .url(params.toString())
-                    .get();
-        }
-        if (Build.VERSION.SDK_INT > 13) {
-            requestBuilder.addHeader("Connection", "close");
-        }
-        addHeadsToRequest(info,requestBuilder);
-        request = requestBuilder.build();
-        return request;
-    }
-
-    //添加头参数
-    private Request.Builder addHeadsToRequest(HttpInfo info,Request.Builder requestBuilder){
-        if(null != info.getHeads() && !info.getHeads().isEmpty()){
-            for (String key : info.getHeads().keySet()) {
-                requestBuilder.addHeader(key,info.getHeads().get(key));
-            }
-        }
-        return requestBuilder;
-    }
-
-    private HttpInfo retInfo(HttpInfo info, int code){
-        retInfo(info,code,null);
-        return info;
-    }
-
-    private HttpInfo retInfo(HttpInfo info, int code, String resDetail){
-        info.packInfo(code,resDetail);
-        //拦截请求结果
-        dealInterceptor(info);
-        showLog("Response: "+info.getRetDetail());
-        return info;
-    }
-
-    /**
-     * 处理拦截器
-     */
-    private void dealInterceptor(HttpInfo info){
-        try {
-            if(info.isSuccessful()){ //请求结果拦截器
-                if(null != resultInterceptors){
-                    for(ResultInterceptor interceptor : resultInterceptors){
-                        interceptor.intercept(info);
-                    }
-                }
-            }else{ //请求链路异常拦截器
-                if(null != exceptionInterceptors){
-                    for(ExceptionInterceptor interceptor : exceptionInterceptors){
-                        interceptor.intercept(info);
-                    }
-                }
-            }
-        }catch (Exception e){
-            showLog("拦截器处理异常："+e.getMessage());
+            DownUpLoadHelper.get().downloadFile(info,fileInfo,newBuilderFromCopy());
         }
     }
 
@@ -716,11 +274,8 @@ public class OkHttpUtil extends OkHttpUtilAbs{
     private boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo net = cm.getActiveNetworkInfo();
-        if (net != null && net.getState() == NetworkInfo.State.CONNECTED) {
-            return true;
-        }
-        return false;
+        NetworkInfo net = cm.getActiveNetworkInfo();
+        return net != null && net.getState() == NetworkInfo.State.CONNECTED;
     }
 
     /**
@@ -730,31 +285,14 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         @Override
         public Response intercept(Chain chain) throws IOException {
             long startTime = System.currentTimeMillis();
-            showLog(String.format("%s-URL: %s %n",chain.request().method(),
+            LogHelper.get().showLog(String.format("%s-URL: %s %n",chain.request().method(),
                     chain.request().url()));
             Response res = chain.proceed(chain.request());
             long endTime = System.currentTimeMillis();
-            showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000.0));
+            LogHelper.get().showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000f));
             return res;
         }
     };
-
-    private OkHttpClient.Builder newBuilderFromCopy(){
-        OkHttpClient.Builder newBuilder = new OkHttpClient.Builder()
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
-                .readTimeout(readTimeout, TimeUnit.SECONDS)
-                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
-                .cache(new Cache(cachedDir,maxCacheSize))
-                .retryOnConnectionFailure(retryOnConnectionFailure)
-                .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
-                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
-        if(null != networkInterceptors && !networkInterceptors.isEmpty())
-            newBuilder.networkInterceptors().addAll(networkInterceptors);
-        if(null != interceptors && !interceptors.isEmpty())
-            newBuilder.interceptors().addAll(interceptors);
-        newBuilder.addInterceptor(LOG_INTERCEPTOR);
-        return newBuilder;
-    }
 
     private OkHttpUtil(Builder builder) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
@@ -785,7 +323,6 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         cacheSurvivalTime = builder.cacheSurvivalTime;
         cacheType = builder.cacheType;
         cacheLevel = builder.cacheLevel;
-        isGlobalConfig = builder.isGlobalConfig;
         showHttpLog = builder.showHttpLog;
         showLifecycleLog = builder.showLifecycleLog;
         downloadFileDir = builder.downloadFileDir;
@@ -793,9 +330,6 @@ public class OkHttpUtil extends OkHttpUtilAbs{
         cookieJar = builder.cookieJar;
         if(null != cookieJar)
             clientBuilder.cookieJar(cookieJar);
-        //实例化client
-        httpClient = clientBuilder.build();
-        timeStamp = System.currentTimeMillis();
         if(this.cacheSurvivalTime == 0){
             final int deviation = 5;
             switch (this.cacheLevel){
@@ -817,8 +351,42 @@ public class OkHttpUtil extends OkHttpUtilAbs{
             cacheType = CACHE_THEN_NETWORK;
         if(null == application)
             cacheType = FORCE_NETWORK;
-        BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
         executorService = Executors.newCachedThreadPool();
+        BaseActivityLifecycleCallbacks.setShowLifecycleLog(showLifecycleLog);
+        HelperInfo helperInfo = new HelperInfo();
+        helperInfo.setShowHttpLog(showHttpLog);
+        helperInfo.setTag(tag);
+        helperInfo.setTimeStamp(System.currentTimeMillis());
+        helperInfo.setExceptionInterceptors(exceptionInterceptors);
+        helperInfo.setResultInterceptors(resultInterceptors);
+        helperInfo.setDownloadFileDir(downloadFileDir);
+        helperInfo.setHttpClient(clientBuilder.build());
+        helperInfo.setLogTAG(TAG);
+        initHelper(helperInfo);
+    }
+
+    private void initHelper(HelperInfo helperInfo){
+        HttpHelper.init(helperInfo);
+        DownUpLoadHelper.init(helperInfo);
+        LogHelper.get().init(helperInfo);
+    }
+
+    private OkHttpClient.Builder newBuilderFromCopy(){
+        OkHttpClient.Builder newBuilder = new OkHttpClient.Builder()
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
+                .cache(new Cache(cachedDir,maxCacheSize))
+                .retryOnConnectionFailure(retryOnConnectionFailure)
+                .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
+                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
+        if(null != networkInterceptors && !networkInterceptors.isEmpty())
+            newBuilder.networkInterceptors().addAll(networkInterceptors);
+        if(null != interceptors && !interceptors.isEmpty())
+            newBuilder.interceptors().addAll(interceptors);
+        newBuilder.addInterceptor(LOG_INTERCEPTOR);
+        setSslSocketFactory(newBuilder);
+        return newBuilder;
     }
 
     /**
@@ -843,7 +411,7 @@ public class OkHttpUtil extends OkHttpUtilAbs{
             sc.init(null,new TrustManager[]{trustManager}, new SecureRandom());
             clientBuilder.sslSocketFactory(sc.getSocketFactory(),trustManager);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogHelper.get().showLog("Https认证异常: "+e.getMessage());
         }
     }
 
@@ -901,11 +469,11 @@ public class OkHttpUtil extends OkHttpUtilAbs{
             }
         }
 
-        public OkHttpUtil build(){
+        public OkHttpUtilInterface build(){
             return build(null);
         }
 
-        public OkHttpUtil build(Object object) {
+        public OkHttpUtilInterface build(Object object) {
             if(isGlobalConfig){
                 if(null == builderGlobal){
                     builderGlobal = this;
@@ -1100,15 +668,6 @@ public class OkHttpUtil extends OkHttpUtilAbs{
                 this.cookieJar = cookieJar;
             return this;
         }
-    }
-
-    /**
-     * 打印日志
-     * @param msg 日志信息
-     */
-    private void showLog(String msg){
-        if(this.showHttpLog)
-            Log.d(TAG+"["+timeStamp+"]", msg);
     }
 
 

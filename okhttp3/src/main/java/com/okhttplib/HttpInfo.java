@@ -30,7 +30,7 @@ public class HttpInfo {
     private int retCode;//返回码
     private String retDetail;//返回结果
 
-    private Class<?> tag;
+    private Class<?> tag;//请求标识
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
@@ -95,7 +95,7 @@ public class HttpInfo {
          */
         public Builder addParam(String key, String value){
             if(null == this.params)
-                this.params = new HashMap<String,String>();
+                this.params = new HashMap<>();
             if(!TextUtils.isEmpty(key)){
                 value = value == null ? "" : value;
                 this.params.put(key,value);
@@ -125,7 +125,7 @@ public class HttpInfo {
          */
         public Builder addHead(String key, String value){
             if(null == this.heads)
-                this.heads = new HashMap<String,String>();
+                this.heads = new HashMap<>();
             if(!TextUtils.isEmpty(key)){
                 value = value == null ? "" : value;
                 this.heads.put(key,value);
@@ -168,7 +168,7 @@ public class HttpInfo {
          */
         public Builder addUploadFile(String url, String interfaceParamName, String filePathWithName, ProgressCallback progressCallback) {
             if(null == this.uploadFiles){
-                this.uploadFiles = new ArrayList<UploadFileInfo>();
+                this.uploadFiles = new ArrayList<>();
             }
             if(!TextUtils.isEmpty(filePathWithName)){
                 this.uploadFiles.add(new UploadFileInfo(url,filePathWithName,interfaceParamName,progressCallback));
@@ -217,7 +217,7 @@ public class HttpInfo {
          */
         public Builder addDownloadFile(String url,String saveFileDir,String saveFileName,ProgressCallback progressCallback){
             if(null == this.downloadFiles){
-                this.downloadFiles = new ArrayList<DownloadFileInfo>();
+                this.downloadFiles = new ArrayList<>();
             }
             if(!TextUtils.isEmpty(url)){
                 this.downloadFiles.add(new DownloadFileInfo(url,saveFileDir,saveFileName,progressCallback));
@@ -229,7 +229,7 @@ public class HttpInfo {
             if(null == downloadFile)
                 return this;
             if(null == this.downloadFiles){
-                this.downloadFiles = new ArrayList<DownloadFileInfo>();
+                this.downloadFiles = new ArrayList<>();
             }
             this.downloadFiles.add(downloadFile);
             return this;
@@ -267,63 +267,52 @@ public class HttpInfo {
 
     //**请求返回常量定义**/
     public final static int SUCCESS = 1;
-    final String SUCCESS_Detail = "发送请求成功";
     public final static int NonNetwork = 2;
-    final String NonNetwork_Detail = "网络中断";
     public final static int ProtocolException = 3;
-    final String ProtocolException_Detail = "请检查协议类型是否正确";
     public final static int NoResult = 4;
-    final String NoResult_Detail = "无法获取返回信息(服务器内部错误)";
     public final static int CheckURL = 5;
-    final String CheckURL_Detail = "请检查请求地址是否正确";
     public final static int CheckNet = 6;
-    final String CheckNet_Detail = "请检查网络连接是否正常";
     public final static int ConnectionTimeOut = 7;
-    final String ConnectionTimeOut_Detail = "连接超时";
     public final static int WriteAndReadTimeOut = 8;
-    final String WriteAndReadTimeOut_Detail = "读写超时";
     public final static int ConnectionInterruption = 9;
-    final String ConnectionInterruption_Detail = "连接中断";
     public final static int NetworkOnMainThreadException = 10;
-    final String NetworkOnMainThreadException_Detail = "不允许在UI线程中进行网络操作";
     public final static int Message = 11;
-    final String Message_Detail = "";
 
     public HttpInfo packInfo(int retCode, String retDetail){
         this.retCode = retCode;
         switch (retCode){
             case NonNetwork:
-                this.retDetail = NonNetwork_Detail;
+                this.retDetail = "网络中断";
                 break;
             case SUCCESS:
-                this.retDetail = SUCCESS_Detail;
+                this.retDetail = "发送请求成功";
                 break;
             case ProtocolException:
-                this.retDetail = ProtocolException_Detail;
+                this.retDetail = "请检查协议类型是否正确";
                 break;
             case NoResult:
-                this.retDetail = NoResult_Detail;
+                this.retDetail = "无法获取返回信息(服务器内部错误)";
                 break;
             case CheckURL:
-                this.retDetail = CheckURL_Detail;
+                this.retDetail = "请检查请求地址是否正确";
                 break;
             case CheckNet:
-                this.retDetail = CheckNet_Detail;
+                this.retDetail = "请检查网络连接是否正常";
                 break;
             case ConnectionTimeOut:
-                this.retDetail = ConnectionTimeOut_Detail;
+                this.retDetail = "连接超时";
                 break;
             case WriteAndReadTimeOut:
-                this.retDetail = WriteAndReadTimeOut_Detail;
+                this.retDetail = "读写超时";
                 break;
             case ConnectionInterruption:
-                this.retDetail = ConnectionInterruption_Detail;
+                this.retDetail = "连接中断";
                 break;
             case NetworkOnMainThreadException:
-                this.retDetail = NetworkOnMainThreadException_Detail;
+                this.retDetail = "不允许在UI线程中进行网络操作";
                 break;
             case Message:
-                this.retDetail = Message_Detail;
+                this.retDetail = "";
                 break;
         }
         if(!TextUtils.isEmpty(retDetail)){

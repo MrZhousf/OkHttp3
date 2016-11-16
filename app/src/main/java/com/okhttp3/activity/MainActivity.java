@@ -9,6 +9,7 @@ import com.okhttp3.R;
 import com.okhttp3.util.NetWorkUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.OkHttpUtilInterface;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.callback.CallbackOk;
 
@@ -110,7 +111,7 @@ public class MainActivity extends BaseActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil okHttpUtil = OkHttpUtil.Builder()
+        OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
                 .setCacheLevel(FIRST_LEVEL)
                 .setConnectTimeout(25).build(this);
         okHttpUtil.doGetAsync(
