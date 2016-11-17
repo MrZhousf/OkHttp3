@@ -11,32 +11,21 @@ import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
-import com.okhttplib.bean.HelperInfo;
+import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
-import com.okhttplib.helper.DownUpLoadHelper;
-import com.okhttplib.helper.HttpHelper;
-import com.okhttplib.helper.LogHelper;
+import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
@@ -54,8 +43,6 @@ import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
 import static com.okhttplib.annotation.CacheType.FORCE_CACHE;
 import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
-import static com.okhttplib.helper.DownUpLoadHelper.downloadFile;
-import static com.okhttplib.helper.DownUpLoadHelper.uploadFile;
 
 
 /**
@@ -81,27 +68,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private static Application application;
     private static Builder builderGlobal;
     private static ExecutorService executorService;
-
-    /********  构建属性-定义开始  ***********/
-    private int maxCacheSize;//缓存大小
-    private File cachedDir;//缓存目录
-    private int connectTimeout;//连接超时
-    private int readTimeout;//读超时
-    private int writeTimeout;//写超时
+    private Builder builder;
     private int cacheSurvivalTime;//缓存存活时间（秒）
     private int cacheType;//缓存类型
-    private boolean retryOnConnectionFailure;//失败重新连接
-    private List<Interceptor> networkInterceptors;//网络拦截器
-    private List<Interceptor> interceptors;//应用拦截器
-    private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
-    private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
-    private int cacheLevel;//缓存级别
-    private boolean showHttpLog;//是否显示Http请求日志
-    private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
-    private String downloadFileDir;//下载文件保存目录
-    private Class<?> requestTag;//请求标识
-    private CookieJar cookieJar;
-    /********  构建属性-定义结束  ***********/
 
     /**
      * 初始化：请在Application中调用
@@ -137,7 +106,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public HttpInfo doPostSync(HttpInfo info){
-        return HttpHelper.doRequestSync(info, RequestMethod.POST);
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.POST)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
     }
 
     /**
@@ -147,7 +121,13 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public void doPostAsync(HttpInfo info, CallbackOk callback){
-        HttpHelper.doRequestAsync(info, RequestMethod.POST, callback, null);
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.POST)
+                .callbackOk(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
     }
 
     /**
@@ -157,7 +137,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public HttpInfo doGetSync(HttpInfo info){
-        return HttpHelper.doRequestSync(info, RequestMethod.GET);
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.GET)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
     }
 
     /**
@@ -167,7 +152,13 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      */
     @Override
     public void doGetAsync(HttpInfo info, CallbackOk callback){
-        HttpHelper.doRequestAsync(info, RequestMethod.GET, callback, null);
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.GET)
+                .callbackOk(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
     }
 
     /**
@@ -181,7 +172,13 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    DownUpLoadHelper.uploadFile(info,fileInfo);
+                    OkHttpHelper.Builder()
+                            .httpInfo(info)
+                            .uploadFileInfo(fileInfo)
+                            .requestMethod(RequestMethod.POST)
+                            .helperInfo(packageHelperInfo())
+                            .build()
+                            .uploadFile();
                 }
             });
         }
@@ -195,7 +192,13 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doUploadFileSync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
-            uploadFile(info,fileInfo);
+            OkHttpHelper.Builder()
+                    .httpInfo(info)
+                    .uploadFileInfo(fileInfo)
+                    .requestMethod(RequestMethod.POST)
+                    .helperInfo(packageHelperInfo())
+                    .build()
+                    .uploadFile();
         }
     }
 
@@ -210,7 +213,14 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    downloadFile(info,fileInfo,newBuilderFromCopy());
+                    OkHttpHelper.Builder()
+                            .httpInfo(info)
+                            .downloadFileInfo(fileInfo)
+                            .requestMethod(RequestMethod.GET)
+                            .clientBuilder(newBuilderFromCopy())
+                            .helperInfo(packageHelperInfo())
+                            .build()
+                            .downloadFile();
                 }
             });
         }
@@ -224,7 +234,14 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doDownloadFileSync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
-            DownUpLoadHelper.downloadFile(info,fileInfo,newBuilderFromCopy());
+            OkHttpHelper.Builder()
+                    .httpInfo(info)
+                    .downloadFileInfo(fileInfo)
+                    .requestMethod(RequestMethod.GET)
+                    .clientBuilder(newBuilderFromCopy())
+                    .helperInfo(packageHelperInfo())
+                    .build()
+                    .downloadFile();
         }
     }
 
@@ -279,61 +296,13 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return net != null && net.getState() == NetworkInfo.State.CONNECTED;
     }
 
-    /**
-     * 日志拦截器
-     */
-    private Interceptor LOG_INTERCEPTOR = new Interceptor() {
-        @Override
-        public Response intercept(Chain chain) throws IOException {
-            long startTime = System.currentTimeMillis();
-            LogHelper.get().showLog(String.format("%s-URL: %s %n",chain.request().method(),
-                    chain.request().url()));
-            Response res = chain.proceed(chain.request());
-            long endTime = System.currentTimeMillis();
-            LogHelper.get().showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000f));
-            return res;
-        }
-    };
-
     private OkHttpUtil(Builder builder) {
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
-                .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
-                .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
-                .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
-                .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
-                .retryOnConnectionFailure(builder.retryOnConnectionFailure)
-                .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
-                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
-        if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
-            clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
-        if(null != builder.interceptors && !builder.interceptors.isEmpty())
-            clientBuilder.interceptors().addAll(builder.interceptors);
-        clientBuilder.addInterceptor(LOG_INTERCEPTOR);
-        setSslSocketFactory(clientBuilder);
         //初始化参数
-        maxCacheSize = builder.maxCacheSize;
-        cachedDir = builder.cachedDir;
-        connectTimeout = builder.connectTimeout;
-        readTimeout = builder.readTimeout;
-        writeTimeout = builder.writeTimeout;
-        retryOnConnectionFailure = builder.retryOnConnectionFailure;
-        networkInterceptors = builder.networkInterceptors;
-        interceptors = builder.interceptors;
-        resultInterceptors = builder.resultInterceptors;
-        exceptionInterceptors = builder.exceptionInterceptors;
-        cacheSurvivalTime = builder.cacheSurvivalTime;
+        this.builder = builder;
         cacheType = builder.cacheType;
-        cacheLevel = builder.cacheLevel;
-        showHttpLog = builder.showHttpLog;
-        showLifecycleLog = builder.showLifecycleLog;
-        downloadFileDir = builder.downloadFileDir;
-        requestTag = builder.requestTag;
-        cookieJar = builder.cookieJar;
-        if(null != cookieJar)
-            clientBuilder.cookieJar(cookieJar);
-        if(this.cacheSurvivalTime == 0){
+        if(builder.cacheSurvivalTime == 0){
             final int deviation = 5;
-            switch (this.cacheLevel){
+            switch (builder.cacheLevel){
                 case FIRST_LEVEL:
                     this.cacheSurvivalTime = 0;
                     break;
@@ -354,80 +323,42 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             cacheType = FORCE_NETWORK;
         if(null == executorService)
             executorService = Executors.newCachedThreadPool();
-        BaseActivityLifecycleCallbacks.setShowLifecycleLog(showLifecycleLog);
-        HelperInfo helperInfo = new HelperInfo();
-        helperInfo.setShowHttpLog(showHttpLog);
-        helperInfo.setRequestTag(requestTag);
-        helperInfo.setTimeStamp(System.currentTimeMillis());
-        helperInfo.setExceptionInterceptors(exceptionInterceptors);
-        helperInfo.setResultInterceptors(resultInterceptors);
-        helperInfo.setDownloadFileDir(downloadFileDir);
-        helperInfo.setHttpClient(clientBuilder.build());
-        helperInfo.setLogTAG(TAG);
-        initHelper(helperInfo);
+        BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
     }
 
     /**
-     * 初始化辅助类
+     * 封装业务类信息
      */
-    private void initHelper(HelperInfo helperInfo){
-        HttpHelper.init(helperInfo);
-        DownUpLoadHelper.init(helperInfo);
-        LogHelper.get().init(helperInfo);
+    private HelperInfo packageHelperInfo(){
+        HelperInfo helperInfo = new HelperInfo();
+        helperInfo.setShowHttpLog(builder.showHttpLog);
+        helperInfo.setRequestTag(builder.requestTag);
+        helperInfo.setTimeStamp(System.currentTimeMillis());
+        helperInfo.setExceptionInterceptors(builder.exceptionInterceptors);
+        helperInfo.setResultInterceptors(builder.resultInterceptors);
+        helperInfo.setDownloadFileDir(builder.downloadFileDir);
+        helperInfo.setClientBuilder(newBuilderFromCopy());
+        helperInfo.setLogTAG(TAG);
+        return helperInfo;
     }
 
     private OkHttpClient.Builder newBuilderFromCopy(){
-        OkHttpClient.Builder newBuilder = new OkHttpClient.Builder()
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
-                .readTimeout(readTimeout, TimeUnit.SECONDS)
-                .writeTimeout(writeTimeout, TimeUnit.SECONDS)
-                .cache(new Cache(cachedDir,maxCacheSize))
-                .retryOnConnectionFailure(retryOnConnectionFailure)
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
+                .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
+                .retryOnConnectionFailure(builder.retryOnConnectionFailure)
                 .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
                 .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
-        if(null != networkInterceptors && !networkInterceptors.isEmpty())
-            newBuilder.networkInterceptors().addAll(networkInterceptors);
-        if(null != interceptors && !interceptors.isEmpty())
-            newBuilder.interceptors().addAll(interceptors);
-        newBuilder.addInterceptor(LOG_INTERCEPTOR);
-        setSslSocketFactory(newBuilder);
-        return newBuilder;
+        if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
+            clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
+        if(null != builder.interceptors && !builder.interceptors.isEmpty())
+            clientBuilder.interceptors().addAll(builder.interceptors);
+        if(null != builder.cookieJar)
+            clientBuilder.cookieJar(builder.cookieJar);
+        return clientBuilder;
     }
-
-    /**
-     * 设置HTTPS认证
-     */
-    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
-        clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            X509TrustManager trustManager = new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-            };
-            sc.init(null,new TrustManager[]{trustManager}, new SecureRandom());
-            clientBuilder.sslSocketFactory(sc.getSocketFactory(),trustManager);
-        } catch (Exception e) {
-            LogHelper.get().showLog("Https认证异常: "+e.getMessage());
-        }
-    }
-
-    /**
-     *主机名验证
-     */
-    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
 
     public static Builder Builder() {
         return new Builder(false);
@@ -466,11 +397,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             isGlobalConfig = isGlobal;
             //系统默认配置
             initDefaultConfig();
-            if(!isGlobal){
-                if(null != builderGlobal){
-                    //全局自定义配置
-                    initGlobalConfig(builderGlobal);
-                }
+            if(!isGlobal && null != builderGlobal){
+                //全局自定义配置
+                initGlobalConfig(builderGlobal);
             }
         }
 
@@ -479,11 +408,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         }
 
         public OkHttpUtilInterface build(Object object) {
-            if(isGlobalConfig){
-                if(null == builderGlobal){
-                    builderGlobal = this;
-                }
-            }
+            if(isGlobalConfig && null == builderGlobal)
+                builderGlobal = this;
             if(null != object)
                 setRequestTag(object);
             return new OkHttpUtil(this);

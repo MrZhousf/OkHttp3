@@ -1,4 +1,4 @@
-package com.okhttplib.bean;
+package com.okhttplib.helper;
 
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
@@ -8,8 +8,8 @@ import java.util.List;
 import okhttp3.OkHttpClient;
 
 /**
- * 辅助类信息体
- * @author: zhousf
+ * 业务类信息体
+ * @author zhousf
  */
 public class HelperInfo {
 
@@ -17,6 +17,7 @@ public class HelperInfo {
     private long timeStamp;//时间戳
     private boolean showHttpLog;//是否显示Http请求日志
     private OkHttpClient httpClient;
+    private OkHttpClient.Builder clientBuilder;
     private Class<?> requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
@@ -87,4 +88,11 @@ public class HelperInfo {
         this.downloadFileDir = downloadFileDir;
     }
 
+    public OkHttpClient.Builder getClientBuilder() {
+        return clientBuilder;
+    }
+
+    public void setClientBuilder(OkHttpClient.Builder clientBuilder) {
+        this.clientBuilder = clientBuilder;
+    }
 }

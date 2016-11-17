@@ -5,10 +5,10 @@ import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
 /**
- * @author: zhousf
  * Http拦截器
  * 1、请求结果统一预处理拦截器
  * 2、请求链路异常信息拦截器
+ * @author zhousf
  */
 public class HttpInterceptor {
 

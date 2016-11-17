@@ -4,7 +4,7 @@ import com.okhttplib.callback.CallbackOk;
 
 /**
  * 网络请求工具接口
- * @author: zhousf
+ * @author zhousf
  */
 public interface OkHttpUtilInterface {
 

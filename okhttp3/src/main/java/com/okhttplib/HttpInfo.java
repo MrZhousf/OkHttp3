@@ -23,13 +23,11 @@ public class HttpInfo {
     private List<UploadFileInfo> uploadFiles;//上传文件参数
     private List<DownloadFileInfo> downloadFiles;//下载文件参数
     private Map<String,String> heads;//请求头参数http head
-
+    private Class<?> requestTag;//请求标识
 
     //**响应返回参数定义**/
     private int retCode;//返回码
     private String retDetail;//返回结果
-
-    private Class<?> requestTag;//请求标识
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;

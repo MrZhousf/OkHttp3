@@ -23,13 +23,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.4</version>
+  <version>2.5</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.4'
+compile 'com.zhousf.lib:okhttp3:2.5'
 ```
 
 ##提交记录
@@ -248,6 +248,69 @@ okHttpUtil.doGetAsync(
 
 ##相关示例
 
+###OkHttpUtil接口
+```java
+/**
+ * 网络请求工具接口
+ * @author zhousf
+ */
+public interface OkHttpUtilInterface {
+
+    /**
+     * 同步Post请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doPostSync(HttpInfo info);
+
+    /**
+     * 异步Post请求
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    void doPostAsync(HttpInfo info, CallbackOk callback);
+
+    /**
+     * 同步Get请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doGetSync(HttpInfo info);
+
+    /**
+     * 异步Get请求
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    void doGetAsync(HttpInfo info, CallbackOk callback);
+
+    /**
+     * 异步上传文件
+     * @param info 请求信息体
+     */
+    void doUploadFileAsync(final HttpInfo info);
+
+    /**
+     * 同步上传文件
+     * @param info 请求信息体
+     */
+    void doUploadFileSync(final HttpInfo info);
+
+    /**
+     * 异步下载文件
+     * @param info 请求信息体
+     */
+    void doDownloadFileAsync(final HttpInfo info);
+
+    /**
+     * 同步下载文件
+     * @param info 请求信息体
+     */
+    void doDownloadFileSync(final HttpInfo info);
+}
+```
+
+###MainActivity
 ```java
    package com.okhttp3;
 

@@ -23,9 +23,9 @@ public class DownloadFileInfo {
     //已下载字节数
     private long completedSize;
 
-    String saveFileNameWithExtension;//保存文件名称：包含扩展名
-    String saveFileNameCopy;//保存文件备用名称：用于文件名称冲突
-    String saveFileNameEncrypt;//保存文件名称（加密后）
+    private String saveFileNameWithExtension;//保存文件名称：包含扩展名
+    private String saveFileNameCopy;//保存文件备用名称：用于文件名称冲突
+    private String saveFileNameEncrypt;//保存文件名称（加密后）
 
     public DownloadFileInfo(String url, String saveFileName, ProgressCallback progressCallback) {
         this.url = url;
