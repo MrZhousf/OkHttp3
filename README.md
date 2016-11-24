@@ -165,15 +165,16 @@ okHttpUtil.doGetAsync(
      */
     private void doUploadImg() {
         HttpInfo info = HttpInfo.Builder()
-                .setUrl(url)
-                .addUploadFile("file", filePath, new ProgressCallback() {
-                    @Override
-                    public void onProgress(int percent, long bytesWritten, long contentLength, boolean done) {
-                        uploadProgress.setProgress(percent);
-                        Log.d(TAG, "上传进度：" + percent);
-                    }
-                })
-                .build();
+                        .setUrl(url)
+                        .addUploadFile("file", filePathOne, new ProgressCallback() {
+                            //onProgressMain为UI线程回调，可以直接操作UI
+                            @Override
+                            public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                                uploadProgressOne.setProgress(percent);
+                                LogUtil.d(TAG, "上传进度：" + percent);
+                            }
+                        })
+                        .build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info);
     }
 ```
