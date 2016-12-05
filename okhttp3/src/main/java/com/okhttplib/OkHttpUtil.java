@@ -300,7 +300,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         //初始化参数
         this.builder = builder;
         cacheType = builder.cacheType;
-        if(builder.cacheSurvivalTime == 0){
+        this.cacheSurvivalTime = builder.cacheSurvivalTime;
+        if(this.cacheSurvivalTime == 0){
             final int deviation = 5;
             switch (builder.cacheLevel){
                 case FIRST_LEVEL:
