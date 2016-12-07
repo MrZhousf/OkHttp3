@@ -106,7 +106,7 @@ OkHttpUtil.init(this)
 请求标识类型支持Object、String、Integer、Float、Double；
 请求标识尽量保证唯一。
 ```java
-//*******请求是先绑定请求标识，根据该标识进行取消*******/
+//*******请求时先绑定请求标识，根据该标识进行取消*******/
 //方法一：
 OkHttpUtil.Builder()
                 .setReadTimeout(120)
