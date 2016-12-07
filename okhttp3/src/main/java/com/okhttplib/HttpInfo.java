@@ -23,7 +23,6 @@ public class HttpInfo {
     private List<UploadFileInfo> uploadFiles;//上传文件参数
     private List<DownloadFileInfo> downloadFiles;//下载文件参数
     private Map<String,String> heads;//请求头参数http head
-    private Class<?> requestTag;//请求标识
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -32,7 +31,6 @@ public class HttpInfo {
     public HttpInfo(Builder builder) {
         this.url = builder.url;
         this.params = builder.params;
-        this.requestTag = builder.requestTag;
         this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
@@ -50,15 +48,9 @@ public class HttpInfo {
         private List<UploadFileInfo> uploadFiles;
         private List<DownloadFileInfo> downloadFiles;
         private Map<String,String> heads;
-        private Class<?> requestTag;
 
 
         public Builder() {
-        }
-
-        public HttpInfo build(Object object){
-            setRequestTag(object);
-            return new HttpInfo(this);
         }
 
         public HttpInfo build(){
@@ -243,12 +235,6 @@ public class HttpInfo {
             return this;
         }
 
-        //设置请求标识（与Activity/Fragment生命周期绑定）
-        public Builder setRequestTag(Object object) {
-            this.requestTag = object.getClass();
-            return this;
-        }
-
     }
 
 
@@ -334,10 +320,6 @@ public class HttpInfo {
 
     public Map<String, String> getParams() {
         return params;
-    }
-
-    public Class<?> getRequestTag() {
-        return requestTag;
     }
 
     public List<UploadFileInfo> getUploadFiles() {

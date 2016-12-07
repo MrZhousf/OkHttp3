@@ -18,7 +18,7 @@ public class HelperInfo {
     private boolean showHttpLog;//是否显示Http请求日志
     private OkHttpClient httpClient;
     private OkHttpClient.Builder clientBuilder;
-    private Class<?> requestTag;//请求标识
+    private String requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     private String downloadFileDir;//下载文件保存目录
@@ -56,11 +56,11 @@ public class HelperInfo {
         this.httpClient = httpClient;
     }
 
-    public Class<?> getRequestTag() {
+    public String getRequestTag() {
         return requestTag;
     }
 
-    public void setRequestTag(Class<?> requestTag) {
+    public void setRequestTag(String requestTag) {
         this.requestTag = requestTag;
     }
 

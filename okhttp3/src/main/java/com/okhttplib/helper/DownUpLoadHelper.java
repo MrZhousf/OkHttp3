@@ -40,7 +40,7 @@ class DownUpLoadHelper extends BaseHelper{
 
     private long timeStamp;
     private String downloadFileDir;//下载文件保存目录
-    private Class<?> requestTag;//请求标识
+    private String requestTag;//请求标识
 
     private static Map<String,String> downloadTaskMap;
 
@@ -217,7 +217,7 @@ class DownUpLoadHelper extends BaseHelper{
             }catch (IOException e){
                 e.printStackTrace();
             }
-            BaseActivityLifecycleCallbacks.cancelCall(requestTag,info,call);
+            BaseActivityLifecycleCallbacks.cancel(requestTag);
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());

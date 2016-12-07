@@ -63,5 +63,11 @@ public interface OkHttpUtilInterface {
     void doDownloadFileSync(final HttpInfo info);
 
 
+    /**
+     * 取消请求
+     * @param requestTag 请求标识
+     */
+    void cancelRequest(Object requestTag);
+
 
 }

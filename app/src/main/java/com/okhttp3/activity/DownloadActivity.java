@@ -1,6 +1,7 @@
 package com.okhttp3.activity;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -21,21 +22,17 @@ import butterknife.OnClick;
 public class DownloadActivity extends BaseActivity {
 
     private final String TAG = DownloadActivity.class.getSimpleName();
-    @Bind(R.id.downloadProgressOne)
-    ProgressBar downloadProgressOne;
-    @Bind(R.id.tvResultTwo)
-    TextView tvResultTwo;
-    @Bind(R.id.downloadProgressTwo)
-    ProgressBar downloadProgressTwo;
-    @Bind(R.id.tvResultOne)
-    TextView tvResultOne;
+    @Bind(R.id.tvResult)
+    TextView tvResult;
+    @Bind(R.id.downloadProgress)
+    ProgressBar downloadProgress;
 
     /**
      * 文件网络地址
      */
-    private String url1 = "http://www.jcodecraeer.com/uploads/allimg/160602/223U25642-0.jpg";
-    private String url2 = "http://img1.gtimg.com/2016/pics/hv1/220/150/2115/137566345.jpg";
     private String mp4Url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
+    private final String requestTag = "download-tag-1001";//请求标识
+
 
     @Override
     protected int initLayout() {
@@ -48,46 +45,40 @@ public class DownloadActivity extends BaseActivity {
     }
 
 
-    @OnClick(R.id.downloadBtn)
-    public void onClick() {
-        downloadFile();
+    @OnClick({R.id.downloadBtn,R.id.downloadCancelBtn})
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.downloadBtn:
+                downloadFile();
+                break;
+            case R.id.downloadCancelBtn://取消请求
+                OkHttpUtil.getDefault().cancelRequest(requestTag);
+                break;
+        }
     }
 
 
     private void downloadFile() {
         final HttpInfo info = HttpInfo.Builder()
-                .addDownloadFile(url1, "file1", new ProgressCallback() {
+                .addDownloadFile(mp4Url, "myMP4", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        downloadProgressOne.setProgress(percent);
-                        tvResultOne.setText(percent+"%");
-                        LogUtil.d(TAG, "下载进度1：" + percent);
+                        downloadProgress.setProgress(percent);
+                        tvResult.setText(percent+"%");
+                        LogUtil.d(TAG, "下载进度：" + percent);
                     }
 
                     @Override
                     public void onResponseMain(String filePath, HttpInfo info) {
-                        tvResultOne.setText(info.getRetDetail());
-                        LogUtil.d(TAG, "下载结果1：" + info.getRetDetail());
-                    }
-                })
-                .addDownloadFile(mp4Url, "file2", new ProgressCallback() {
-                    @Override
-                    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        downloadProgressTwo.setProgress(percent);
-                        tvResultTwo.setText(percent+"%");
-                        LogUtil.d(TAG, "下载进度2：" + percent);
-                    }
-
-                    @Override
-                    public void onResponseMain(String filePath, HttpInfo info) {
-                        tvResultTwo.setText(info.getRetDetail());
-                        LogUtil.d(TAG, "下载结果2：" + info.getRetDetail());
+                        tvResult.setText(info.getRetDetail());
+                        LogUtil.d(TAG, "下载结果：" + info.getRetDetail());
                     }
                 })
                 .build();
-        OkHttpUtil.Builder().setReadTimeout(120).build(this).doDownloadFileAsync(info);
-
-
+        OkHttpUtil.Builder()
+                .setReadTimeout(120)
+                .build(requestTag)//绑定请求标识
+                .doDownloadFileAsync(info);
 
     }
 

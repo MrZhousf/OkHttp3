@@ -7,7 +7,7 @@
 * 支持Cookie持久化
 * 支持协议头参数Head设置
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
-* 当Activity/Fragment销毁时自动取消相应的所有网络请求
+* 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
 * 支持文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
@@ -23,13 +23,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.1</version>
+  <version>2.5.2</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.1'
+compile 'com.zhousf.lib:okhttp3:2.5.2'
 ```
 
 ##提交记录
@@ -60,6 +60,8 @@ compile 'com.zhousf.lib:okhttp3:2.5.1'
     *  支持协议头参数Head设置
 * 2016-11-16
     *  项目架构调整，简单的API提高代码可读性
+* 2016-12-7
+    *  增加取消指定请求功能    
 
 ##权限
 ```java
@@ -73,6 +75,9 @@ compile 'com.zhousf.lib:okhttp3:2.5.1'
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 ```
+
+##项目演示DEMO
+项目中已包含所有支持业务的demo，详情请下载项目参考源码。
 
 ##自定义全局配置
 在Application中配置如下：
@@ -96,25 +101,26 @@ OkHttpUtil.init(this)
             
 ```
 
-##Cookie持久化示例
-没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
+##取消指定请求
+建议在视图中采用OkHttpUtil.getDefault(this)的方式进行请求绑定，该方式会在Activity/Fragment销毁时自动取消当前视图下的所有请求；
+请求标识类型支持Object、String、Integer、Float、Double；
+请求标识尽量保证唯一。
 ```java
-OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
-            .setCacheLevel(FIRST_LEVEL)
-            .setConnectTimeout(25).build(this);
-//一个okHttpUtil即为一个网络连接
-okHttpUtil.doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(),
-                new CallbackOk() {
-                    @Override
-                    public void onResponse(HttpInfo info) throws IOException {
-                        if (info.isSuccessful()) {
-                            String result = info.getRetDetail();
-                            resultTV.setText("异步请求："+result);
-                        }
-                    }
-                });
+//*******请求是先绑定请求标识，根据该标识进行取消*******/
+//方法一：
+OkHttpUtil.Builder()
+                .setReadTimeout(120)
+                .build("请求标识")//绑定请求标识
+                .doDownloadFileAsync(info);
+//方法二：
+OkHttpUtil.getDefault("请求标识")//绑定请求标识
+            .doGetSync(info);
+            
+//*******取消指定请求*******/ 
+OkHttpUtil.getDefault().cancelRequest("请求标识");
+ 
 ```
+
 
 ##在Activity中同步调用示例
 ```java
@@ -220,6 +226,27 @@ okHttpUtil.doGetAsync(
     }
 ```
 
+##Cookie持久化示例
+没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
+```java
+OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
+            .setCacheLevel(FIRST_LEVEL)
+            .setConnectTimeout(25).build(this);
+//一个okHttpUtil即为一个网络连接
+okHttpUtil.doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                new CallbackOk() {
+                    @Override
+                    public void onResponse(HttpInfo info) throws IOException {
+                        if (info.isSuccessful()) {
+                            String result = info.getRetDetail();
+                            resultTV.setText("异步请求："+result);
+                        }
+                    }
+                });
+```
+
+
 ##相关截图
 ###网络请求界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
@@ -308,6 +335,13 @@ public interface OkHttpUtilInterface {
      * @param info 请求信息体
      */
     void doDownloadFileSync(final HttpInfo info);
+    
+    /**
+     * 取消请求
+     * @param requestTag 请求标识
+     */
+    void cancelRequest(Object requestTag);
+    
 }
 ```
 

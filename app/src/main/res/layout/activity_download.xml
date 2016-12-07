@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_upload_file"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="@dimen/activity_vertical_margin"
     tools:context="com.okhttp3.activity.DownloadActivity">
 
     <ProgressBar
-        android:id="@+id/downloadProgressOne"
+        android:id="@+id/downloadProgress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,38 +18,25 @@
         android:progress="0"
         />
     <TextView
-        android:id="@+id/tvResultOne"
+        android:id="@+id/tvResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="20dp"/>
 
-    <ProgressBar
-        android:id="@+id/downloadProgressTwo"
-        style="?android:attr/progressBarStyleHorizontal"
+    <Button
+        android:id="@+id/downloadBtn"
+        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="0"
-        />
-    <TextView
-        android:id="@+id/tvResultTwo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="20dp"/>
+        android:text="下载文件"/>
 
-    <LinearLayout
+    <Button
+        android:id="@+id/downloadCancelBtn"
+        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/downloadBtn"
-            android:layout_weight="1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="下载文件"/>
-    </LinearLayout>
+        android:text="取消下载请求"/>
 
 
 </LinearLayout>

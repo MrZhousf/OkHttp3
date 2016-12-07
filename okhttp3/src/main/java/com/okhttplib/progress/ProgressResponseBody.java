@@ -62,7 +62,7 @@ public class ProgressResponseBody extends ResponseBody{
                 long bytesRead = super.read(sink, byteCount);
                 if(totalBytesRead == 0){
                     totalBytesRead = downloadFileInfo.getCompletedSize();
-                    Log.d("ProgressResponseBody","从节点["+totalBytesRead+"]开始下载"
+                    Log.d("OkHttpUtil","从节点["+totalBytesRead+"]开始下载"
                             +downloadFileInfo.getSaveFileNameWithExtension());
                 }
                 if (contentLength == 0) {

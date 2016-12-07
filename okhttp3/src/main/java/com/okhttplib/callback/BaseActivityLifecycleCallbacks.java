@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
 
-import com.okhttplib.HttpInfo;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,24 +27,22 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
     /**
      * 请求集合: key=Activity value=Call集合
      */
-    private static Map<Class<?>,SparseArray<Call>> callsMap = new ConcurrentHashMap<>();
+    private static Map<String,SparseArray<Call>> callsMap = new ConcurrentHashMap<>();
 
     /**
      * 保存请求集合
      * @param tag 请求标识
-     * @param info 请求信息体
      * @param call 请求
      */
-    public static void putCall(Class<?> tag, HttpInfo info, Call call){
-        Class<?> t = fetchTag(tag, info);
-        if(null != t){
-            SparseArray<Call> callList = callsMap.get(t);
+    public static void putCall(String tag, Call call){
+        if(null != tag){
+            SparseArray<Call> callList = callsMap.get(tag);
             if(null == callList){
                 callList = new SparseArray<>();
             }
             callList.put(call.hashCode(),call);
-            callsMap.put(t,callList);
-            showLog(false);
+            callsMap.put(tag,callList);
+            showLog(false,tag);
         }
 
     }
@@ -55,7 +51,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
      * 取消请求
      * @param tag 请求标识
      */
-    private static void cancelCallByActivityDestroy(Class<?> tag){
+    private static void cancelCallByActivityDestroy(String tag){
         if(null == tag)
             return ;
         SparseArray<Call> callList = callsMap.get(tag);
@@ -68,56 +64,37 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
             }
             callList.clear();
             callsMap.remove(tag);
-            showLog(true);
+            showLog(true,tag);
         }
     }
 
     /**
      * 取消请求
      * @param tag 请求标识
-     * @param info 请求信息体
-     * @param call 请求
      */
-    public static void cancelCall(Class<?> tag, HttpInfo info, Call call){
-        Class<?> t = fetchTag(tag, info);
-        if(null != call && null != t){
-            SparseArray<Call> callList = callsMap.get(t);
-            if(null != callList){
-                Call c = callList.get(call.hashCode());
-                if(null != c && !c.isCanceled())
-                    c.cancel();
-                callList.delete(call.hashCode());
+    public static void cancel(String tag){
+        SparseArray<Call> callList = callsMap.get(tag);
+        if(null != callList){
+            for(int i=0 ;i<callList.size();i++){
+                Call call = callList.valueAt(i);
+                if(null != call && !call.isCanceled()){
+                    call.cancel();
+                    callList.delete(call.hashCode());
+                }
                 if(callList.size() == 0)
-                    callsMap.remove(t);
-                showLog(true);
+                    callsMap.remove(tag);
+                showLog(true,tag);
             }
         }
+
     }
 
-    private static Class<?> fetchTag(Class<?> tag, HttpInfo info){
-        Class<?> t = null;
-        if(null != tag)
-            t = tag;
-        if(null != info.getRequestTag() && null == t)
-            t = info.getRequestTag();
-        return t;
-    }
-
-    private static void showLog(boolean isCancel){
+    private static void showLog(boolean isCancel, String tag){
         if(!showLifecycleLog){
             return;
         }
         String callDetail = isCancel ? "取消请求": "增加请求";
-        int originalSize = callsMap.size();
-        int rest ;
-        if(originalSize > 0){
-            for(Map.Entry<Class<?>,SparseArray<Call>> entry : callsMap.entrySet()){
-                rest = entry.getValue().size();
-                Log.d(TAG,callDetail+": size = "+rest+" ["+entry.getKey().getName()+"]");
-            }
-        }else{
-            Log.d(TAG,callDetail+": size = 0 ");
-        }
+        Log.d(TAG,callDetail+": "+tag);
     }
 
 
@@ -153,7 +130,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        cancelCallByActivityDestroy(activity.getClass());
+        cancelCallByActivityDestroy(activity.getClass().getName());
     }
 
     public static void setShowLifecycleLog(boolean showLifecycle) {

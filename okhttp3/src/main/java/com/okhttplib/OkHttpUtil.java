@@ -92,11 +92,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
 
     /**
      * 获取默认请求配置：该方法会绑定Activity、fragment生命周期
-     * @param object 请求标识
+     * @param requestTag 请求标识
      * @return OkHttpUtil
      */
-    public static OkHttpUtilInterface getDefault(Object object){
-        return new Builder(false).build(object);
+    public static OkHttpUtilInterface getDefault(Object requestTag){
+        return new Builder(false).build(requestTag);
     }
 
     /**
@@ -246,6 +246,15 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     /**
+     * 取消请求
+     * @param requestTag 请求标识
+     */
+    @Override
+    public void cancelRequest(Object requestTag) {
+        BaseActivityLifecycleCallbacks.cancel(parseRequestTag(requestTag));
+    }
+
+    /**
      * 网络请求拦截器
      */
     private Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
@@ -388,7 +397,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private boolean showHttpLog;//是否显示Http请求日志
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
         private String downloadFileDir;//下载文件保存目录
-        private Class<?> requestTag;
+        private String requestTag;
         private CookieJar cookieJar;
 
         public Builder() {
@@ -408,11 +417,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return build(null);
         }
 
-        public OkHttpUtilInterface build(Object object) {
+        public OkHttpUtilInterface build(Object requestTag) {
             if(isGlobalConfig && null == builderGlobal)
                 builderGlobal = this;
-            if(null != object)
-                setRequestTag(object);
+            if(null != requestTag)
+                setRequestTag(requestTag);
             return new OkHttpUtil(this);
         }
 
@@ -591,8 +600,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         }
 
         //设置请求标识（与Activity/Fragment生命周期绑定）
-        public Builder setRequestTag(Object object) {
-            this.requestTag = object.getClass();
+        public Builder setRequestTag(Object requestTag) {
+            this.requestTag = parseRequestTag(requestTag);
             return this;
         }
 
@@ -610,6 +619,22 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         }
     }
 
+    private static String parseRequestTag(Object object){
+        String requestTag = null;
+        if(null != object){
+            requestTag = object.getClass().getName();
+            if(requestTag.contains("$")){
+                requestTag = requestTag.substring(0,requestTag.indexOf("$"));
+            }
+            if(object instanceof String
+                    || object instanceof Float
+                    || object instanceof Double
+                    || object instanceof Integer){
+                requestTag = String.valueOf(object);
+            }
+        }
+        return requestTag;
+    }
 
 
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -34,7 +35,7 @@ import okhttp3.Response;
  */
 class HttpHelper extends BaseHelper{
 
-    private Class<?> requestTag;//请求标识
+    private String requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
 
@@ -48,19 +49,21 @@ class HttpHelper extends BaseHelper{
     /**
      * 同步请求
      */
-     HttpInfo doRequestSync(OkHttpHelper helper){
+    HttpInfo doRequestSync(OkHttpHelper helper){
         Call call = null;
-         final HttpInfo info = helper.getHttpInfo();
-         Request request = helper.getRequest();
-         OkHttpClient httpClient = helper.getHttpClient();
-         try {
-            String url = info.getUrl();
-            if(TextUtils.isEmpty(url)){
-                return retInfo(info,HttpInfo.CheckURL);
-            }
+        final HttpInfo info = helper.getHttpInfo();
+        Request request = helper.getRequest();
+        String url = info.getUrl();
+        if(!checkUrl(url)){
+            return retInfo(info,HttpInfo.CheckURL);
+        }
+        request = request == null ? buildRequest(info,helper.getRequestMethod()) : request;
+        helper.setRequest(request);
+        OkHttpClient httpClient = helper.getHttpClient();
+        try {
             httpClient = httpClient == null ? super.httpClient : httpClient;
-            call = httpClient.newCall(request == null ? buildRequest(info,helper.getRequestMethod()) : request);
-            BaseActivityLifecycleCallbacks.putCall(requestTag,info,call);
+            call = httpClient.newCall(request);
+            BaseActivityLifecycleCallbacks.putCall(requestTag,call);
             Response res = call.execute();
             return dealResponse(helper, res, call);
         } catch (IllegalArgumentException e){
@@ -80,7 +83,7 @@ class HttpHelper extends BaseHelper{
         } catch(Exception e) {
             return retInfo(info,HttpInfo.NoResult);
         }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(requestTag,info,call);
+            BaseActivityLifecycleCallbacks.cancel(requestTag);
         }
     }
 
@@ -93,8 +96,18 @@ class HttpHelper extends BaseHelper{
         Request request = helper.getRequest();
         if(null == callback)
             throw new NullPointerException("CallbackOk is null!");
+        String url = info.getUrl();
+        if(!checkUrl(url)){
+            //主线程回调
+            Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
+                    callback,
+                    retInfo(info,HttpInfo.CheckURL))
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+            return ;
+        }
         Call call = httpClient.newCall(request == null ? buildRequest(info,helper.getRequestMethod()) : request);
-        BaseActivityLifecycleCallbacks.putCall(requestTag,info,call);
+        BaseActivityLifecycleCallbacks.putCall(requestTag,call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -109,9 +122,17 @@ class HttpHelper extends BaseHelper{
                         dealResponse(helper,res,call))
                         .build();
                 OkMainHandler.getInstance().sendMessage(msg);
-                BaseActivityLifecycleCallbacks.cancelCall(requestTag,info,call);
+                BaseActivityLifecycleCallbacks.cancel(requestTag);
             }
         });
+    }
+
+    /**
+     * 检查请求URL
+     */
+    private boolean checkUrl(String url){
+        HttpUrl parsed = HttpUrl.parse(url);
+        return parsed != null && !TextUtils.isEmpty(url);
     }
 
     /**
