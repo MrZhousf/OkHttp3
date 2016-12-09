@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -238,11 +240,27 @@ class HttpHelper extends BaseHelper{
      * 封装请求结果
      */
     HttpInfo retInfo(HttpInfo info, int code, String resDetail){
-        info.packInfo(code,resDetail);
+        info.packInfo(code,unicodeToString(resDetail));
         //拦截请求结果
         dealInterceptor(info);
         showLog("Response: "+info.getRetDetail());
         return info;
+    }
+
+    /**
+     * unicode中文转码
+     */
+    private String unicodeToString(String str) {
+        if(TextUtils.isEmpty(str))
+            return "";
+        Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
+        Matcher matcher = pattern.matcher(str);
+        char ch;
+        while (matcher.find()) {
+            ch = (char) Integer.parseInt(matcher.group(2), 16);
+            str = str.replace(matcher.group(1), ch + "");
+        }
+        return str;
     }
 
     /**
