@@ -3,6 +3,7 @@ package com.okhttplib.callback;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -73,6 +74,9 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
      * @param tag 请求标识
      */
     public static void cancel(String tag){
+        if(TextUtils.isEmpty(tag)){
+            return ;
+        }
         SparseArray<Call> callList = callsMap.get(tag);
         if(null != callList){
             for(int i=0 ;i<callList.size();i++){

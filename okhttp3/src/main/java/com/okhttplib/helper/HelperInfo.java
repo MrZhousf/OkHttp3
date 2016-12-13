@@ -1,5 +1,6 @@
 package com.okhttplib.helper;
 
+import com.okhttplib.OkHttpUtil;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
@@ -16,7 +17,8 @@ public class HelperInfo {
     private String LogTAG;//打印日志标识
     private long timeStamp;//时间戳
     private boolean showHttpLog;//是否显示Http请求日志
-    private OkHttpClient httpClient;
+    private OkHttpUtil okHttpUtil;
+    private boolean isDefault;//是否默认请求
     private OkHttpClient.Builder clientBuilder;
     private String requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
@@ -46,14 +48,6 @@ public class HelperInfo {
 
     public void setShowHttpLog(boolean showHttpLog) {
         this.showHttpLog = showHttpLog;
-    }
-
-    public OkHttpClient getHttpClient() {
-        return httpClient;
-    }
-
-    public void setHttpClient(OkHttpClient httpClient) {
-        this.httpClient = httpClient;
     }
 
     public String getRequestTag() {
@@ -94,5 +88,21 @@ public class HelperInfo {
 
     public void setClientBuilder(OkHttpClient.Builder clientBuilder) {
         this.clientBuilder = clientBuilder;
+    }
+
+    public OkHttpUtil getOkHttpUtil() {
+        return okHttpUtil;
+    }
+
+    public void setOkHttpUtil(OkHttpUtil okHttpUtil) {
+        this.okHttpUtil = okHttpUtil;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
     }
 }

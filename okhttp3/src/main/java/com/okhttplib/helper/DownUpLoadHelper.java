@@ -45,7 +45,7 @@ class DownUpLoadHelper extends BaseHelper{
     private static Map<String,String> downloadTaskMap;
 
     DownUpLoadHelper(HelperInfo helperInfo) {
-        super(helperInfo);
+        super();
         timeStamp = helperInfo.getTimeStamp();
         downloadFileDir = helperInfo.getDownloadFileDir();
         requestTag = helperInfo.getRequestTag();

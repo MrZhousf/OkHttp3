@@ -28,14 +28,34 @@ abstract class BaseHelper {
     private long timeStamp;
     private boolean showHttpLog;
 
+    BaseHelper() {
+    }
+
     BaseHelper(HelperInfo helperInfo) {
-        OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
-        clientBuilder.addInterceptor(LOG_INTERCEPTOR);
-        setSslSocketFactory(clientBuilder);
-        httpClient = clientBuilder.build();
         TAG = helperInfo.getLogTAG();
         timeStamp = helperInfo.getTimeStamp();
         showHttpLog = helperInfo.isShowHttpLog();
+        //是否采用默认的客户端进行请求
+        OkHttpClient defaultClient = helperInfo.getOkHttpUtil().getDefaultClient();
+        if(helperInfo.isDefault()){
+           if(null == defaultClient){
+               httpClient = initHttpClient(helperInfo);
+               helperInfo.getOkHttpUtil().setDefaultClient(httpClient);
+           }else{
+               httpClient = defaultClient;
+           }
+        }else{
+            httpClient = initHttpClient(helperInfo);
+        }
+    }
+
+    private OkHttpClient initHttpClient(HelperInfo helperInfo){
+        OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
+        clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+        setSslSocketFactory(clientBuilder);
+        OkHttpClient client = clientBuilder.build();
+        showLog("初始化OkHttpClient");
+        return client;
     }
 
 

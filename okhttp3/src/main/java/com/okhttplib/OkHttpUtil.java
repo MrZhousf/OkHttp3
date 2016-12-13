@@ -67,6 +67,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private final String TAG = getClass().getSimpleName();
     private static Application application;
     private static Builder builderGlobal;
+    private static OkHttpClient httpClient;
     private static ExecutorService executorService;
     private Builder builder;
     private int cacheSurvivalTime;//缓存存活时间（秒）
@@ -87,7 +88,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @return OkHttpUtil
      */
     public static OkHttpUtilInterface getDefault(){
-        return new Builder(false).build();
+        return new Builder(false).isDefault(true).build();
     }
 
     /**
@@ -96,7 +97,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @return OkHttpUtil
      */
     public static OkHttpUtilInterface getDefault(Object requestTag){
-        return new Builder(false).build(requestTag);
+        return new Builder(false).isDefault(true).build(requestTag);
     }
 
     /**
@@ -254,6 +255,15 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         BaseActivityLifecycleCallbacks.cancel(parseRequestTag(requestTag));
     }
 
+    @Override
+    public OkHttpClient getDefaultClient() {
+        return httpClient;
+    }
+
+    public void setDefaultClient(OkHttpClient client){
+        httpClient = client;
+    }
+
     /**
      * 网络请求拦截器
      */
@@ -308,7 +318,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private OkHttpUtil(Builder builder) {
         //初始化参数
         this.builder = builder;
-        cacheType = builder.cacheType;
+        this.cacheType = builder.cacheType;
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
         if(this.cacheSurvivalTime == 0){
             final int deviation = 5;
@@ -328,9 +338,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             }
         }
         if(this.cacheSurvivalTime > 0)
-            cacheType = CACHE_THEN_NETWORK;
+            this.cacheType = CACHE_THEN_NETWORK;
         if(null == application)
-            cacheType = FORCE_NETWORK;
+            this.cacheType = FORCE_NETWORK;
         if(null == executorService)
             executorService = Executors.newCachedThreadPool();
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
@@ -348,6 +358,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setResultInterceptors(builder.resultInterceptors);
         helperInfo.setDownloadFileDir(builder.downloadFileDir);
         helperInfo.setClientBuilder(newBuilderFromCopy());
+        helperInfo.setOkHttpUtil(this);
+        helperInfo.setDefault(builder.isDefault);
         helperInfo.setLogTAG(TAG);
         return helperInfo;
     }
@@ -399,6 +411,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private String downloadFileDir;//下载文件保存目录
         private String requestTag;
         private CookieJar cookieJar;
+        private boolean isDefault;//是否默认请求
 
         public Builder() {
         }
@@ -475,6 +488,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 setDownloadFileDir(builder.downloadFileDir);
             }
             setCookieJar(builder.cookieJar);
+        }
+
+        private Builder isDefault(boolean isDefault){
+            this.isDefault = isDefault;
+            return this;
         }
 
         //设置缓存大小

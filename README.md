@@ -15,6 +15,7 @@
 * 支持文件断点下载，独立下载的模块摒弃了数据库记录断点的过时方法
 * 完整的日志跟踪与异常处理
 * 支持请求结果拦截以及异常处理拦截
+* 支持单例客户端，提高网络请求速率
 * 后续优化中...
 
 ##引用方式
@@ -23,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.3</version>
+  <version>2.5.5</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.3'
+compile 'com.zhousf.lib:okhttp3:2.5.5'
 ```
 
 ##提交记录
@@ -61,7 +62,9 @@ compile 'com.zhousf.lib:okhttp3:2.5.3'
 * 2016-11-16
     *  项目架构调整，简单的API提高代码可读性
 * 2016-12-7
-    *  增加取消指定请求功能    
+    *  增加取消指定请求功能
+* 2016-12-12
+    *  增加单例客户端，提高网络请求速率
 
 ##权限
 ```java
@@ -98,6 +101,16 @@ OkHttpUtil.init(this)
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), 
                 new SharedPrefsCookiePersistor(this)))//持久化cookie
                 .build();
+            
+```
+
+##获取网络请求客户端单例示例
+```java
+//获取单例客户端（默认）
+ 方法一、OkHttpUtil.getDefault(this)//绑定生命周期
+            .doGetSync(HttpInfo.Builder().setUrl(url).build());
+ 方法二、OkHttpUtil.getDefault()//不绑定生命周期
+            .doGetSync(HttpInfo.Builder().setUrl(url).build());
             
 ```
 

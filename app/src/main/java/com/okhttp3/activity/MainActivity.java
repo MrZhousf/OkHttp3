@@ -117,16 +117,16 @@ public class MainActivity extends BaseActivity {
                 .setCacheLevel(FIRST_LEVEL)
                 .setConnectTimeout(25).build(this);
         okHttpUtil.doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(),
-                        new CallbackOk() {
-                            @Override
-                            public void onResponse(HttpInfo info) throws IOException {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("异步请求："+result);
-                                }
-                            }
-                        });
+                HttpInfo.Builder().setUrl(url).build(),
+                new CallbackOk() {
+                    @Override
+                    public void onResponse(HttpInfo info) throws IOException {
+                        if (info.isSuccessful()) {
+                            String result = info.getRetDetail();
+                            resultTV.setText("异步请求："+result);
+                        }
+                    }
+                });
 
     }
 

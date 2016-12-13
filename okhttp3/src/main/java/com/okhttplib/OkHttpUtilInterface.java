@@ -2,6 +2,8 @@ package com.okhttplib;
 
 import com.okhttplib.callback.CallbackOk;
 
+import okhttp3.OkHttpClient;
+
 /**
  * 网络请求工具接口
  * @author zhousf
@@ -69,5 +71,10 @@ public interface OkHttpUtilInterface {
      */
     void cancelRequest(Object requestTag);
 
+
+    /**
+     * 获取默认的HttpClient
+     */
+    OkHttpClient getDefaultClient();
 
 }

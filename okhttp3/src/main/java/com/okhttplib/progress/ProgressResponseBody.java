@@ -57,6 +57,7 @@ public class ProgressResponseBody extends ResponseBody{
             long totalBytesRead = 0L;
             long contentLength = 0L;
             ProgressCallback progressCallback;
+            int lastPercent = 0;
             @Override
             public long read(Buffer sink, long byteCount) throws IOException {
                 long bytesRead = super.read(sink, byteCount);
@@ -74,16 +75,19 @@ public class ProgressResponseBody extends ResponseBody{
                     progressCallback = downloadFileInfo.getProgressCallback();
                 if(null != progressCallback){
                     int percent = (int) ((100 * totalBytesRead) / contentLength);
-                    progressCallback.onProgressAsync(percent, totalBytesRead,contentLength,totalBytesRead == -1);
-                    //主线程回调
-                    Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
-                            progressCallback,
-                            percent,
-                            totalBytesRead,
-                            contentLength,
-                            bytesRead == -1)
-                            .build();
-                    OkMainHandler.getInstance().sendMessage(msg);
+                    if(percent != lastPercent){
+                        lastPercent = percent;
+                        progressCallback.onProgressAsync(percent, totalBytesRead,contentLength,totalBytesRead == -1);
+                        //主线程回调
+                        Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
+                                progressCallback,
+                                percent,
+                                totalBytesRead,
+                                contentLength,
+                                bytesRead == -1)
+                                .build();
+                        OkMainHandler.getInstance().sendMessage(msg);
+                    }
                 }
                 return bytesRead;
             }
