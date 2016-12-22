@@ -89,7 +89,7 @@ public class MainActivity extends BaseActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder()
+                final HttpInfo info = HttpInfo.Builder()
                         .setUrl(url)
                         .addHead("head","test")
                         .build();

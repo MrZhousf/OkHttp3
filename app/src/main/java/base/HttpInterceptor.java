@@ -37,16 +37,16 @@ public class HttpInterceptor {
                     info.setRetDetail("网络中断");
                     break;
                 case HttpInfo.NoResult:
-                    info.setRetDetail("服务器内部错误");
+                    info.setRetDetail("服务器内部错误["+info.getNetCode()+"]");
                     break;
                 case HttpInfo.CheckURL:
-                    info.setRetDetail("网络地址错误");
+                    info.setRetDetail("网络地址错误["+info.getNetCode()+"]");
                     break;
                 case HttpInfo.ProtocolException:
-                    info.setRetDetail("协议类型错误");
+                    info.setRetDetail("协议类型错误["+info.getNetCode()+"]");
                     break;
                 case HttpInfo.CheckNet:
-                    info.setRetDetail("请检查网络连接是否正常");
+                    info.setRetDetail("请检查网络连接是否正常["+info.getNetCode()+"]");
                     break;
                 case HttpInfo.ConnectionTimeOut:
                     info.setRetDetail("连接超时");

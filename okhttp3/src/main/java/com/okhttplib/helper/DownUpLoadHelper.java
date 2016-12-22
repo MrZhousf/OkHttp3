@@ -46,6 +46,9 @@ class DownUpLoadHelper extends BaseHelper{
 
     DownUpLoadHelper(HelperInfo helperInfo) {
         super();
+        TAG = helperInfo.getLogTAG();
+        timeStamp = helperInfo.getTimeStamp();
+        showHttpLog = helperInfo.isShowHttpLog();
         timeStamp = helperInfo.getTimeStamp();
         downloadFileDir = helperInfo.getDownloadFileDir();
         requestTag = helperInfo.getRequestTag();

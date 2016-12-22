@@ -30,7 +30,7 @@ public class DownloadActivity extends BaseActivity {
     /**
      * 文件网络地址
      */
-    private String mp4Url = "http://downmp413.ffxia.com/mp413/%E7%8E%8B%E5%AD%90%E6%96%87-%E7%94%9F%E5%A6%82%E5%A4%8F%E8%8A%B1[68mtv.com].mp4";
+    private String mp4Url = "http://v.cctv.com/flash/mp4video6/TMS/2011/01/05/cf752b1c12ce452b3040cab2f90bc265_h264818000nero_aac32-1.mp4";
     private final String requestTag = "download-tag-1001";//请求标识
 
 

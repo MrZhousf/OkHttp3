@@ -27,6 +27,7 @@ public class HttpInfo {
     //**响应返回参数定义**/
     private int retCode;//返回码
     private String retDetail;//返回结果
+    private int netCode;//网络返回码
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
@@ -251,7 +252,8 @@ public class HttpInfo {
     public final static int NetworkOnMainThreadException = 10;
     public final static int Message = 11;
 
-    public HttpInfo packInfo(int retCode, String retDetail){
+    public HttpInfo packInfo(int netCode,int retCode, String retDetail){
+        this.netCode = netCode;
         this.retCode = retCode;
         switch (retCode){
             case NonNetwork:
@@ -332,5 +334,9 @@ public class HttpInfo {
 
     public Map<String, String> getHeads() {
         return heads;
+    }
+
+    public int getNetCode() {
+        return netCode;
     }
 }

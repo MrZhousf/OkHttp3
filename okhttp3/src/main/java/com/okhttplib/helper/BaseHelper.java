@@ -24,9 +24,9 @@ import okhttp3.Response;
 abstract class BaseHelper {
 
     OkHttpClient httpClient;
-    private String TAG;
-    private long timeStamp;
-    private boolean showHttpLog;
+    protected String TAG;
+    protected long timeStamp;
+    protected boolean showHttpLog;
 
     BaseHelper() {
     }

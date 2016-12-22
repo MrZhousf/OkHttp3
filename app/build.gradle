@@ -6,6 +6,7 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
+        applicationId "com.okhttp3"
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         multiDexEnabled true

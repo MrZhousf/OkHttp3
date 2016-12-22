@@ -344,6 +344,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         if(null == executorService)
             executorService = Executors.newCachedThreadPool();
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
+        if(builder.isGlobalConfig){
+            OkHttpHelper.Builder()
+                    .helperInfo(packageHelperInfo())
+                    .build();
+        }
     }
 
     /**
@@ -387,7 +392,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     private static Builder BuilderGlobal() {
-        return new Builder(true);
+        return new Builder(true).isDefault(true);
     }
 
     public static final class Builder {
@@ -431,8 +436,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         }
 
         public OkHttpUtilInterface build(Object requestTag) {
-            if(isGlobalConfig && null == builderGlobal)
+            if(isGlobalConfig && null == builderGlobal){
                 builderGlobal = this;
+            }
             if(null != requestTag)
                 setRequestTag(requestTag);
             return new OkHttpUtil(this);

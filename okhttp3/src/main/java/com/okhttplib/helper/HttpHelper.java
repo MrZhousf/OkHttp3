@@ -79,7 +79,7 @@ class HttpHelper extends BaseHelper{
             }
             return retInfo(info,HttpInfo.WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,HttpInfo.CheckNet);
+            return retInfo(info,HttpInfo.CheckURL);
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
@@ -201,24 +201,25 @@ class HttpHelper extends BaseHelper{
         final HttpInfo info = helper.getHttpInfo();
         try {
             if(null != res){
+                final int netCode = res.code();
                 if(res.isSuccessful() && null != res.body()){
                     if(null == helper.getDownloadFileInfo()){
-                        return retInfo(info,HttpInfo.SUCCESS,res.body().string());
+                        return retInfo(info,netCode,HttpInfo.SUCCESS,res.body().string());
                     }else{ //下载文件
                         return helper.getDownUpLoadHelper().downloadingFile(helper,res,call);
                     }
                 }else{
                     showLog("HttpStatus: "+res.code());
-                    if(res.code() == 404)//请求页面路径错误
-                        return retInfo(info,HttpInfo.CheckURL);
-                    if(res.code() == 416)//请求数据流范围错误
-                        return retInfo(info,HttpInfo.Message,"请求Http数据流范围错误\n"+res.body().string());
-                    if(res.code() == 500)//服务器内部错误
-                        return retInfo(info,HttpInfo.NoResult);
-                    if(res.code() == 502)//错误网关
-                        return retInfo(info,HttpInfo.CheckNet);
-                    if(res.code() == 504)//网关超时
-                        return retInfo(info,HttpInfo.CheckNet);
+                    if(netCode == 404)//请求页面路径错误
+                        return retInfo(info,netCode,HttpInfo.CheckURL);
+                    if(netCode == 416)//请求数据流范围错误
+                        return retInfo(info,netCode,HttpInfo.Message,"请求Http数据流范围错误\n"+res.body().string());
+                    if(netCode == 500)//服务器内部错误
+                        return retInfo(info,netCode,HttpInfo.NoResult);
+                    if(netCode == 502)//错误网关
+                        return retInfo(info,netCode,HttpInfo.CheckNet);
+                    if(netCode == 504)//网关超时
+                        return retInfo(info,netCode,HttpInfo.CheckNet);
                 }
             }
             return retInfo(info,HttpInfo.CheckURL);
@@ -232,15 +233,22 @@ class HttpHelper extends BaseHelper{
     }
 
     HttpInfo retInfo(HttpInfo info, int code){
-        retInfo(info,code,null);
-        return info;
+        return retInfo(info,code,code,null);
+    }
+
+    HttpInfo retInfo(HttpInfo info, int netCode, int code){
+        return retInfo(info,netCode,code,null);
+    }
+
+    HttpInfo retInfo(HttpInfo info, int code, String resDetail){
+        return retInfo(info,code,code,resDetail);
     }
 
     /**
      * 封装请求结果
      */
-    HttpInfo retInfo(HttpInfo info, int code, String resDetail){
-        info.packInfo(code,unicodeToString(resDetail));
+    HttpInfo retInfo(HttpInfo info, int netCode, int code, String resDetail){
+        info.packInfo(netCode,code,unicodeToString(resDetail));
         //拦截请求结果
         dealInterceptor(info);
         showLog("Response: "+info.getRetDetail());

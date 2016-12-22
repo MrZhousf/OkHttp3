@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.5</version>
+  <version>2.5.6</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.5'
+compile 'com.zhousf.lib:okhttp3:2.5.6'
 ```
 
 ##提交记录
@@ -65,6 +65,9 @@ compile 'com.zhousf.lib:okhttp3:2.5.5'
     *  增加取消指定请求功能
 * 2016-12-12
     *  增加单例客户端，提高网络请求速率
+* 2016-12-22
+    *  修复日志bug等
+    
 
 ##权限
 ```java
