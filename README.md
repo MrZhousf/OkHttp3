@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.6</version>
+  <version>2.5.7</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.6'
+compile 'com.zhousf.lib:okhttp3:2.5.7'
 ```
 
 ##提交记录
@@ -67,6 +67,9 @@ compile 'com.zhousf.lib:okhttp3:2.5.6'
     *  增加单例客户端，提高网络请求速率
 * 2016-12-22
     *  修复日志bug等
+* 2016-12-28
+    *  修复https访问bug
+    
     
 
 ##权限

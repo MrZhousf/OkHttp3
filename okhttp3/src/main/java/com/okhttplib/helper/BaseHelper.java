@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -15,6 +16,7 @@ import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Response;
 
 /**
@@ -51,6 +53,7 @@ abstract class BaseHelper {
 
     private OkHttpClient initHttpClient(HelperInfo helperInfo){
         OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
+        clientBuilder.protocols(Arrays.asList(Protocol.SPDY_3, Protocol.HTTP_1_1));
         clientBuilder.addInterceptor(LOG_INTERCEPTOR);
         setSslSocketFactory(clientBuilder);
         OkHttpClient client = clientBuilder.build();
