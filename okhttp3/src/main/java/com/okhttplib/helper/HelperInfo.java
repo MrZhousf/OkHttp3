@@ -15,7 +15,7 @@ import okhttp3.OkHttpClient;
 public class HelperInfo {
 
     private String LogTAG;//打印日志标识
-    private long timeStamp;//时间戳
+    private String timeStamp;//时间戳
     private boolean showHttpLog;//是否显示Http请求日志
     private OkHttpUtil okHttpUtil;
     private boolean isDefault;//是否默认请求
@@ -34,11 +34,11 @@ public class HelperInfo {
         LogTAG = logTAG;
     }
 
-    public long getTimeStamp() {
+    public String getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
+    public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
 
@@ -105,4 +105,5 @@ public class HelperInfo {
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
     }
+
 }

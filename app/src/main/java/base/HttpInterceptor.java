@@ -36,9 +36,6 @@ public class HttpInterceptor {
                 case HttpInfo.NonNetwork:
                     info.setRetDetail("网络中断");
                     break;
-                case HttpInfo.NoResult:
-                    info.setRetDetail("服务器内部错误["+info.getNetCode()+"]");
-                    break;
                 case HttpInfo.CheckURL:
                     info.setRetDetail("网络地址错误["+info.getNetCode()+"]");
                     break;

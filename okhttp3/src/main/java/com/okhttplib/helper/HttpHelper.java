@@ -37,13 +37,11 @@ import okhttp3.Response;
  */
 class HttpHelper extends BaseHelper{
 
-    private String requestTag;//请求标识
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
 
     HttpHelper(HelperInfo helperInfo) {
         super(helperInfo);
-        requestTag = helperInfo.getRequestTag();
         resultInterceptors = helperInfo.getResultInterceptors();
         exceptionInterceptors = helperInfo.getExceptionInterceptors();
     }
@@ -83,9 +81,10 @@ class HttpHelper extends BaseHelper{
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
+            e.printStackTrace();
             return retInfo(info,HttpInfo.NoResult);
         }finally {
-            BaseActivityLifecycleCallbacks.cancel(requestTag);
+            BaseActivityLifecycleCallbacks.cancel(requestTag,call);
         }
     }
 
@@ -113,7 +112,14 @@ class HttpHelper extends BaseHelper{
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                showLog(e.getMessage());
+                e.printStackTrace();
+                //主线程回调
+                Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
+                        callback,
+                        retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]"))
+                        .build();
+                OkMainHandler.getInstance().sendMessage(msg);
+                BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             }
 
             @Override
@@ -124,7 +130,10 @@ class HttpHelper extends BaseHelper{
                         dealResponse(helper,res,call))
                         .build();
                 OkMainHandler.getInstance().sendMessage(msg);
-                BaseActivityLifecycleCallbacks.cancel(requestTag);
+                if(!call.isCanceled()){
+                    call.cancel();
+                }
+                BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             }
         });
     }
@@ -202,7 +211,7 @@ class HttpHelper extends BaseHelper{
         try {
             if(null != res){
                 final int netCode = res.code();
-                if(res.isSuccessful() && null != res.body()){
+                if(res.isSuccessful()){
                     if(null == helper.getDownloadFileInfo()){
                         return retInfo(info,netCode,HttpInfo.SUCCESS,res.body().string());
                     }else{ //下载文件
@@ -227,8 +236,9 @@ class HttpHelper extends BaseHelper{
             e.printStackTrace();
             return retInfo(info,HttpInfo.NoResult);
         } finally {
-            if(null != res)
+            if(null != res){
                 res.close();
+            }
         }
     }
 

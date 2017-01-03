@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.7</version>
+  <version>2.5.8</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.7'
+compile 'com.zhousf.lib:okhttp3:2.5.8'
 ```
 
 ##提交记录
@@ -69,6 +69,8 @@ compile 'com.zhousf.lib:okhttp3:2.5.7'
     *  修复日志bug等
 * 2016-12-28
     *  修复https访问bug
+* 2017-1-3
+    *  升级内置版本，优化日志显示
     
     
 
@@ -97,9 +99,9 @@ OkHttpUtil.init(this)
                 .setReadTimeout(30)//读超时时间
                 .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
+                .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)//显示Activity销毁日志
+                .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器

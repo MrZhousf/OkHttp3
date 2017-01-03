@@ -38,20 +38,13 @@ import okhttp3.ResponseBody;
  */
 class DownUpLoadHelper extends BaseHelper{
 
-    private long timeStamp;
     private String downloadFileDir;//下载文件保存目录
-    private String requestTag;//请求标识
 
     private static Map<String,String> downloadTaskMap;
 
     DownUpLoadHelper(HelperInfo helperInfo) {
-        super();
-        TAG = helperInfo.getLogTAG();
-        timeStamp = helperInfo.getTimeStamp();
-        showHttpLog = helperInfo.isShowHttpLog();
-        timeStamp = helperInfo.getTimeStamp();
+        super(helperInfo);
         downloadFileDir = helperInfo.getDownloadFileDir();
-        requestTag = helperInfo.getRequestTag();
     }
 
     /**
@@ -104,7 +97,7 @@ class DownUpLoadHelper extends BaseHelper{
     /**
      * 文件下载
      */
-    void downloadFile(OkHttpHelper helper){
+    void downloadFile(final OkHttpHelper helper){
         try {
             final HttpInfo httpInfo = helper.getHttpInfo();
             final DownloadFileInfo fileInfo = helper.getDownloadFileInfo();
@@ -131,7 +124,7 @@ class DownUpLoadHelper extends BaseHelper{
                 public Response intercept(Chain chain) throws IOException {
                     Response originalResponse = chain.proceed(chain.request());
                     return originalResponse.newBuilder()
-                            .body(new ProgressResponseBody(originalResponse.body(), fileInfo))
+                            .body(new ProgressResponseBody(originalResponse.body(), fileInfo,helper.getHttpHelper().timeStamp))
                             .build();
                 }
             };
@@ -220,7 +213,7 @@ class DownUpLoadHelper extends BaseHelper{
             }catch (IOException e){
                 e.printStackTrace();
             }
-            BaseActivityLifecycleCallbacks.cancel(requestTag);
+            BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());

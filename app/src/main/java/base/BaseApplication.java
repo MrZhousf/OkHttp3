@@ -34,9 +34,9 @@ public class BaseApplication extends Application {
                 .setReadTimeout(30)//读超时时间
                 .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
+                .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)//显示Activity销毁日志
+                .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器

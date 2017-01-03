@@ -74,23 +74,44 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
      * @param tag 请求标识
      */
     public static void cancel(String tag){
+        cancel(tag,null);
+    }
+
+    /**
+     * 取消请求
+     * @param tag 请求标识
+     * @param originalCall call
+     */
+    public static void cancel(String tag, Call originalCall){
         if(TextUtils.isEmpty(tag)){
             return ;
         }
-        SparseArray<Call> callList = callsMap.get(tag);
-        if(null != callList){
-            for(int i=0 ;i<callList.size();i++){
-                Call call = callList.valueAt(i);
-                if(null != call && !call.isCanceled()){
-                    call.cancel();
-                    callList.delete(call.hashCode());
-                }
+        if(null != originalCall){
+            SparseArray<Call> callList = callsMap.get(tag);
+            if(null != callList){
+                Call c = callList.get(originalCall.hashCode());
+                if(null != c && !c.isCanceled())
+                    c.cancel();
+                callList.delete(originalCall.hashCode());
                 if(callList.size() == 0)
                     callsMap.remove(tag);
                 showLog(true,tag);
             }
+        }else{
+            SparseArray<Call> callList = callsMap.get(tag);
+            if(null != callList){
+                for(int i=0 ;i<callList.size();i++){
+                    Call call = callList.valueAt(i);
+                    if(null != call && !call.isCanceled()){
+                        call.cancel();
+                        callList.delete(call.hashCode());
+                    }
+                    if(callList.size() == 0)
+                        callsMap.remove(tag);
+                    showLog(true,tag);
+                }
+            }
         }
-
     }
 
     private static void showLog(boolean isCancel, String tag){

@@ -14,9 +14,11 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
+import okhttp3.Request;
 import okhttp3.Response;
 
 /**
@@ -27,8 +29,9 @@ abstract class BaseHelper {
 
     OkHttpClient httpClient;
     protected String TAG;
-    protected long timeStamp;
+    protected String timeStamp;
     protected boolean showHttpLog;
+    protected String requestTag;//请求标识
 
     BaseHelper() {
     }
@@ -37,41 +40,43 @@ abstract class BaseHelper {
         TAG = helperInfo.getLogTAG();
         timeStamp = helperInfo.getTimeStamp();
         showHttpLog = helperInfo.isShowHttpLog();
+        requestTag = helperInfo.getRequestTag();
         //是否采用默认的客户端进行请求
         OkHttpClient defaultClient = helperInfo.getOkHttpUtil().getDefaultClient();
         if(helperInfo.isDefault()){
            if(null == defaultClient){
-               httpClient = initHttpClient(helperInfo);
+               httpClient = initHttpClient(helperInfo,null);
                helperInfo.getOkHttpUtil().setDefaultClient(httpClient);
            }else{
-               httpClient = defaultClient;
+               httpClient = initHttpClient(helperInfo,defaultClient.cookieJar());
            }
         }else{
-            httpClient = initHttpClient(helperInfo);
+            httpClient = initHttpClient(helperInfo,null);
         }
     }
 
-    private OkHttpClient initHttpClient(HelperInfo helperInfo){
+    private OkHttpClient initHttpClient(HelperInfo helperInfo, CookieJar cookieJar){
         OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
         clientBuilder.protocols(Arrays.asList(Protocol.SPDY_3, Protocol.HTTP_1_1));
         clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+        if(null != cookieJar)
+            clientBuilder.cookieJar(cookieJar);
         setSslSocketFactory(clientBuilder);
-        OkHttpClient client = clientBuilder.build();
-        showLog("初始化OkHttpClient");
-        return client;
+        return clientBuilder.build();
     }
 
 
     /**
      * 日志拦截器
      */
-    private Interceptor LOG_INTERCEPTOR = new Interceptor() {
+    private final Interceptor LOG_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
+            Request originalRequest = chain.request();
             long startTime = System.currentTimeMillis();
             showLog(String.format("%s-URL: %s %n",chain.request().method(),
                     chain.request().url()));
-            Response res = chain.proceed(chain.request());
+            Response res = chain.proceed(originalRequest);
             long endTime = System.currentTimeMillis();
             showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000f));
             return res;

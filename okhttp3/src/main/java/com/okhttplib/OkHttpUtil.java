@@ -11,10 +11,10 @@ import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
-import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
@@ -59,7 +59,7 @@ import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
  * 10、支持Cookie持久化
  * 11、支持协议头参数Head设置
  *
- * 引入版本com.squareup.okhttp3:okhttp:3.4.1
+ * 引入版本com.squareup.okhttp3:okhttp:3.5.0
  * @author zhousf
  */
 public class OkHttpUtil implements OkHttpUtilInterface{
@@ -270,9 +270,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            Response.Builder resBuilder = chain.proceed(chain.request()).newBuilder();
-            resBuilder.removeHeader("Pragma")
-                    .header("Cache-Control", String.format("max-age=%d", cacheSurvivalTime));
+            Response response = chain.proceed(chain.request());
+            Response.Builder resBuilder = response.newBuilder();
+            if(cacheSurvivalTime > 0){
+                resBuilder.removeHeader("Pragma")
+                        .header("Cache-Control", String.format("max-age=%d", cacheSurvivalTime));
+            }
             return resBuilder.build();
         }
     };
@@ -283,28 +286,32 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            Request request = chain.request();
+            Request originalRequest = chain.request();
             switch (cacheType){
                 case FORCE_CACHE:
-                    request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     break;
                 case FORCE_NETWORK:
-                    request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     break;
                 case NETWORK_THEN_CACHE:
                     if(!isNetworkAvailable(application)){
-                        request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                        originalRequest = originalRequest.newBuilder()
+                                .cacheControl(CacheControl.FORCE_CACHE)
+                                .build();
                     }else {
-                        request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                        originalRequest = originalRequest.newBuilder()
+                                .cacheControl(CacheControl.FORCE_NETWORK)
+                                .build();
                     }
                     break;
                 case CACHE_THEN_NETWORK:
                     if(!isNetworkAvailable(application)){
-                        request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                        originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     }
                     break;
             }
-            return chain.proceed(request);
+            return chain.proceed(originalRequest);
         }
     };
 
@@ -358,7 +365,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         HelperInfo helperInfo = new HelperInfo();
         helperInfo.setShowHttpLog(builder.showHttpLog);
         helperInfo.setRequestTag(builder.requestTag);
-        helperInfo.setTimeStamp(System.currentTimeMillis());
+        int random = 1000 + (int)(Math.random()*999);
+        String timeStamp = System.currentTimeMillis()+"_"+random;
+        helperInfo.setTimeStamp(timeStamp);
         helperInfo.setExceptionInterceptors(builder.exceptionInterceptors);
         helperInfo.setResultInterceptors(builder.resultInterceptors);
         helperInfo.setDownloadFileDir(builder.downloadFileDir);
