@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.8</version>
+  <version>2.5.9</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.8'
+compile 'com.zhousf.lib:okhttp3:2.5.9'
 ```
 
 ##提交记录
@@ -71,6 +71,8 @@ compile 'com.zhousf.lib:okhttp3:2.5.8'
     *  修复https访问bug
 * 2017-1-3
     *  升级内置版本，优化日志显示
+* 2017-3-3
+    *  修复上传文件入参bug（感谢Sanqi5401指正）
     
     
 
