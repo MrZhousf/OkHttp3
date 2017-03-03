@@ -81,8 +81,7 @@ class HttpHelper extends BaseHelper{
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
-            e.printStackTrace();
-            return retInfo(info,HttpInfo.NoResult);
+            return retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]");
         }finally {
             BaseActivityLifecycleCallbacks.cancel(requestTag,call);
         }
@@ -233,8 +232,7 @@ class HttpHelper extends BaseHelper{
             }
             return retInfo(info,HttpInfo.CheckURL);
         } catch (Exception e) {
-            e.printStackTrace();
-            return retInfo(info,HttpInfo.NoResult);
+            return retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]");
         } finally {
             if(null != res){
                 res.close();

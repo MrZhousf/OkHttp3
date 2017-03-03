@@ -129,7 +129,7 @@ public class HttpInfo {
          * @param filePathWithName 上传的文件路径：包含文件名
          */
         public Builder addUploadFile(String interfaceParamName, String filePathWithName) {
-            addUploadFile(filePathWithName,interfaceParamName,null);
+            addUploadFile(interfaceParamName,filePathWithName,null);
             return this;
         }
 
