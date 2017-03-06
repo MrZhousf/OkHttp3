@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.5.9</version>
+  <version>2.6.0</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.5.9'
+compile 'com.zhousf.lib:okhttp3:2.6.0'
 ```
 
 ##提交记录
@@ -73,6 +73,9 @@ compile 'com.zhousf.lib:okhttp3:2.5.9'
     *  升级内置版本，优化日志显示
 * 2017-3-3
     *  修复上传文件入参bug（感谢Sanqi5401指正）
+* 2017-3-6
+    *  在集成过程中出现了okio丢失的情况请添加 compile 'com.android.support:multidex:1.0.1'
+（感谢kevin提供相关解决方案）
     
     
 
