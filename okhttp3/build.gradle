@@ -10,7 +10,7 @@ android {
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
-        versionName "2.5.9"
+        versionName "2.6.1"
     }
 
     buildTypes {
@@ -29,8 +29,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.+'
-    compile 'com.squareup.okhttp3:okhttp:3.5.0'
-    compile 'com.j256.ormlite:ormlite-android:4.48'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    compile 'com.squareup.okio:okio:1.11.0'
 }
 
 //apply from: "bintrayUpload.gradle"

@@ -88,7 +88,7 @@ class DownUpLoadHelper extends BaseHelper{
             Request request = requestBuilder.build();
             helper.setRequest(request);
             helper.doRequestSync();
-            helper.getHttpHelper().responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK);
+            helper.getHttpHelper().responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK,false);
         } catch (Exception e){
             showLog("上传文件失败："+e.getMessage());
         }
@@ -142,7 +142,7 @@ class DownUpLoadHelper extends BaseHelper{
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
-            helper.getHttpHelper().responseCallback(httpInfo,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK);
+            helper.getHttpHelper().responseCallback(httpInfo,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,true);
         } catch (Exception e){
             showLog("下载文件失败："+e.getMessage());
         }

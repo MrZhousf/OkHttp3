@@ -9,6 +9,7 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadMessage;
+import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
 import com.okhttplib.callback.ProgressCallback;
@@ -303,18 +304,28 @@ class HttpHelper extends BaseHelper{
     /**
      * 请求结果回调
      */
-    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code){
+    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code,boolean isDownload){
         //同步回调
         if(null != progressCallback)
             progressCallback.onResponseSync(info.getUrl(),info);
         //异步主线程回调
-        Message msg = new DownloadMessage(
-                code,
-                info.getUrl(),
-                info,
-                progressCallback)
-                .build();
-        OkMainHandler.getInstance().sendMessage(msg);
+        if(isDownload){
+            Message msg = new DownloadMessage(
+                    code,
+                    info.getUrl(),
+                    info,
+                    progressCallback)
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+        }else{
+            Message msg = new UploadMessage(
+                    code,
+                    info.getUrl(),
+                    info,
+                    progressCallback)
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+        }
     }
 
     /**
