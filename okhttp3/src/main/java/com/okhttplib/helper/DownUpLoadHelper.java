@@ -201,6 +201,7 @@ class DownUpLoadHelper extends BaseHelper{
         }catch(SocketTimeoutException e){
             return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.WriteAndReadTimeOut);
         }catch (Exception e){
+            showLog("文件下载异常："+e.getMessage());
             return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.ConnectionInterruption);
         }finally {
             try {

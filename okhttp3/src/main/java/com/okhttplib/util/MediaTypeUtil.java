@@ -32,7 +32,7 @@ public class MediaTypeUtil {
             }else if("ico".equals(extension)){
                 extension = "image/ico";
             }else{
-                return null;
+                extension = "multipart/form-data";
             }
             return MediaType.parse(extension);
         }

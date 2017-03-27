@@ -30,7 +30,7 @@
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.6.1'
+compile 'com.zhousf.lib:okhttp3:2.6.3'
 ```
 
 ##提交记录
