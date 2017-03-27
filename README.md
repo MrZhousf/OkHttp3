@@ -24,7 +24,7 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.1</version>
+  <version>2.6.3</version>
   <type>pom</type>
 </dependency>
 ```
