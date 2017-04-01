@@ -1,6 +1,6 @@
-##OkHttp3
+## OkHttp3
 基于OkHttp3封装的网络请求工具类
-##功能点
+## 功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
 * 支持协议头参数Head设置
@@ -15,9 +15,9 @@
 * 支持请求结果拦截以及异常处理拦截
 * 支持单例客户端，提高网络请求速率
 * 后续优化中...
-##引用方式
-###Maven
-```java
+## 引用方式
+### Maven
+```
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
@@ -25,12 +25,12 @@
   <type>pom</type>
 </dependency>
 ```
-###Gradle
-```java
+### Gradle
+```
 compile 'com.zhousf.lib:okhttp3:2.6.4'
 ```
 
-##提交记录
+## 提交记录
 * 2016-6-29 项目提交
 * 2016-7-4 
     *  项目框架调整
@@ -76,8 +76,8 @@ compile 'com.zhousf.lib:okhttp3:2.6.4'
 * 2017-3-31
     *  增加单次批量上传文件功能：一次请求上传多个文件
 
-##权限
-```java
+## 权限
+```
     <!-- 添加读写权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -89,11 +89,11 @@ compile 'com.zhousf.lib:okhttp3:2.6.4'
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 ```
 
-##项目演示DEMO
+## 项目演示DEMO
 项目中已包含所有支持业务的demo，详情请下载项目参考源码。
-##自定义全局配置
+## 自定义全局配置
 在Application中配置如下：
-```java
+```
 OkHttpUtil.init(this)
                 .setConnectTimeout(30)//连接超时时间
                 .setWriteTimeout(30)//写超时时间
@@ -113,8 +113,8 @@ OkHttpUtil.init(this)
             
 ```
 
-##获取网络请求客户端单例示例
-```java
+## 获取网络请求客户端单例示例
+```
 //获取单例客户端（默认）
  方法一、OkHttpUtil.getDefault(this)//绑定生命周期
             .doGetSync(HttpInfo.Builder().setUrl(url).build());
@@ -123,11 +123,11 @@ OkHttpUtil.init(this)
             
 ```
 
-##取消指定请求
+## 取消指定请求
 建议在视图中采用OkHttpUtil.getDefault(this)的方式进行请求绑定，该方式会在Activity/Fragment销毁时自动取消当前视图下的所有请求；
 请求标识类型支持Object、String、Integer、Float、Double；
 **请求标识尽量保证唯一**。
-```java
+```
 //*******请求时先绑定请求标识，根据该标识进行取消*******/
 //方法一：
 OkHttpUtil.Builder()
@@ -143,8 +143,8 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
  
 ```
 
-##在Activity中同步调用示例
-```java
+## 在Activity中同步调用示例
+```
     /**
      * 同步请求：由于不能在UI线程中进行网络请求操作，所以采用子线程方式
      */
@@ -167,8 +167,8 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-##在Activity中异步调用示例
-```java
+## 在Activity中异步调用示例
+```
   /**
      * 异步请求：回调方法可以直接操作UI
      */
@@ -185,8 +185,8 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-##在Activity上传图片示例
-```java
+## 在Activity上传图片示例
+```
  /**
      * 异步上传图片：显示上传进度
      */
@@ -206,8 +206,8 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-##在Activity单次批量上传文件示例
-```java
+## 在Activity单次批量上传文件示例
+```
 /**
      * 单次批量上传：一次请求上传多个文件
      */
@@ -232,8 +232,8 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-##在Activity断点下载文件示例
-```java
+## 在Activity断点下载文件示例
+```
  @OnClick({R.id.downloadBtn, R.id.pauseBtn, R.id.continueBtn})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -273,9 +273,9 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-##Cookie持久化示例
+## Cookie持久化示例
 没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
-```java
+```
 OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
             .setCacheLevel(FIRST_LEVEL)
             .setConnectTimeout(25).build(this);
@@ -294,12 +294,12 @@ okHttpUtil.doGetAsync(
 ```
 
 
-##相关截图
-###网络请求界面
+## 相关截图
+### 网络请求界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
-###上传图片界面
+### 上传图片界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
-###断点下载文件界面
+### 断点下载文件界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/4.jpg?raw=true)
 ### 日志
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
@@ -308,22 +308,22 @@ okHttpUtil.doGetAsync(
 * Response：响应串
 
 
-##有问题反馈
+## 有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
 
 * QQ: 424427633
 
 
-##感激
+## 感激
 感谢以下的项目,排名不分先后
 
 * [OkHttp](https://github.com/square/okhttp/) 
 * [PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
 
 
-##相关示例
+## 相关示例
 
-###OkHttpUtil接口
+### OkHttpUtil接口
 ```java
 /**
  * 网络请求工具接口
@@ -392,7 +392,7 @@ public interface OkHttpUtilInterface {
 }
 ```
 
-###MainActivity
+### MainActivity
 ```java
    package com.okhttp3;
 
