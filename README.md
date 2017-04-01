@@ -1,7 +1,5 @@
-
 ##OkHttp3
 基于OkHttp3封装的网络请求工具类
-
 ##功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
@@ -17,7 +15,6 @@
 * 支持请求结果拦截以及异常处理拦截
 * 支持单例客户端，提高网络请求速率
 * 后续优化中...
-
 ##引用方式
 ###Maven
 ```java
@@ -77,9 +74,7 @@ compile 'com.zhousf.lib:okhttp3:2.6.4'
     *  在集成过程中出现了okio丢失的情况请添加 compile 'com.android.support:multidex:1.0.1'
 （感谢*kevin*提供相关解决方案）
 * 2017-3-31
-    *  增加单次批量上传文件功能
-    
-    
+    *  增加单次批量上传文件功能：一次请求上传多个文件
 
 ##权限
 ```java
@@ -96,7 +91,6 @@ compile 'com.zhousf.lib:okhttp3:2.6.4'
 
 ##项目演示DEMO
 项目中已包含所有支持业务的demo，详情请下载项目参考源码。
-
 ##自定义全局配置
 在Application中配置如下：
 ```java
@@ -148,7 +142,6 @@ OkHttpUtil.getDefault("请求标识")//绑定请求标识
 OkHttpUtil.getDefault().cancelRequest("请求标识");
  
 ```
-
 
 ##在Activity中同步调用示例
 ```java
