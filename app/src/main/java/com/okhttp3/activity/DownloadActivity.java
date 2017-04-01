@@ -82,5 +82,9 @@ public class DownloadActivity extends BaseActivity {
 
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        OkHttpUtil.getDefault().cancelRequest(requestTag);
+    }
 }

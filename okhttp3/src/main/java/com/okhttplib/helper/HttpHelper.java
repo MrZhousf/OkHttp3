@@ -40,6 +40,7 @@ class HttpHelper extends BaseHelper{
 
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
+    private long startTime;
 
     HttpHelper(HelperInfo helperInfo) {
         super(helperInfo);
@@ -59,6 +60,7 @@ class HttpHelper extends BaseHelper{
             return retInfo(info,HttpInfo.CheckURL);
         }
         request = request == null ? buildRequest(info,helper.getRequestMethod()) : request;
+        showUrlLog(request);
         helper.setRequest(request);
         OkHttpClient httpClient = helper.getHttpClient();
         try {
@@ -107,7 +109,9 @@ class HttpHelper extends BaseHelper{
             OkMainHandler.getInstance().sendMessage(msg);
             return ;
         }
-        Call call = httpClient.newCall(request == null ? buildRequest(info,helper.getRequestMethod()) : request);
+        request = request == null ? buildRequest(info,helper.getRequestMethod()) : request;
+        showUrlLog(request);
+        Call call = httpClient.newCall(request);
         BaseActivityLifecycleCallbacks.putCall(requestTag,call);
         call.enqueue(new Callback() {
             @Override
@@ -202,11 +206,16 @@ class HttpHelper extends BaseHelper{
         return request;
     }
 
+    private void showUrlLog(Request request){
+        startTime = System.currentTimeMillis();
+        showLog(String.format("%s-URL: %s %n",request.method(),request.url()));
+    }
 
     /**
      * 处理HTTP响应
      */
     private HttpInfo dealResponse(OkHttpHelper helper,Response res,Call call){
+        showLog(String.format("CostTime: %.1fs", (System.currentTimeMillis()-startTime) / 1000f));
         final HttpInfo info = helper.getHttpInfo();
         try {
             if(null != res){

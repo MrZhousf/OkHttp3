@@ -58,9 +58,9 @@ abstract class BaseHelper {
     private OkHttpClient initHttpClient(HelperInfo helperInfo, CookieJar cookieJar){
         OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
         clientBuilder.protocols(Arrays.asList(Protocol.SPDY_3, Protocol.HTTP_1_1));
-        if(showHttpLog){
-            clientBuilder.addInterceptor(LOG_INTERCEPTOR);
-        }
+//        if(showHttpLog){
+//            clientBuilder.addInterceptor(LOG_INTERCEPTOR);
+//        }
         if(null != cookieJar)
             clientBuilder.cookieJar(cookieJar);
         setSslSocketFactory(clientBuilder);
