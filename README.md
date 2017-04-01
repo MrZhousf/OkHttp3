@@ -24,13 +24,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.3</version>
+  <version>2.6.4</version>
   <type>pom</type>
 </dependency>
 ```
 ###Gradle
 ```java
-compile 'com.zhousf.lib:okhttp3:2.6.3'
+compile 'com.zhousf.lib:okhttp3:2.6.4'
 ```
 
 ##提交记录
@@ -72,10 +72,12 @@ compile 'com.zhousf.lib:okhttp3:2.6.3'
 * 2017-1-3
     *  升级内置版本，优化日志显示
 * 2017-3-3
-    *  修复上传文件入参bug（感谢Sanqi5401指正）
+    *  修复上传文件入参bug（感谢*Sanqi5401*指正）
 * 2017-3-6
     *  在集成过程中出现了okio丢失的情况请添加 compile 'com.android.support:multidex:1.0.1'
-（感谢kevin提供相关解决方案）
+（感谢*kevin*提供相关解决方案）
+* 2017-3-31
+    *  增加单次批量上传文件功能
     
     
 
@@ -130,7 +132,7 @@ OkHttpUtil.init(this)
 ##取消指定请求
 建议在视图中采用OkHttpUtil.getDefault(this)的方式进行请求绑定，该方式会在Activity/Fragment销毁时自动取消当前视图下的所有请求；
 请求标识类型支持Object、String、Integer、Float、Double；
-请求标识尽量保证唯一。
+**请求标识尽量保证唯一**。
 ```java
 //*******请求时先绑定请求标识，根据该标识进行取消*******/
 //方法一：
@@ -208,6 +210,32 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
                         })
                         .build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info);
+    }
+```
+
+##在Activity单次批量上传文件示例
+```java
+/**
+     * 单次批量上传：一次请求上传多个文件
+     */
+    private void doUploadBatch(){
+        HttpInfo info = HttpInfo.Builder()
+                .setUrl(url)
+                .addUploadFile("uploadFile","/storage/emulated/0/BigNoxHD/cache/test.apk")//添加上传文件
+                .addUploadFile("uploadFile","/storage/emulated/0/BigNoxHD/cache/test.png")
+                .build();
+        OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
+            @Override
+            public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                uploadProgress.setProgress(percent);
+            }
+
+            @Override
+            public void onResponseMain(String filePath, HttpInfo info) {
+                LogUtil.d(TAG, "上传结果：" + info.getRetDetail());
+                tvResult.setText(info.getRetDetail());
+            }
+        });
     }
 ```
 

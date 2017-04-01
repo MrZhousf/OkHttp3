@@ -1,6 +1,7 @@
 package com.okhttplib;
 
 import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.ProgressCallback;
 
 import okhttp3.OkHttpClient;
 
@@ -46,10 +47,24 @@ public interface OkHttpUtilInterface {
     void doUploadFileAsync(final HttpInfo info);
 
     /**
+     * 批量异步上传文件
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doUploadFileAsync(final HttpInfo info, ProgressCallback callback);
+
+    /**
      * 同步上传文件
      * @param info 请求信息体
      */
     void doUploadFileSync(final HttpInfo info);
+
+    /**
+     * 批量同步上传文件
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doUploadFileSync(final HttpInfo info, ProgressCallback callback);
 
     /**
      * 异步下载文件

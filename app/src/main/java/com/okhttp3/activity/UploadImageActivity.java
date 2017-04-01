@@ -137,7 +137,7 @@ public class UploadImageActivity extends BaseActivity {
     }
 
     /**
-     * 批量上传
+     * 批量上传：一次性批量上传请使用UploadFileActivity中的doUploadBatch方法
      */
     private void uploadImgMulti() {
         HttpInfo info = HttpInfo.Builder()

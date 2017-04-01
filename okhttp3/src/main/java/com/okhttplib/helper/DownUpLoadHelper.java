@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,34 +54,38 @@ class DownUpLoadHelper extends BaseHelper{
     void uploadFile(OkHttpHelper helper){
         try {
             final HttpInfo info = helper.getHttpInfo();
-            final UploadFileInfo fileInfo = helper.getUploadFileInfo();
-            String filePath = fileInfo.getFilePathWithName();
-            String interfaceParamName = fileInfo.getInterfaceParamName();
-            String url = fileInfo.getUrl();
-            url = TextUtils.isEmpty(url) ? info.getUrl() : url;
+            List<UploadFileInfo> uploadFileList = helper.getUploadFileInfoList();
+            String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
-                showLog("文件上传接口地址不能为空["+filePath+"]");
+                showLog("文件上传接口地址不能为空");
                 return ;
             }
-            ProgressCallback progressCallback = fileInfo.getProgressCallback();
-            File file = new File(filePath);
-            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
             StringBuilder log = new StringBuilder("PostParams: ");
-            log.append(interfaceParamName);
-            log.append("=");
-            log.append(filePath);
-            String logInfo;
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                for (String key : info.getParams().keySet()) {
-                    mBuilder.addFormDataPart(key, info.getParams().get(key));
-                    logInfo = key+" ="+info.getParams().get(key)+", ";
-                    log.append(logInfo);
+            MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+            ProgressCallback progressCallback = helper.getProgressCallback();
+            for (UploadFileInfo fileInfo : uploadFileList){
+                if(progressCallback == null){
+                    progressCallback = fileInfo.getProgressCallback();
                 }
+                String filePath = fileInfo.getFilePathWithName();
+                String interfaceParamName = fileInfo.getInterfaceParamName();
+                File file = new File(filePath);
+                log.append(interfaceParamName);
+                log.append("=");
+                log.append(filePath);
+                String logInfo;
+                if(null != info.getParams() && !info.getParams().isEmpty()){
+                    for (String key : info.getParams().keySet()) {
+                        mBuilder.addFormDataPart(key, info.getParams().get(key));
+                        logInfo = key+" ="+info.getParams().get(key)+", ";
+                        log.append(logInfo);
+                    }
+                }
+                mBuilder.addFormDataPart(interfaceParamName,
+                        file.getName(),
+                        RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
             }
             showLog(log.toString());
-            mBuilder.addFormDataPart(interfaceParamName,
-                    file.getName(),
-                    RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
             RequestBody requestBody = mBuilder.build();
             Request.Builder requestBuilder = new Request.Builder();
             requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback));

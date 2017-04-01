@@ -5,6 +5,10 @@ import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.ProgressCallback;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,10 +26,11 @@ public class OkHttpHelper {
     private HttpHelper httpHelper;
     private DownUpLoadHelper downUpLoadHelper;
     private DownloadFileInfo downloadFileInfo;
-    private UploadFileInfo uploadFileInfo;
+    private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
     private OkHttpClient.Builder clientBuilder;
     private @RequestMethod  int requestMethod;
     private CallbackOk callback;
+    private ProgressCallback progressCallback;
     private Request request;
     private OkHttpClient httpClient;
 
@@ -33,12 +38,13 @@ public class OkHttpHelper {
     private OkHttpHelper(Builder builder) {
         httpInfo = builder.httpInfo;
         downloadFileInfo = builder.downloadFileInfo;
-        uploadFileInfo = builder.uploadFileInfo;
+        uploadFileInfoList = builder.uploadFileInfoList;
         clientBuilder = builder.clientBuilder;
         requestMethod = builder.requestMethod;
         callback = builder.callback;
+        progressCallback = builder.progressCallback;
         httpHelper = new HttpHelper(builder.helperInfo);
-        if(null != downloadFileInfo || null != uploadFileInfo)
+        if(null != downloadFileInfo || !uploadFileInfoList.isEmpty())
             downUpLoadHelper = new DownUpLoadHelper(builder.helperInfo);
     }
 
@@ -67,10 +73,11 @@ public class OkHttpHelper {
         private HttpInfo httpInfo;
         private HelperInfo helperInfo;
         private DownloadFileInfo downloadFileInfo;
-        private UploadFileInfo uploadFileInfo;
+        private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
         private OkHttpClient.Builder clientBuilder;
         private @RequestMethod  int requestMethod;
         private CallbackOk callback;
+        private ProgressCallback progressCallback;
 
         public Builder() {
         }
@@ -95,9 +102,15 @@ public class OkHttpHelper {
         }
 
         public Builder uploadFileInfo(UploadFileInfo uploadFileInfo){
-            this.uploadFileInfo = uploadFileInfo;
+            uploadFileInfoList.add(uploadFileInfo);
             return this;
         }
+
+        public Builder uploadFileInfoList(List<UploadFileInfo> uploadFiles){
+            uploadFileInfoList.addAll(uploadFiles);
+            return this;
+        }
+
 
         public Builder clientBuilder(OkHttpClient.Builder clientBuilder){
             this.clientBuilder = clientBuilder;
@@ -111,6 +124,11 @@ public class OkHttpHelper {
 
         public Builder callbackOk(CallbackOk callback){
             this.callback = callback;
+            return this;
+        }
+
+        public Builder progressCallback(ProgressCallback progressCallback){
+            this.progressCallback = progressCallback;
             return this;
         }
 
@@ -132,8 +150,8 @@ public class OkHttpHelper {
         return downloadFileInfo;
     }
 
-    UploadFileInfo getUploadFileInfo() {
-        return uploadFileInfo;
+    List<UploadFileInfo> getUploadFileInfoList() {
+        return uploadFileInfoList;
     }
 
     OkHttpClient.Builder getClientBuilder() {
@@ -146,6 +164,10 @@ public class OkHttpHelper {
 
     CallbackOk getCallback() {
         return callback;
+    }
+
+    ProgressCallback getProgressCallback() {
+        return progressCallback;
     }
 
     Request getRequest() {

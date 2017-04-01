@@ -14,6 +14,7 @@ import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
@@ -186,6 +187,28 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     /**
+     * 批量异步上传文件
+     * @param info 请求信息体
+     */
+    @Override
+    public void doUploadFileAsync(final HttpInfo info, final ProgressCallback callback){
+        final List<UploadFileInfo> uploadFiles = info.getUploadFiles();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .uploadFileInfoList(uploadFiles)
+                        .requestMethod(RequestMethod.POST)
+                        .progressCallback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .uploadFile();
+            }
+        });
+    }
+
+    /**
      * 同步上传文件
      * @param info 请求信息体
      */
@@ -201,6 +224,28 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     .build()
                     .uploadFile();
         }
+    }
+
+    /**
+     * 批量同步上传文件
+     * @param info 请求信息体
+     */
+    @Override
+    public void doUploadFileSync(final HttpInfo info, final ProgressCallback callback){
+        final List<UploadFileInfo> uploadFiles = info.getUploadFiles();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .uploadFileInfoList(uploadFiles)
+                        .requestMethod(RequestMethod.POST)
+                        .progressCallback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .uploadFile();
+            }
+        });
     }
 
     /**

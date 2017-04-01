@@ -38,7 +38,7 @@ public class UploadFileActivity extends BaseActivity {
     /**
      * 文件上传地址
      */
-    private String url = "";
+    private String url = "http://192.168.120.206:8080/office/upload/uploadFile";
     private String filePath;
 
     @Override
@@ -63,6 +63,7 @@ public class UploadFileActivity extends BaseActivity {
                 break;
             case R.id.uploadFileBtn:
                 uploadFile(filePath);
+//                doUploadBatch();
                 break;
         }
     }
@@ -74,7 +75,7 @@ public class UploadFileActivity extends BaseActivity {
         }
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
-                .addUploadFile("file",path,new ProgressCallback(){
+                .addUploadFile("uploadFile",path,new ProgressCallback(){
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         uploadProgress.setProgress(percent);
@@ -88,8 +89,29 @@ public class UploadFileActivity extends BaseActivity {
                 })
                 .build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info);
+    }
 
+    /**
+     * 单次批量上传：一次请求上传多个文件
+     */
+    private void doUploadBatch(){
+        HttpInfo info = HttpInfo.Builder()
+                .setUrl(url)
+                .addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.apk")//添加上传文件
+                .addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.rar")
+                .build();
+        OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
+            @Override
+            public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                uploadProgress.setProgress(percent);
+            }
 
+            @Override
+            public void onResponseMain(String filePath, HttpInfo info) {
+                LogUtil.d(TAG, "上传结果：" + info.getRetDetail());
+                tvResult.setText(info.getRetDetail());
+            }
+        });
     }
 
     @Override
