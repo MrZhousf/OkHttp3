@@ -185,7 +185,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-## 在Activity上传图片示例
+## 在Activity中上传图片示例
 ```
  /**
      * 异步上传图片：显示上传进度
@@ -206,7 +206,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-## 在Activity单次批量上传文件示例
+## 在Activity中单次批量上传文件示例
 ```
 /**
      * 单次批量上传：一次请求上传多个文件
@@ -231,7 +231,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
     }
 ```
 
-## 在Activity断点下载文件示例
+## 在Activity中断点下载文件示例
 ```
  @OnClick({R.id.downloadBtn, R.id.pauseBtn, R.id.continueBtn})
     public void onClick(View view) {
