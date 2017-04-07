@@ -95,11 +95,11 @@ public class UploadFileActivity extends BaseActivity {
      * 单次批量上传：一次请求上传多个文件
      */
     private void doUploadBatch(){
-        HttpInfo info = HttpInfo.Builder()
-                .setUrl(url)
-                .addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.apk")//添加上传文件
-                .addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.rar")
-                .build();
+        HttpInfo.Builder builder = HttpInfo.Builder()
+                .setUrl(url);
+        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.apk");//添加上传文件
+        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.rar");
+        HttpInfo info = builder.build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
             @Override
             public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
