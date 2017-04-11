@@ -16,6 +16,9 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import base.BaseActivity;
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -40,6 +43,7 @@ public class UploadFileActivity extends BaseActivity {
      */
     private String url = "http://192.168.120.206:8080/office/upload/uploadFile";
     private String filePath;
+    private List<String> imgList = new ArrayList<>();
 
     @Override
     protected int initLayout() {
@@ -49,6 +53,8 @@ public class UploadFileActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        imgList.add("/storage/emulated/0/okHttp_download/test.apk");//添加上传文件
+        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
     }
 
     @OnClick({R.id.chooseFileBtn, R.id.uploadFileBtn})
@@ -68,6 +74,8 @@ public class UploadFileActivity extends BaseActivity {
         }
     }
 
+    private long breakPoint = 10*1024*1024;
+
     private void uploadFile(String path){
         if(TextUtils.isEmpty(path)){
             Toast.makeText(this, "请选择上传文件！", Toast.LENGTH_LONG).show();
@@ -78,8 +86,9 @@ public class UploadFileActivity extends BaseActivity {
                 .addUploadFile("uploadFile",path,new ProgressCallback(){
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        uploadProgress.setProgress(percent);
-                        LogUtil.d(TAG, "上传进度：" + percent);
+                        int breakPercent = (int) ((100 * (bytesWritten+breakPoint)) / (contentLength+breakPoint));
+                        uploadProgress.setProgress(breakPercent);
+                        LogUtil.d(TAG, "上传进度：" + breakPercent);
                     }
 
                     @Override
@@ -97,8 +106,10 @@ public class UploadFileActivity extends BaseActivity {
     private void doUploadBatch(){
         HttpInfo.Builder builder = HttpInfo.Builder()
                 .setUrl(url);
-        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.apk");//添加上传文件
-        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.rar");
+        //循环添加上传文件
+        for (String path: imgList  ) {
+            builder.addUploadFile("uploadFile",path);
+        }
         HttpInfo info = builder.build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
             @Override

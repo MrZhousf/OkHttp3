@@ -55,6 +55,7 @@ public class ProgressRequestBody extends RequestBody {
         return new ForwardingSink(originalSink) {
             long bytesWritten = 0L;
             long contentLength = 0L;
+            int lastPercent = 0;
             @Override
             public void write(Buffer source, long byteCount) throws IOException {
                 super.write(source, byteCount);
@@ -64,16 +65,19 @@ public class ProgressRequestBody extends RequestBody {
                 bytesWritten += byteCount;
                 if(null != progressCallback){
                     int percent = (int) ((100 * bytesWritten) / contentLength);
-                    progressCallback.onProgressAsync(percent, bytesWritten,contentLength,bytesWritten == contentLength);
-                    //主线程回调
-                    Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
-                            progressCallback,
-                            percent,
-                            bytesWritten,
-                            contentLength,
-                            bytesWritten == contentLength)
-                            .build();
-                    OkMainHandler.getInstance().sendMessage(msg);
+                    if(percent != lastPercent) {
+                        lastPercent = percent;
+                        progressCallback.onProgressAsync(percent, bytesWritten, contentLength, bytesWritten == contentLength);
+                        //主线程回调
+                        Message msg = new ProgressMessage(OkMainHandler.PROGRESS_CALLBACK,
+                                progressCallback,
+                                percent,
+                                bytesWritten,
+                                contentLength,
+                                bytesWritten == contentLength)
+                                .build();
+                        OkMainHandler.getInstance().sendMessage(msg);
+                    }
                 }
             }
         };
