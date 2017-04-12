@@ -63,6 +63,14 @@ class DownUpLoadHelper extends BaseHelper{
             StringBuilder log = new StringBuilder("PostParams: ");
             MultipartBody.Builder mBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
             ProgressCallback progressCallback = helper.getProgressCallback();
+            String logInfo;
+            if(null != info.getParams() && !info.getParams().isEmpty()){
+                for (String key : info.getParams().keySet()) {
+                    mBuilder.addFormDataPart(key, info.getParams().get(key));
+                    logInfo = key+" ="+info.getParams().get(key)+", ";
+                    log.append(logInfo);
+                }
+            }
             for (UploadFileInfo fileInfo : uploadFileList){
                 if(progressCallback == null){
                     progressCallback = fileInfo.getProgressCallback();
@@ -73,14 +81,7 @@ class DownUpLoadHelper extends BaseHelper{
                 log.append(interfaceParamName);
                 log.append("=");
                 log.append(filePath);
-                String logInfo;
-                if(null != info.getParams() && !info.getParams().isEmpty()){
-                    for (String key : info.getParams().keySet()) {
-                        mBuilder.addFormDataPart(key, info.getParams().get(key));
-                        logInfo = key+" ="+info.getParams().get(key)+", ";
-                        log.append(logInfo);
-                    }
-                }
+                log.append(",");
                 mBuilder.addFormDataPart(interfaceParamName,
                         file.getName(),
                         RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));

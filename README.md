@@ -21,13 +21,13 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.4</version>
+  <version>2.6.5</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.4'
+compile 'com.zhousf.lib:okhttp3:2.6.5'
 ```
 
 ## 提交记录
@@ -126,7 +126,7 @@ OkHttpUtil.init(this)
 ## 取消指定请求
 建议在视图中采用OkHttpUtil.getDefault(this)的方式进行请求绑定，该方式会在Activity/Fragment销毁时自动取消当前视图下的所有请求；
 请求标识类型支持Object、String、Integer、Float、Double；
-**请求标识尽量保证唯一**。
+**<font color=red>请求标识务必保证唯一</font>**。
 ```
 //*******请求时先绑定请求标识，根据该标识进行取消*******/
 //方法一：
@@ -207,16 +207,25 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
 ```
 
 ## 在Activity中单次批量上传文件示例
+* 若服务器为php，接口文件参数名称后面追加"[]"表示数组，
+示例：builder.addUploadFile("<font color=red>uploadFile[]</font>",path);
 ```
 /**
      * 单次批量上传：一次请求上传多个文件
      */
-    private void doUploadBatch(){
-        HttpInfo.Builder builder = HttpInfo.Builder().setUrl(url);
-        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.apk");//添加上传文件
-        builder.addUploadFile("uploadFile","/storage/emulated/0/okHttp_download/test.rar");
+     private void doUploadBatch(){
+        imgList.clear();
+        imgList.add("/storage/emulated/0/okHttp_download/test.apk");
+        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
+        HttpInfo.Builder builder = HttpInfo.Builder()
+                .setUrl(url);
+        //循环添加上传文件
+        for (String path: imgList  ) {
+            //若服务器为php，接口文件参数名称后面追加"[]"表示数组，示例：builder.addUploadFile("uploadFile[]",path);
+            builder.addUploadFile("uploadFile",path);
+        }
         HttpInfo info = builder.build();
-        OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
+        OkHttpUtil.getDefault(UploadFileActivity.this).doUploadFileAsync(info,new ProgressCallback(){
             @Override
             public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                 uploadProgress.setProgress(percent);

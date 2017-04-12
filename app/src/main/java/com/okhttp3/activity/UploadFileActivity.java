@@ -53,8 +53,6 @@ public class UploadFileActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        imgList.add("/storage/emulated/0/okHttp_download/test.apk");//添加上传文件
-        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
     }
 
     @OnClick({R.id.chooseFileBtn, R.id.uploadFileBtn})
@@ -69,12 +67,9 @@ public class UploadFileActivity extends BaseActivity {
                 break;
             case R.id.uploadFileBtn:
                 uploadFile(filePath);
-//                doUploadBatch();
                 break;
         }
     }
-
-    private long breakPoint = 10*1024*1024;
 
     private void uploadFile(String path){
         if(TextUtils.isEmpty(path)){
@@ -86,9 +81,8 @@ public class UploadFileActivity extends BaseActivity {
                 .addUploadFile("uploadFile",path,new ProgressCallback(){
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        int breakPercent = (int) ((100 * (bytesWritten+breakPoint)) / (contentLength+breakPoint));
-                        uploadProgress.setProgress(breakPercent);
-                        LogUtil.d(TAG, "上传进度：" + breakPercent);
+                        uploadProgress.setProgress(percent);
+                        LogUtil.d(TAG, "上传进度：" + percent);
                     }
 
                     @Override
@@ -104,17 +98,22 @@ public class UploadFileActivity extends BaseActivity {
      * 单次批量上传：一次请求上传多个文件
      */
     private void doUploadBatch(){
+        imgList.clear();
+        imgList.add("/storage/emulated/0/okHttp_download/test.apk");
+        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
         HttpInfo.Builder builder = HttpInfo.Builder()
                 .setUrl(url);
         //循环添加上传文件
         for (String path: imgList  ) {
+            //若服务器为php，接口文件参数名称后面追加"[]"表示数组，示例：builder.addUploadFile("uploadFile[]",path);
             builder.addUploadFile("uploadFile",path);
         }
         HttpInfo info = builder.build();
-        OkHttpUtil.getDefault(this).doUploadFileAsync(info,new ProgressCallback(){
+        OkHttpUtil.getDefault(UploadFileActivity.this).doUploadFileAsync(info,new ProgressCallback(){
             @Override
             public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                 uploadProgress.setProgress(percent);
+                LogUtil.d(TAG, "上传进度：" + percent);
             }
 
             @Override
