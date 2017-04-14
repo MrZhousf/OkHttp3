@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -207,7 +208,7 @@ class HttpHelper extends BaseHelper{
     }
 
     private void showUrlLog(Request request){
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         showLog(String.format("%s-URL: %s %n",request.method(),request.url()));
     }
 
@@ -215,7 +216,7 @@ class HttpHelper extends BaseHelper{
      * 处理HTTP响应
      */
     private HttpInfo dealResponse(OkHttpHelper helper,Response res,Call call){
-        showLog(String.format("CostTime: %.1fs", (System.currentTimeMillis()-startTime) / 1000f));
+        showLog(String.format(Locale.getDefault(),"CostTime: %.3fs",(System.nanoTime()-startTime)/1e9d));
         final HttpInfo info = helper.getHttpInfo();
         try {
             if(null != res){

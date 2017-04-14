@@ -419,7 +419,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setClientBuilder(newBuilderFromCopy());
         helperInfo.setOkHttpUtil(this);
         helperInfo.setDefault(builder.isDefault);
-        helperInfo.setLogTAG(TAG);
+        helperInfo.setLogTAG(builder.httpLogTAG == null ? TAG : builder.httpLogTAG);
         return helperInfo;
     }
 
@@ -466,6 +466,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private int cacheLevel;//缓存级别
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
+        private String httpLogTAG;//显示Http请求日志标识
         private boolean showLifecycleLog;//是否显示ActivityLifecycle日志
         private String downloadFileDir;//下载文件保存目录
         private String requestTag;
@@ -543,6 +544,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setResultInterceptors(builder.resultInterceptors);
             setExceptionInterceptors(builder.exceptionInterceptors);
             setShowHttpLog(builder.showHttpLog);
+            setHttpLogTAG(builder.httpLogTAG);
             setShowLifecycleLog(builder.showLifecycleLog);
             if(!TextUtils.isEmpty(builder.downloadFileDir)){
                 setDownloadFileDir(builder.downloadFileDir);
@@ -668,6 +670,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         //设置显示Http请求日志
         public Builder setShowHttpLog(boolean showHttpLog) {
             this.showHttpLog = showHttpLog;
+            return this;
+        }
+
+        //设置Http请求日志标识
+        public Builder setHttpLogTAG(String logTAG){
+            this.httpLogTAG = logTAG;
             return this;
         }
 

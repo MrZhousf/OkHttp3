@@ -21,13 +21,19 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.5</version>
+  <version>2.6.6</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.5'
+compile 'com.zhousf.lib:okhttp3:2.6.6'
+```
+或出现V7版本冲突请采用下面方式进行依赖：
+```
+compile ('com.zhousf.lib:okhttp3:2.6.6'){
+    exclude(module: 'appcompat-v7')
+}
 ```
 
 ## 提交记录
@@ -40,10 +46,6 @@ compile 'com.zhousf.lib:okhttp3:2.6.5'
 * 2016-7-19
     *  代码优化、降低耦合
     *  修复已知bug
-* 2016-7-27
-    *  改进https协议    
-* 2016-8-8
-    *  增加图片上传功能，支持批量上传
 * 2016-8-9
     *  增加文件上传功能，支持批量上传
 * 2016-8-10
@@ -56,18 +58,10 @@ compile 'com.zhousf.lib:okhttp3:2.6.5'
     *  增加Cookie持久化
 * 2016-10-25
     *  支持协议头参数Head设置
-* 2016-11-16
-    *  项目架构调整，简单的API提高代码可读性
 * 2016-12-7
     *  增加取消指定请求功能
 * 2016-12-12
     *  增加单例客户端，提高网络请求速率
-* 2016-12-22
-    *  修复日志bug等
-* 2016-12-28
-    *  修复https访问bug
-* 2017-1-3
-    *  升级内置版本，优化日志显示
 * 2017-3-3
     *  修复上传文件入参bug（感谢*Sanqi5401*指正）
 * 2017-3-6
@@ -102,6 +96,7 @@ OkHttpUtil.init(this)
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
+                .setHttpLogTAG("HttpLog")//设置请求日志标识
                 .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录

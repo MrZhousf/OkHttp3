@@ -36,6 +36,7 @@ public class BaseApplication extends Application {
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
                 .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
+                .setHttpLogTAG("HttpLog")//设置请求日志标识
                 .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录

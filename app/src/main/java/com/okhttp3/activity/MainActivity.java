@@ -111,7 +111,7 @@ public class MainActivity extends BaseActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.getDefault(this).doPostAsync(
+        OkHttpUtil.getDefault(this).doGetAsync(
                 HttpInfo.Builder()
                         .setUrl(url)
                         .build(),
