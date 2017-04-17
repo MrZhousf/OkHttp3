@@ -12,8 +12,24 @@ import java.lang.annotation.RetentionPolicy;
 @IntDef({CacheLevel.FIRST_LEVEL, CacheLevel.SECOND_LEVEL, CacheLevel.THIRD_LEVEL, CacheLevel.FOURTH_LEVEL})
 @Retention(RetentionPolicy.SOURCE)
 public @interface CacheLevel {
-    int FIRST_LEVEL = 1; //无缓存
-    int SECOND_LEVEL = 2; //15秒(缓存有效时间)
-    int THIRD_LEVEL = 3; //30秒
-    int FOURTH_LEVEL = 4; //60秒
+
+    /**
+     * 无缓存
+     */
+    int FIRST_LEVEL = 1;
+
+    /**
+     * 15秒(缓存有效时间)
+     */
+    int SECOND_LEVEL = 2;
+
+    /**
+     * 30秒(缓存有效时间)
+     */
+    int THIRD_LEVEL = 3;
+
+    /**
+     * 60秒(缓存有效时间)
+     */
+    int FOURTH_LEVEL = 4;
 }

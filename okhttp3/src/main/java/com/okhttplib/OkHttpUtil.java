@@ -13,7 +13,7 @@ import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
-import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.BaseCallback;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.helper.OkHttpHelper;
@@ -122,11 +122,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doPostAsync(HttpInfo info, CallbackOk callback){
+    public void doPostAsync(HttpInfo info, BaseCallback callback){
         OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestMethod(RequestMethod.POST)
-                .callbackOk(callback)
+                .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestAsync();
@@ -153,11 +153,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doGetAsync(HttpInfo info, CallbackOk callback){
+    public void doGetAsync(HttpInfo info, BaseCallback callback) {
         OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestMethod(RequestMethod.GET)
-                .callbackOk(callback)
+                .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestAsync();

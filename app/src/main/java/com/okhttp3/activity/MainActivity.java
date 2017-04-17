@@ -5,11 +5,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.okhttp3.R;
+import com.okhttp3.bean.TimeAndDate;
+import com.okhttp3.util.LogUtil;
 import com.okhttp3.util.NetWorkUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.CacheType;
+import com.okhttplib.callback.Callback;
 import com.okhttplib.callback.CallbackOk;
 
 import java.io.IOException;
@@ -111,17 +115,39 @@ public class MainActivity extends BaseActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
+        //回调方式一
+//        OkHttpUtil.getDefault(this).doGetAsync(
+//                HttpInfo.Builder()
+//                        .setUrl(url)
+//                        .build(),
+//                new CallbackOk() {
+//                    @Override
+//                    public void onResponse(HttpInfo info) throws IOException {
+//                        if (info.isSuccessful()) {
+//                            String result = info.getRetDetail();
+//                            resultTV.setText("异步请求："+result);
+//                        }
+//                    }
+//                });
+        //回调方式二
         OkHttpUtil.getDefault(this).doGetAsync(
                 HttpInfo.Builder()
                         .setUrl(url)
                         .build(),
-                new CallbackOk() {
+                new Callback() {
                     @Override
-                    public void onResponse(HttpInfo info) throws IOException {
-                        if (info.isSuccessful()) {
-                            String result = info.getRetDetail();
-                            resultTV.setText("异步请求："+result);
-                        }
+                    public void onFailure(HttpInfo info) throws IOException {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求失败："+result);
+                    }
+
+                    @Override
+                    public void onSuccess(HttpInfo info) throws IOException {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求成功："+result);
+                        //GSon解析
+                        TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                        LogUtil.d("MainActivity",time.getResult().toString());
                     }
                 });
 

@@ -13,6 +13,8 @@ public class OkMessage implements Serializable {
 
     public int what;
 
+    public String requestTag;
+
     public Message build(){
         Message msg = new Message();
         msg.what = this.what;

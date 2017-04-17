@@ -13,9 +13,24 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.SOURCE)
 public @interface DownloadStatus {
 
-    String INIT = "INIT";//初始化状态
-    String DOWNLOADING = "DOWNLOADING";//正在下载状态
-    String PAUSE = "PAUSE";//暂停状态
-    String COMPLETED = "COMPLETED";//下载完成状态
+    /**
+     * 初始化状态
+     */
+    String INIT = "INIT";
+
+    /**
+     * 正在下载状态
+     */
+    String DOWNLOADING = "DOWNLOADING";
+
+    /**
+     * 暂停状态
+     */
+    String PAUSE = "PAUSE";
+
+    /**
+     * 下载完成状态
+     */
+    String COMPLETED = "COMPLETED";
 
 }

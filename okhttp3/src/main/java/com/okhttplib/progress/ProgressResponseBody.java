@@ -29,11 +29,14 @@ public class ProgressResponseBody extends ResponseBody{
     private BufferedSource bufferedSink;
     private DownloadFileInfo downloadFileInfo;
     private String timeStamp;
+    private String requestTag;
 
-    public ProgressResponseBody(ResponseBody originalResponseBody, DownloadFileInfo downloadFileInfo, String timeStamp) {
+    public ProgressResponseBody(ResponseBody originalResponseBody, DownloadFileInfo downloadFileInfo,
+                                String timeStamp, String requestTag) {
         this.originalResponseBody = originalResponseBody;
         this.downloadFileInfo = downloadFileInfo;
         this.timeStamp = timeStamp;
+        this.requestTag = requestTag;
     }
 
     @Override
@@ -65,7 +68,7 @@ public class ProgressResponseBody extends ResponseBody{
                 long bytesRead = super.read(sink, byteCount);
                 if(totalBytesRead == 0){
                     totalBytesRead = downloadFileInfo.getCompletedSize();
-                    Log.d("OkHttpUtil["+timeStamp+"]","从节点["+totalBytesRead+"]开始下载"
+                    Log.d(requestTag+"["+timeStamp+"]","从节点["+totalBytesRead+"]开始下载"
                             +downloadFileInfo.getSaveFileNameWithExtension());
                 }
                 if (contentLength == 0) {
@@ -77,6 +80,7 @@ public class ProgressResponseBody extends ResponseBody{
                     progressCallback = downloadFileInfo.getProgressCallback();
                 if(null != progressCallback){
                     int percent = (int) ((100 * totalBytesRead) / contentLength);
+                    //每处理1%则立即回调
                     if(percent != lastPercent){
                         lastPercent = percent;
                         progressCallback.onProgressAsync(percent, totalBytesRead,contentLength,totalBytesRead == -1);
@@ -86,7 +90,7 @@ public class ProgressResponseBody extends ResponseBody{
                                 percent,
                                 totalBytesRead,
                                 contentLength,
-                                bytesRead == -1)
+                                bytesRead == -1,requestTag)
                                 .build();
                         OkMainHandler.getInstance().sendMessage(msg);
                     }

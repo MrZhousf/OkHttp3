@@ -3,7 +3,7 @@
 ## 功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
-* 支持协议头参数Head设置
+* 支持协议头参数Head设置、Unicode自动转码
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
@@ -21,17 +21,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.6</version>
+  <version>2.6.7</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.6'
+compile 'com.zhousf.lib:okhttp3:2.6.7'
 ```
-或出现V7版本冲突请采用下面方式进行依赖：
+若出现V7版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.6.6'){
+compile ('com.zhousf.lib:okhttp3:2.6.7'){
     exclude(module: 'appcompat-v7')
 }
 ```
@@ -168,16 +168,45 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
      * 异步请求：回调方法可以直接操作UI
      */
     private void doHttpAsync() {
-        OkHttpUtil.getDefault(MainActivity.this)
-                .doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(),
-                info -> {
-                    if (info.isSuccessful()) {
-                        String result = info.getRetDetail();
-                        resultTV.setText("异步请求："+result);
-                    }
-                });
+                //回调方式一
+                OkHttpUtil.getDefault(this).doGetAsync(
+                        HttpInfo.Builder()
+                                .setUrl(url)
+                                .build(),
+                        new CallbackOk() {
+                            @Override
+                            public void onResponse(HttpInfo info) throws IOException {
+                                if (info.isSuccessful()) {
+                                    String result = info.getRetDetail();
+                                    resultTV.setText("异步请求："+result);
+                                }
+                            }
+                        });
+                //回调方式二
+                OkHttpUtil.getDefault(this).doGetAsync(
+                        HttpInfo.Builder()
+                                .setUrl(url)
+                                .build(),
+                        new Callback() {
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("异步请求失败："+result);
+                            }
+
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("异步请求成功："+result);
+                                //GSon解析
+                                TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                                LogUtil.d("MainActivity",time.getResult().toString());
+                            }
+                        });
     }
+
+
+
 ```
 
 ## 在Activity中上传图片示例
@@ -274,6 +303,66 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
         HttpInfo info = HttpInfo.Builder().addDownloadFile(fileInfo).build();
         OkHttpUtil.Builder().setReadTimeout(120).build(this).doDownloadFileAsync(info);
     }
+```
+
+## 请求结果统一预处理拦截器/请求链路异常信息拦截示例
+请求结果拦截器与链路异常拦截器方便项目网络请求业务的进行信息返回的统一管理与设置
+```
+/**
+ * Http拦截器
+ * 1、请求结果统一预处理拦截器
+ * 2、请求链路异常信息拦截器
+ * @author zhousf
+ */
+public class HttpInterceptor {
+
+    /**
+     * 请求结果统一预处理拦截器
+     * 该拦截器会对所有网络请求返回结果进行预处理并修改
+     */
+    public static ResultInterceptor ResultInterceptor = new ResultInterceptor() {
+        @Override
+        public HttpInfo intercept(HttpInfo info) throws Exception {
+            //请求结果预处理：可以进行GSon过滤与解析
+            return info;
+        }
+    };
+
+    /**
+     * 请求链路异常信息拦截器
+     * 该拦截器会发送网络请求时链路异常信息进行拦截处理
+     */
+    public static ExceptionInterceptor ExceptionInterceptor = new ExceptionInterceptor() {
+        @Override
+        public HttpInfo intercept(HttpInfo info) throws Exception {
+            switch (info.getRetCode()){
+                case HttpInfo.NonNetwork:
+                    info.setRetDetail("网络中断");
+                    break;
+                case HttpInfo.CheckURL:
+                    info.setRetDetail("网络地址错误["+info.getNetCode()+"]");
+                    break;
+                case HttpInfo.ProtocolException:
+                    info.setRetDetail("协议类型错误["+info.getNetCode()+"]");
+                    break;
+                case HttpInfo.CheckNet:
+                    info.setRetDetail("请检查网络连接是否正常["+info.getNetCode()+"]");
+                    break;
+                case HttpInfo.ConnectionTimeOut:
+                    info.setRetDetail("连接超时");
+                    break;
+                case HttpInfo.WriteAndReadTimeOut:
+                    info.setRetDetail("读写超时");
+                    break;
+                case HttpInfo.ConnectionInterruption:
+                    info.setRetDetail("连接中断");
+                    break;
+            }
+            return info;
+        }
+    };
+}
+
 ```
 
 ## Cookie持久化示例

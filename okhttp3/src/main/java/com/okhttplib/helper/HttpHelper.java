@@ -6,12 +6,13 @@ import android.os.NetworkOnMainThreadException;
 import android.text.TextUtils;
 
 import com.okhttplib.HttpInfo;
+import com.okhttplib.annotation.BusinessType;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadMessage;
 import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
-import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.BaseCallback;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.interceptor.ExceptionInterceptor;
@@ -96,16 +97,18 @@ class HttpHelper extends BaseHelper{
      */
     void doRequestAsync(final OkHttpHelper helper){
         final HttpInfo info = helper.getHttpInfo();
-        final CallbackOk callback = helper.getCallback();
+        final BaseCallback callback = helper.getCallback();
         Request request = helper.getRequest();
         if(null == callback)
-            throw new NullPointerException("CallbackOk is null!");
+            throw new NullPointerException("Callback is null!");
         String url = info.getUrl();
         if(!checkUrl(url)){
             //主线程回调
             Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                     callback,
-                    retInfo(info,HttpInfo.CheckURL))
+                    retInfo(info,HttpInfo.CheckURL),
+                    requestTag,
+                    null)
                     .build();
             OkMainHandler.getInstance().sendMessage(msg);
             return ;
@@ -117,14 +120,14 @@ class HttpHelper extends BaseHelper{
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
                 //主线程回调
                 Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                         callback,
-                        retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]"))
+                        retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]"),
+                        requestTag,
+                        call)
                         .build();
                 OkMainHandler.getInstance().sendMessage(msg);
-                BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             }
 
             @Override
@@ -132,13 +135,11 @@ class HttpHelper extends BaseHelper{
                 //主线程回调
                 Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                         callback,
-                        dealResponse(helper,res,call))
+                        dealResponse(helper,res,call),
+                        requestTag,
+                        call)
                         .build();
                 OkMainHandler.getInstance().sendMessage(msg);
-                if(!call.isCanceled()){
-                    call.cancel();
-                }
-                BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             }
         });
     }
@@ -199,7 +200,7 @@ class HttpHelper extends BaseHelper{
         } else{
             requestBuilder.url(url).get();
         }
-        if (Build.VERSION.SDK_INT > 13) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
             requestBuilder.addHeader("Connection", "close");
         }
         addHeadsToRequest(info,requestBuilder);
@@ -222,23 +223,26 @@ class HttpHelper extends BaseHelper{
             if(null != res){
                 final int netCode = res.code();
                 if(res.isSuccessful()){
-                    if(null == helper.getDownloadFileInfo()){
+                    if(helper.getBusinessType() == BusinessType.HttpOrHttps){
                         return retInfo(info,netCode,HttpInfo.SUCCESS,res.body().string());
-                    }else{ //下载文件
+                    }else if(helper.getBusinessType() == BusinessType.DownloadFile){ //下载文件
                         return helper.getDownUpLoadHelper().downloadingFile(helper,res,call);
                     }
                 }else{
                     showLog("HttpStatus: "+res.code());
-                    if(netCode == 404)//请求页面路径错误
+                    if(netCode == 404){//请求页面路径错误
                         return retInfo(info,netCode,HttpInfo.CheckURL);
-                    if(netCode == 416)//请求数据流范围错误
-                        return retInfo(info,netCode,HttpInfo.Message,"请求Http数据流范围错误\n"+res.body().string());
-                    if(netCode == 500)//服务器内部错误
-                        return retInfo(info,netCode,HttpInfo.NoResult);
-                    if(netCode == 502)//错误网关
+                    }else if(netCode == 416) {//请求数据流范围错误
+                        return retInfo(info, netCode, HttpInfo.Message, "请求Http数据流范围错误\n" + res.body().string());
+                    }else if(netCode == 500) {//服务器内部错误
+                        return retInfo(info, netCode, HttpInfo.NoResult);
+                    }else if(netCode == 502) {//错误网关
+                        return retInfo(info, netCode, HttpInfo.CheckNet);
+                    }else if(netCode == 504) {//网关超时
                         return retInfo(info,netCode,HttpInfo.CheckNet);
-                    if(netCode == 504)//网关超时
+                    }else {
                         return retInfo(info,netCode,HttpInfo.CheckNet);
+                    }
                 }
             }
             return retInfo(info,HttpInfo.CheckURL);
@@ -314,7 +318,7 @@ class HttpHelper extends BaseHelper{
     /**
      * 请求结果回调
      */
-    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code,boolean isDownload){
+    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code,boolean isDownload,String requestTag){
         //同步回调
         if(null != progressCallback)
             progressCallback.onResponseSync(info.getUrl(),info);
@@ -324,7 +328,7 @@ class HttpHelper extends BaseHelper{
                     code,
                     info.getUrl(),
                     info,
-                    progressCallback)
+                    progressCallback,requestTag)
                     .build();
             OkMainHandler.getInstance().sendMessage(msg);
         }else{
@@ -332,7 +336,7 @@ class HttpHelper extends BaseHelper{
                     code,
                     info.getUrl(),
                     info,
-                    progressCallback)
+                    progressCallback,requestTag)
                     .build();
             OkMainHandler.getInstance().sendMessage(msg);
         }

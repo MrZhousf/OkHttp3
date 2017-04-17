@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
@@ -89,12 +90,12 @@ class DownUpLoadHelper extends BaseHelper{
             showLog(log.toString());
             RequestBody requestBody = mBuilder.build();
             Request.Builder requestBuilder = new Request.Builder();
-            requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback));
+            requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback,timeStamp,requestTag));
             helper.getHttpHelper().addHeadsToRequest(info,requestBuilder);
             Request request = requestBuilder.build();
             helper.setRequest(request);
             helper.doRequestSync();
-            helper.getHttpHelper().responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK,false);
+            helper.getHttpHelper().responseCallback(info,progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK,false,requestTag);
         } catch (Exception e){
             showLog("上传文件失败："+e.getMessage());
         }
@@ -130,7 +131,7 @@ class DownUpLoadHelper extends BaseHelper{
                 public Response intercept(Chain chain) throws IOException {
                     Response originalResponse = chain.proceed(chain.request());
                     return originalResponse.newBuilder()
-                            .body(new ProgressResponseBody(originalResponse.body(), fileInfo,helper.getHttpHelper().timeStamp))
+                            .body(new ProgressResponseBody(originalResponse.body(),fileInfo,timeStamp,requestTag))
                             .build();
                 }
             };
@@ -148,7 +149,7 @@ class DownUpLoadHelper extends BaseHelper{
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
-            helper.getHttpHelper().responseCallback(httpInfo,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,true);
+            helper.getHttpHelper().responseCallback(httpInfo,progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,true,requestTag);
         } catch (Exception e){
             showLog("下载文件失败："+e.getMessage());
         }
@@ -206,6 +207,8 @@ class DownUpLoadHelper extends BaseHelper{
             }
         }catch(SocketTimeoutException e){
             return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.WriteAndReadTimeOut);
+        }catch (SocketException e){
+            return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.ConnectionInterruption,e.getMessage());
         }catch (Exception e){
             showLog("文件下载异常："+e.getMessage());
             return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.ConnectionInterruption);

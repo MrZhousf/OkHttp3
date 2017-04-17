@@ -70,6 +70,25 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
     }
 
     /**
+     * 判断当前Activity是否已经销毁
+     * @param activity 请求标识
+     * @return true 已经销毁  false 未销毁
+     */
+    public static boolean isActivityDestroyed(Activity activity){
+        String tag = activity.getClass().getName();
+        return callsMap.get(tag) == null;
+    }
+
+    /**
+     * 判断当前tat是否已经销毁
+     * @param tag 请求标识
+     * @return true 已经销毁  false 未销毁
+     */
+    public static boolean isActivityDestroyed(String tag){
+        return callsMap.get(tag) == null;
+    }
+
+    /**
      * 取消请求
      * @param tag 请求标识
      */

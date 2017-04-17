@@ -30,7 +30,7 @@ public class DownloadActivity extends BaseActivity {
     /**
      * 文件网络地址
      */
-    private String mp4Url = "http://v.cctv.com/flash/mp4video6/TMS/2011/01/05/cf752b1c12ce452b3040cab2f90bc265_h264818000nero_aac32-1.mp4";
+    private String fileURL = "http://dldir1.qq.com/qqfile/qq/QQ8.9.1/20453/QQ8.9.1.exe";
     private final String requestTag = "download-tag-1001";//请求标识
 
 
@@ -60,7 +60,7 @@ public class DownloadActivity extends BaseActivity {
 
     private void downloadFile() {
         final HttpInfo info = HttpInfo.Builder()
-                .addDownloadFile(mp4Url, "myMP4", new ProgressCallback() {
+                .addDownloadFile(fileURL, "myMP4", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         downloadProgress.setProgress(percent);

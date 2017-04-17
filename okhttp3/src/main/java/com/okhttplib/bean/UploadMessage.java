@@ -13,10 +13,11 @@ public class UploadMessage extends OkMessage{
     public HttpInfo info;
     public ProgressCallback progressCallback;
 
-    public UploadMessage(int what, String filePath, HttpInfo info, ProgressCallback progressCallback) {
+    public UploadMessage(int what, String filePath, HttpInfo info, ProgressCallback progressCallback, String requestTag) {
         this.what = what;
         this.filePath = filePath;
         this.info = info;
         this.progressCallback = progressCallback;
+        super.requestTag = requestTag;
     }
 }

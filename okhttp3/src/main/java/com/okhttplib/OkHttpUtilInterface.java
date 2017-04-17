@@ -1,6 +1,6 @@
 package com.okhttplib;
 
-import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.BaseCallback;
 import com.okhttplib.callback.ProgressCallback;
 
 import okhttp3.OkHttpClient;
@@ -24,7 +24,7 @@ public interface OkHttpUtilInterface {
      * @param info 请求信息体
      * @param callback 回调接口
      */
-    void doPostAsync(HttpInfo info, CallbackOk callback);
+    void doPostAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 同步Get请求
@@ -38,7 +38,7 @@ public interface OkHttpUtilInterface {
      * @param info 请求信息体
      * @param callback 回调接口
      */
-    void doGetAsync(HttpInfo info, CallbackOk callback);
+    void doGetAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 异步上传文件

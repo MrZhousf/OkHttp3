@@ -25,10 +25,16 @@ public class ProgressRequestBody extends RequestBody {
     private final RequestBody originalRequestBody;
     private final ProgressCallback progressCallback;
     private BufferedSink bufferedSink;
+    private String timeStamp;
+    private String requestTag;
 
-    public ProgressRequestBody(RequestBody originalRequestBody, ProgressCallback progressCallback) {
+
+    public ProgressRequestBody(RequestBody originalRequestBody, ProgressCallback progressCallback,
+                               String timeStamp, String requestTag) {
         this.progressCallback = progressCallback;
         this.originalRequestBody = originalRequestBody;
+        this.timeStamp = timeStamp;
+        this.requestTag = requestTag;
     }
 
     @Override
@@ -65,6 +71,7 @@ public class ProgressRequestBody extends RequestBody {
                 bytesWritten += byteCount;
                 if(null != progressCallback){
                     int percent = (int) ((100 * bytesWritten) / contentLength);
+                    //每处理1%则立即回调
                     if(percent != lastPercent) {
                         lastPercent = percent;
                         progressCallback.onProgressAsync(percent, bytesWritten, contentLength, bytesWritten == contentLength);
@@ -74,7 +81,7 @@ public class ProgressRequestBody extends RequestBody {
                                 percent,
                                 bytesWritten,
                                 contentLength,
-                                bytesWritten == contentLength)
+                                bytesWritten == contentLength,requestTag)
                                 .build();
                         OkMainHandler.getInstance().sendMessage(msg);
                     }

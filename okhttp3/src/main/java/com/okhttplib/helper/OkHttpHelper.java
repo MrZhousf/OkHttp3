@@ -1,10 +1,11 @@
 package com.okhttplib.helper;
 
 import com.okhttplib.HttpInfo;
+import com.okhttplib.annotation.BusinessType;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
-import com.okhttplib.callback.CallbackOk;
+import com.okhttplib.callback.BaseCallback;
 import com.okhttplib.callback.ProgressCallback;
 
 import java.util.ArrayList;
@@ -29,10 +30,11 @@ public class OkHttpHelper {
     private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
     private OkHttpClient.Builder clientBuilder;
     private @RequestMethod  int requestMethod;
-    private CallbackOk callback;
+    private BaseCallback callback;
     private ProgressCallback progressCallback;
     private Request request;
     private OkHttpClient httpClient;
+    private @BusinessType int businessType;//业务类型
 
 
     private OkHttpHelper(Builder builder) {
@@ -43,6 +45,7 @@ public class OkHttpHelper {
         requestMethod = builder.requestMethod;
         callback = builder.callback;
         progressCallback = builder.progressCallback;
+        businessType = builder.businessType;
         httpHelper = new HttpHelper(builder.helperInfo);
         if(null != downloadFileInfo || !uploadFileInfoList.isEmpty())
             downUpLoadHelper = new DownUpLoadHelper(builder.helperInfo);
@@ -76,13 +79,21 @@ public class OkHttpHelper {
         private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
         private OkHttpClient.Builder clientBuilder;
         private @RequestMethod  int requestMethod;
-        private CallbackOk callback;
+        private BaseCallback callback;
         private ProgressCallback progressCallback;
+        private @BusinessType int businessType;
 
         public Builder() {
         }
 
         public OkHttpHelper build(){
+            if(!this.uploadFileInfoList.isEmpty()){
+                this.businessType = BusinessType.UploadFile;//文件上传
+            } else if(downloadFileInfo != null){
+                this.businessType = BusinessType.DownloadFile;//文件下载
+            } else{
+                this.businessType = BusinessType.HttpOrHttps;//http/https请求
+            }
             return new OkHttpHelper(this);
         }
 
@@ -122,7 +133,7 @@ public class OkHttpHelper {
             return this;
         }
 
-        public Builder callbackOk(CallbackOk callback){
+        public Builder callback(BaseCallback callback){
             this.callback = callback;
             return this;
         }
@@ -146,6 +157,10 @@ public class OkHttpHelper {
         return downUpLoadHelper;
     }
 
+    int getBusinessType() {
+        return businessType;
+    }
+
     DownloadFileInfo getDownloadFileInfo() {
         return downloadFileInfo;
     }
@@ -162,7 +177,7 @@ public class OkHttpHelper {
         return requestMethod;
     }
 
-    CallbackOk getCallback() {
+    BaseCallback getCallback() {
         return callback;
     }
 
