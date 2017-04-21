@@ -85,7 +85,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
      * @return true 已经销毁  false 未销毁
      */
     public static boolean isActivityDestroyed(String tag){
-        return callsMap.get(tag) == null;
+        return !TextUtils.isEmpty(tag) && callsMap.get(tag) == null;
     }
 
     /**

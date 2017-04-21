@@ -223,7 +223,8 @@ class HttpHelper extends BaseHelper{
             if(null != res){
                 final int netCode = res.code();
                 if(res.isSuccessful()){
-                    if(helper.getBusinessType() == BusinessType.HttpOrHttps){
+                    if(helper.getBusinessType() == BusinessType.HttpOrHttps
+                            || helper.getBusinessType() == BusinessType.UploadFile){
                         return retInfo(info,netCode,HttpInfo.SUCCESS,res.body().string());
                     }else if(helper.getBusinessType() == BusinessType.DownloadFile){ //下载文件
                         return helper.getDownUpLoadHelper().downloadingFile(helper,res,call);

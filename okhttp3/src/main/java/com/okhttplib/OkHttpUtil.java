@@ -233,19 +233,14 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     @Override
     public void doUploadFileSync(final HttpInfo info, final ProgressCallback callback){
         final List<UploadFileInfo> uploadFiles = info.getUploadFiles();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                OkHttpHelper.Builder()
-                        .httpInfo(info)
-                        .uploadFileInfoList(uploadFiles)
-                        .requestMethod(RequestMethod.POST)
-                        .progressCallback(callback)
-                        .helperInfo(packageHelperInfo())
-                        .build()
-                        .uploadFile();
-            }
-        });
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .uploadFileInfoList(uploadFiles)
+                .requestMethod(RequestMethod.POST)
+                .progressCallback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .uploadFile();
     }
 
     /**
