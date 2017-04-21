@@ -30,8 +30,10 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -160,21 +162,29 @@ class HttpHelper extends BaseHelper{
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
         if(method == RequestMethod.POST){
-            FormBody.Builder builder = new FormBody.Builder();
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                StringBuilder log = new StringBuilder("PostParams: ");
-                String logInfo;
-                String value;
-                for (String key : info.getParams().keySet()) {
-                    value = info.getParams().get(key);
-                    value = value == null ? "" : value;
-                    builder.add(key, value);
-                    logInfo = key+"="+value+", ";
-                    log.append(logInfo);
+            if(info.getParamBytes() != null){
+                RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"),info.getParamBytes());
+                requestBuilder.url(url).post(fileBody);
+            } else if(info.getParamFile() != null){
+                RequestBody fileBody = RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"),info.getParamBytes());
+                requestBuilder.url(url).post(fileBody);
+            } else{
+                FormBody.Builder builder = new FormBody.Builder();
+                if(null != info.getParams() && !info.getParams().isEmpty()){
+                    StringBuilder log = new StringBuilder("PostParams: ");
+                    String logInfo;
+                    String value;
+                    for (String key : info.getParams().keySet()) {
+                        value = info.getParams().get(key);
+                        value = value == null ? "" : value;
+                        builder.add(key, value);
+                        logInfo = key+"="+value+", ";
+                        log.append(logInfo);
+                    }
+                    showLog(log.toString());
                 }
-                showLog(log.toString());
+                requestBuilder.url(url).post(builder.build());
             }
-            requestBuilder.url(url).post(builder.build());
         } else if(method == RequestMethod.GET){
             StringBuilder params = new StringBuilder();
             params.append(url);

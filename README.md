@@ -4,6 +4,7 @@
 * 支持Http/Https等协议
 * 支持Cookie持久化
 * 支持协议头参数Head设置、Unicode自动转码
+* 支持二进制参数请求
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
@@ -21,17 +22,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.7.4</version>
+  <version>2.6.8</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.7.4'
+compile 'com.zhousf.lib:okhttp3:2.6.8'
 ```
 若出现V7版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.6.7.4'){
+compile ('com.zhousf.lib:okhttp3:2.6.8'){
     exclude(module: 'appcompat-v7')
 }
 ```
@@ -69,6 +70,8 @@ compile ('com.zhousf.lib:okhttp3:2.6.7.4'){
 （感谢*kevin*提供相关解决方案）
 * 2017-3-31
     *  增加单次批量上传文件功能：一次请求上传多个文件
+* 2017-4-21
+    *  增加二进制流请求功能，DEMO中已添加动态权限申请功能
 
 ## 权限
 ```
@@ -303,6 +306,26 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
         HttpInfo info = HttpInfo.Builder().addDownloadFile(fileInfo).build();
         OkHttpUtil.Builder().setReadTimeout(120).build(this).doDownloadFileAsync(info);
     }
+```
+
+## 二进制流方式请求
+```
+HttpInfo info = new HttpInfo.Builder()
+        .setUrl("http://192.168.120.154:8082/StanClaimProd-app/surveySubmit/getFileLen")
+        .addParamBytes(byte)//添加二进制流
+        .build();
+OkHttpUtil.getDefault().doPostAsync(info, new Callback() {
+    @Override
+    public void onSuccess(HttpInfo info) throws IOException {
+        String result = info.getRetDetail();
+        resultTV.setText("请求失败："+result);
+    }
+
+    @Override
+    public void onFailure(HttpInfo info) throws IOException {
+        resultTV.setText("请求成功："+info.getRetDetail());
+    }
+});
 ```
 
 ## 请求结果统一预处理拦截器/请求链路异常信息拦截器示例
