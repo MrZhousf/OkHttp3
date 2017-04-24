@@ -62,7 +62,7 @@ import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
  * 10、支持Cookie持久化
  * 11、支持协议头参数Head设置
  *
- * 引入版本com.squareup.okhttp3:okhttp:3.6.0
+ * 引入版本com.squareup.okhttp3:okhttp:3.7.0
  * @author zhousf
  */
 public class OkHttpUtil implements OkHttpUtilInterface{

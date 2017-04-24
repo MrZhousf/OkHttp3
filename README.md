@@ -22,19 +22,24 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.8.1</version>
+  <version>2.6.9</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.8.1'
+compile 'com.zhousf.lib:okhttp3:2.6.9'
 ```
 若出现V7版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.6.8.1'){
+compile ('com.zhousf.lib:okhttp3:2.6.9'){
     exclude(module: 'appcompat-v7')
 }
+```
+### ProGuard
+如果你使用了ProGuard混淆，请添加如下配置:
+```
+-dontwarn okio.**
 ```
 
 ## 提交记录

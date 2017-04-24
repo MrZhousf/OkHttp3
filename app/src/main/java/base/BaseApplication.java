@@ -35,7 +35,7 @@ public class BaseApplication extends Application {
                 .setReadTimeout(30)//读超时时间
                 .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
                 .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
+                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
                 .setShowHttpLog(true)//显示请求日志
                 .setHttpLogTAG("HttpLog")//设置请求日志标识
                 .setShowLifecycleLog(true)//显示Activity销毁日志
