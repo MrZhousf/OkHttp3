@@ -20,23 +20,37 @@ public interface OkHttpUtilInterface {
     HttpInfo doPostSync(HttpInfo info);
 
     /**
+     * 同步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     * @return HttpInfo
+     */
+    HttpInfo doPostSync(HttpInfo info, ProgressCallback callback);
+
+    /**
      * 异步Post请求
      * @param info 请求信息体
-     * @param callback 回调接口
+     * @param callback 结果回调接口
      */
     void doPostAsync(HttpInfo info, BaseCallback callback);
 
     /**
+     * 异步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doPostAsync(HttpInfo info, ProgressCallback callback);
+
+    /**
      * 同步Get请求
      * @param info 请求信息体
-     * @return HttpInfo
      */
     HttpInfo doGetSync(HttpInfo info);
 
     /**
      * 异步Get请求
      * @param info 请求信息体
-     * @param callback 回调接口
+     * @param callback 结果回调接口
      */
     void doGetAsync(HttpInfo info, BaseCallback callback);
 

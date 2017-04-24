@@ -119,6 +119,23 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     /**
+     * 同步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     * @return HttpInfo
+     */
+    @Override
+    public HttpInfo doPostSync(HttpInfo info, ProgressCallback callback){
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.POST)
+                .progressCallback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
+    }
+
+    /**
      * 异步Post请求
      * @param info 请求信息体
      * @param callback 回调接口
@@ -129,6 +146,22 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .httpInfo(info)
                 .requestMethod(RequestMethod.POST)
                 .callback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
+    }
+
+    /**
+     * 异步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    @Override
+    public void doPostAsync(HttpInfo info, ProgressCallback callback) {
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.POST)
+                .progressCallback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestAsync();
@@ -328,37 +361,32 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            try {
-                Request originalRequest = chain.request();
-                switch (cacheType){
-                    case FORCE_CACHE:
+            Request originalRequest = chain.request();
+            switch (cacheType){
+                case FORCE_CACHE:
+                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                    break;
+                case FORCE_NETWORK:
+                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                    break;
+                case NETWORK_THEN_CACHE:
+                    if(!isNetworkAvailable(application)){
+                        originalRequest = originalRequest.newBuilder()
+                                .cacheControl(CacheControl.FORCE_CACHE)
+                                .build();
+                    }else {
+                        originalRequest = originalRequest.newBuilder()
+                                .cacheControl(CacheControl.FORCE_NETWORK)
+                                .build();
+                    }
+                    break;
+                case CACHE_THEN_NETWORK:
+                    if(!isNetworkAvailable(application)){
                         originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                        break;
-                    case FORCE_NETWORK:
-                        originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
-                        break;
-                    case NETWORK_THEN_CACHE:
-                        if(!isNetworkAvailable(application)){
-                            originalRequest = originalRequest.newBuilder()
-                                    .cacheControl(CacheControl.FORCE_CACHE)
-                                    .build();
-                        }else {
-                            originalRequest = originalRequest.newBuilder()
-                                    .cacheControl(CacheControl.FORCE_NETWORK)
-                                    .build();
-                        }
-                        break;
-                    case CACHE_THEN_NETWORK:
-                        if(!isNetworkAvailable(application)){
-                            originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                        }
-                        break;
-                }
-                return chain.proceed(originalRequest);
-            } catch (Exception e){
-                e.printStackTrace();
+                    }
+                    break;
             }
-            return null;
+            return chain.proceed(originalRequest);
         }
     };
 

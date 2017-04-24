@@ -1,10 +1,18 @@
 package com.okhttplib.util;
 
+import android.text.TextUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * 加密工具类
- * 支持MD5加密
+ * 支持MD5加密、文件的MD5校验码获取
  * @author zhousf
  */
 public class EncryptUtil {
@@ -46,6 +54,63 @@ public class EncryptUtil {
             return result.toLowerCase();
         }
     }
+
+    /**
+     * 获取文件的MD5
+     * @param filePath 文件路径
+     */
+    public static String getFileMd5(String filePath){
+        if(TextUtils.isEmpty(filePath)){
+            return "";
+        }
+        return getFileMd5(new File(filePath));
+    }
+
+    /**
+     * 获取文件的MD5
+     * @param file 文件
+     */
+    public static String getFileMd5(File file) {
+        MessageDigest messageDigest;
+        RandomAccessFile randomAccessFile = null;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+            if (file == null) {
+                return "";
+            }
+            if (!file.exists()) {
+                return "";
+            }
+            randomAccessFile=new RandomAccessFile(file,"r");
+            byte[] bytes=new byte[1024*1024*10];
+            int len = 0;
+            while ((len=randomAccessFile.read(bytes))!=-1){
+                messageDigest.update(bytes,0, len);
+            }
+            BigInteger bigInt = new BigInteger(1, messageDigest.digest());
+            String md5 = bigInt.toString(16);
+            while (md5.length() < 32) {
+                md5 = "0" + md5;
+            }
+            return md5;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (randomAccessFile != null) {
+                    randomAccessFile.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return "";
+    }
+
 
 
 }

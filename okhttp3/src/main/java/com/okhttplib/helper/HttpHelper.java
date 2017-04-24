@@ -17,6 +17,7 @@ import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
+import com.okhttplib.progress.ProgressRequestBody;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,7 +66,7 @@ class HttpHelper extends BaseHelper{
         if(!checkUrl(url)){
             return retInfo(info,HttpInfo.CheckURL);
         }
-        request = request == null ? buildRequest(info,helper.getRequestMethod()) : request;
+        request = request == null ? buildRequest(info,helper.getRequestMethod(),helper.getProgressCallback()) : request;
         showUrlLog(request);
         helper.setRequest(request);
         OkHttpClient httpClient = helper.getHttpClient();
@@ -103,8 +104,6 @@ class HttpHelper extends BaseHelper{
         final HttpInfo info = helper.getHttpInfo();
         final BaseCallback callback = helper.getCallback();
         Request request = helper.getRequest();
-        if(null == callback)
-            throw new NullPointerException("Callback is null!");
         String url = info.getUrl();
         if(!checkUrl(url)){
             //主线程回调
@@ -117,7 +116,7 @@ class HttpHelper extends BaseHelper{
             OkMainHandler.getInstance().sendMessage(msg);
             return ;
         }
-        request = request == null ? buildRequest(info,helper.getRequestMethod()) : request;
+        request = request == null ? buildRequest(info,helper.getRequestMethod(),helper.getProgressCallback()) : request;
         showUrlLog(request);
         Call call = httpClient.newCall(request);
         BaseActivityLifecycleCallbacks.putCall(requestTag,call);
@@ -159,17 +158,17 @@ class HttpHelper extends BaseHelper{
     /**
      * 构建Request
      */
-    private Request buildRequest(HttpInfo info, @RequestMethod int method){
+    private Request buildRequest(HttpInfo info, @RequestMethod int method, ProgressCallback progressCallback){
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
         if(method == RequestMethod.POST){
             if(info.getParamBytes() != null){
                 RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"),info.getParamBytes());
-                requestBuilder.url(url).post(fileBody);
+                requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
             } else if(info.getParamFile() != null){
-                RequestBody fileBody = RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"),info.getParamBytes());
-                requestBuilder.url(url).post(fileBody);
+                RequestBody fileBody = RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"),info.getParamFile());
+                requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
             } else{
                 FormBody.Builder builder = new FormBody.Builder();
                 if(null != info.getParams() && !info.getParams().isEmpty()){
