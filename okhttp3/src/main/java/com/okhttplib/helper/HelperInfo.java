@@ -1,6 +1,7 @@
 package com.okhttplib.helper;
 
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.annotation.Encoding;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
@@ -24,6 +25,7 @@ public class HelperInfo {
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     private String downloadFileDir;//下载文件保存目录
+    private @Encoding String responseEncoding;//服务器响应编码
 
 
     public String getLogTAG() {
@@ -106,4 +108,11 @@ public class HelperInfo {
         isDefault = aDefault;
     }
 
+    public String getResponseEncoding() {
+        return responseEncoding;
+    }
+
+    public void setResponseEncoding(@Encoding String responseEncoding) {
+        this.responseEncoding = responseEncoding;
+    }
 }

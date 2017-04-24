@@ -2,6 +2,7 @@ package com.okhttplib;
 
 import android.text.TextUtils;
 
+import com.okhttplib.annotation.Encoding;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
@@ -19,13 +20,14 @@ import java.util.Map;
 public class HttpInfo {
 
     //**请求参数定义**/
-    private String url;//请求地址
-    private Map<String,String> params;//请求参数
-    private byte[] paramBytes;//请求参数（字节数组）
-    private File paramFile;//请求参数（文件）
-    private List<UploadFileInfo> uploadFiles;//上传文件参数
-    private List<DownloadFileInfo> downloadFiles;//下载文件参数
-    private Map<String,String> heads;//请求头参数http head
+    private String url;
+    private Map<String,String> params;
+    private byte[] paramBytes;
+    private File paramFile;
+    private List<UploadFileInfo> uploadFiles;
+    private List<DownloadFileInfo> downloadFiles;
+    private Map<String,String> heads;
+    private @Encoding String responseEncoding ;//服务器响应编码
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -40,6 +42,7 @@ public class HttpInfo {
         this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
+        this.responseEncoding = builder.responseEncoding;
     }
 
     public static Builder Builder() {
@@ -49,13 +52,14 @@ public class HttpInfo {
 
     public static final class Builder {
 
-        private String url;
-        private Map<String,String> params;
-        private byte[] paramBytes;
-        private File paramFile;
-        private List<UploadFileInfo> uploadFiles;
-        private List<DownloadFileInfo> downloadFiles;
-        private Map<String,String> heads;
+        private String url;//请求地址
+        private Map<String,String> params;//请求参数
+        private byte[] paramBytes;//请求参数（字节数组）
+        private File paramFile;//请求参数（文件）
+        private List<UploadFileInfo> uploadFiles;//上传文件参数
+        private List<DownloadFileInfo> downloadFiles;//下载文件参数
+        private Map<String,String> heads;//请求头参数http head
+        private @Encoding String responseEncoding ;//服务器响应编码
 
 
         public Builder() {
@@ -102,6 +106,7 @@ public class HttpInfo {
 
         /**
          * 添加接口参数（字节数组/二进制流）
+         * 请采用POST请求方式
          * MediaType.parse("application/octet-stream")
          * @param paramBytes 参数值
          */
@@ -112,6 +117,7 @@ public class HttpInfo {
 
         /**
          * 添加接口参数（字节数组/二进制流）
+         * 请采用POST请求方式
          * MediaType.parse("application/octet-stream")
          * @param paramBytes 参数值
          */
@@ -125,6 +131,7 @@ public class HttpInfo {
 
         /**
          * 添加接口参数（文件）
+         * 请采用POST请求方式
          * 该方法可上传文件，建议上传文件采用标准方法：addUploadFile
          * MediaType.parse("text/x-markdown; charset=utf-8")
          * @param file 上传文件
@@ -280,6 +287,14 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 设置服务器响应编码格式（默认：UTF-8）
+         * @param responseEncoding 编码格式
+         */
+        public Builder setResponseEncoding(@Encoding String responseEncoding) {
+            this.responseEncoding = responseEncoding;
+            return this;
+        }
     }
 
 
@@ -295,6 +310,10 @@ public class HttpInfo {
     public final static int ConnectionInterruption = 9;
     public final static int NetworkOnMainThreadException = 10;
     public final static int Message = 11;
+    public final static int GatewayTimeOut = 12;
+    public final static int GatewayBad = 13;
+    public final static int ServerNotFound = 14;
+
 
     public HttpInfo packInfo(int netCode,int retCode, String retDetail){
         this.netCode = netCode;
@@ -332,6 +351,15 @@ public class HttpInfo {
                 break;
             case Message:
                 this.retDetail = "";
+                break;
+            case GatewayTimeOut:
+                this.retDetail = "网关超时，请检查请求链路或重试";
+                break;
+            case GatewayBad:
+                this.retDetail = "错误的网关，请检查请求链路";
+                break;
+            case ServerNotFound:
+                this.retDetail = "服务器找不到请求页面(服务器内部错误)";
                 break;
         }
         if(!TextUtils.isEmpty(retDetail)){
@@ -391,4 +419,9 @@ public class HttpInfo {
     public int getNetCode() {
         return netCode;
     }
+
+    public String getResponseEncoding() {
+        return responseEncoding;
+    }
+
 }

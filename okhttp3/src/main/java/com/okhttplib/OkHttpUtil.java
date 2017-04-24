@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
+import com.okhttplib.annotation.Encoding;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +74,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private static ExecutorService executorService;
     private Builder builder;
     private int cacheSurvivalTime;//缓存存活时间（秒）
-    private int cacheType;//缓存类型
+    private @CacheType int cacheType;//缓存类型
 
     /**
      * 初始化：请在Application中调用
@@ -314,7 +316,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             Response.Builder resBuilder = response.newBuilder();
             if(cacheSurvivalTime > 0){
                 resBuilder.removeHeader("Pragma")
-                        .header("Cache-Control", String.format("max-age=%d", cacheSurvivalTime));
+                        .header("Cache-Control", String.format(Locale.getDefault(),"max-age=%d", cacheSurvivalTime));
             }
             return resBuilder.build();
         }
@@ -415,6 +417,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setOkHttpUtil(this);
         helperInfo.setDefault(builder.isDefault);
         helperInfo.setLogTAG(builder.httpLogTAG == null ? TAG : builder.httpLogTAG);
+        helperInfo.setResponseEncoding(builder.responseEncoding);
         return helperInfo;
     }
 
@@ -457,8 +460,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
         private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
         private int cacheSurvivalTime;//缓存存活时间（秒）
-        private int cacheType;//缓存类型
-        private int cacheLevel;//缓存级别
+        private @CacheType int cacheType;//缓存类型
+        private @CacheLevel int cacheLevel;//缓存级别
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
         private String httpLogTAG;//显示Http请求日志标识
@@ -467,6 +470,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private String requestTag;
         private CookieJar cookieJar;
         private boolean isDefault;//是否默认请求
+        private @Encoding String responseEncoding = Encoding.UTF_8 ;//服务器响应编码
 
         public Builder() {
         }
@@ -545,6 +549,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 setDownloadFileDir(builder.downloadFileDir);
             }
             setCookieJar(builder.cookieJar);
+            setResponseEncoding(builder.responseEncoding);
         }
 
         private Builder isDefault(boolean isDefault){
@@ -696,6 +701,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         public Builder setCookieJar(CookieJar cookieJar) {
             if (null != cookieJar)
                 this.cookieJar = cookieJar;
+            return this;
+        }
+
+        //设置服务器响应编码（默认：UTF-8）
+        public Builder setResponseEncoding(@Encoding String responseEncoding) {
+            this.responseEncoding = responseEncoding;
             return this;
         }
     }

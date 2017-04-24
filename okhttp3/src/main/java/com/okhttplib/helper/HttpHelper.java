@@ -18,7 +18,9 @@ import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -229,28 +231,40 @@ class HttpHelper extends BaseHelper{
     private HttpInfo dealResponse(OkHttpHelper helper,Response res,Call call){
         showLog(String.format(Locale.getDefault(),"CostTime: %.3fs",(System.nanoTime()-startTime)/1e9d));
         final HttpInfo info = helper.getHttpInfo();
+        BufferedReader bufferedReader = null ;
+        String result = "";
         try {
             if(null != res){
                 final int netCode = res.code();
                 if(res.isSuccessful()){
                     if(helper.getBusinessType() == BusinessType.HttpOrHttps
                             || helper.getBusinessType() == BusinessType.UploadFile){
-                        return retInfo(info,netCode,HttpInfo.SUCCESS,res.body().string());
+                        //服务器响应编码格式
+                        String encoding = info.getResponseEncoding();
+                        if(TextUtils.isEmpty(encoding)){
+                            encoding = helper.getResponseEncoding();
+                        }
+                        bufferedReader = new BufferedReader(new InputStreamReader(res.body().byteStream(), encoding));
+                        String line = "";
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result += line;
+                        }
+                        return retInfo(info,netCode,HttpInfo.SUCCESS,result);
                     }else if(helper.getBusinessType() == BusinessType.DownloadFile){ //下载文件
                         return helper.getDownUpLoadHelper().downloadingFile(helper,res,call);
                     }
                 }else{
                     showLog("HttpStatus: "+res.code());
                     if(netCode == 404){//请求页面路径错误
-                        return retInfo(info,netCode,HttpInfo.CheckURL);
+                        return retInfo(info,netCode,HttpInfo.ServerNotFound);
                     }else if(netCode == 416) {//请求数据流范围错误
-                        return retInfo(info, netCode, HttpInfo.Message, "请求Http数据流范围错误\n" + res.body().string());
+                        return retInfo(info, netCode, HttpInfo.Message, "请求Http数据流范围错误\n" + result);
                     }else if(netCode == 500) {//服务器内部错误
                         return retInfo(info, netCode, HttpInfo.NoResult);
-                    }else if(netCode == 502) {//错误网关
-                        return retInfo(info, netCode, HttpInfo.CheckNet);
+                    }else if(netCode == 502) {//错误的网关
+                        return retInfo(info, netCode, HttpInfo.GatewayBad);
                     }else if(netCode == 504) {//网关超时
-                        return retInfo(info,netCode,HttpInfo.CheckNet);
+                        return retInfo(info,netCode,HttpInfo.GatewayTimeOut);
                     }else {
                         return retInfo(info,netCode,HttpInfo.CheckNet);
                     }
@@ -262,6 +276,13 @@ class HttpHelper extends BaseHelper{
         } finally {
             if(null != res){
                 res.close();
+            }
+            if(null != bufferedReader){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
             }
         }
     }

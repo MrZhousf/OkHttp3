@@ -2,6 +2,7 @@ package com.okhttplib.helper;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
+import com.okhttplib.annotation.Encoding;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
@@ -35,6 +36,7 @@ public class OkHttpHelper {
     private Request request;
     private OkHttpClient httpClient;
     private @BusinessType int businessType;//业务类型
+    private @Encoding String responseEncoding;//服务器响应编码
 
 
     private OkHttpHelper(Builder builder) {
@@ -46,6 +48,7 @@ public class OkHttpHelper {
         callback = builder.callback;
         progressCallback = builder.progressCallback;
         businessType = builder.businessType;
+        responseEncoding = builder.helperInfo.getResponseEncoding();
         httpHelper = new HttpHelper(builder.helperInfo);
         if(null != downloadFileInfo || !uploadFileInfoList.isEmpty())
             downUpLoadHelper = new DownUpLoadHelper(builder.helperInfo);
@@ -142,7 +145,6 @@ public class OkHttpHelper {
             this.progressCallback = progressCallback;
             return this;
         }
-
     }
 
     HttpInfo getHttpInfo() {
@@ -159,6 +161,10 @@ public class OkHttpHelper {
 
     int getBusinessType() {
         return businessType;
+    }
+
+    String getResponseEncoding() {
+        return responseEncoding;
     }
 
     DownloadFileInfo getDownloadFileInfo() {

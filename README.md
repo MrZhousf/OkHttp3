@@ -3,8 +3,8 @@
 ## 功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
-* 支持协议头参数Head设置、Unicode自动转码
-* 支持二进制参数请求
+* 支持协议头参数Head设置、二进制参数请求
+* 支持Unicode自动转码、服务器响应编码设置
 * 支持同步/异步请求、断网请求、缓存响应、缓存等级
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
@@ -22,17 +22,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.8</version>
+  <version>2.6.8.1</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.8'
+compile 'com.zhousf.lib:okhttp3:2.6.8.1'
 ```
 若出现V7版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.6.8'){
+compile ('com.zhousf.lib:okhttp3:2.6.8.1'){
     exclude(module: 'appcompat-v7')
 }
 ```
@@ -103,6 +103,7 @@ OkHttpUtil.init(this)
                 .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
+                .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), 
@@ -151,6 +152,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
                 HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
                 .addHead("head","test")//协议头参数设置
+                .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
                 .build();
                 OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
                 if (info.isSuccessful()) {
