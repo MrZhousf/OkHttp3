@@ -328,32 +328,37 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            Request originalRequest = chain.request();
-            switch (cacheType){
-                case FORCE_CACHE:
-                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                    break;
-                case FORCE_NETWORK:
-                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
-                    break;
-                case NETWORK_THEN_CACHE:
-                    if(!isNetworkAvailable(application)){
-                        originalRequest = originalRequest.newBuilder()
-                                .cacheControl(CacheControl.FORCE_CACHE)
-                                .build();
-                    }else {
-                        originalRequest = originalRequest.newBuilder()
-                                .cacheControl(CacheControl.FORCE_NETWORK)
-                                .build();
-                    }
-                    break;
-                case CACHE_THEN_NETWORK:
-                    if(!isNetworkAvailable(application)){
+            try {
+                Request originalRequest = chain.request();
+                switch (cacheType){
+                    case FORCE_CACHE:
                         originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                    }
-                    break;
+                        break;
+                    case FORCE_NETWORK:
+                        originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                        break;
+                    case NETWORK_THEN_CACHE:
+                        if(!isNetworkAvailable(application)){
+                            originalRequest = originalRequest.newBuilder()
+                                    .cacheControl(CacheControl.FORCE_CACHE)
+                                    .build();
+                        }else {
+                            originalRequest = originalRequest.newBuilder()
+                                    .cacheControl(CacheControl.FORCE_NETWORK)
+                                    .build();
+                        }
+                        break;
+                    case CACHE_THEN_NETWORK:
+                        if(!isNetworkAvailable(application)){
+                            originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
+                        }
+                        break;
+                }
+                return chain.proceed(originalRequest);
+            } catch (Exception e){
+                e.printStackTrace();
             }
-            return chain.proceed(originalRequest);
+            return null;
         }
     };
 
