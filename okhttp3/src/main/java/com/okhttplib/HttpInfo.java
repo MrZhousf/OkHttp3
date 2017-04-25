@@ -353,7 +353,7 @@ public class HttpInfo {
                 this.retDetail = "";
                 break;
             case GatewayTimeOut:
-                this.retDetail = "网关超时，请检查请求链路或重试";
+                this.retDetail = "网关超时/未找到缓存，请检查网络连接是否正常";
                 break;
             case GatewayBad:
                 this.retDetail = "错误的网关，请检查请求链路";

@@ -342,51 +342,58 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     /**
      * 网络请求拦截器
      */
-    private Interceptor CACHE_CONTROL_NETWORK_INTERCEPTOR = new Interceptor() {
+    private Interceptor NETWORK_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
-            Response response = chain.proceed(chain.request());
-            Response.Builder resBuilder = response.newBuilder();
+            Request request = chain.request();
             if(cacheSurvivalTime > 0){
-                resBuilder.removeHeader("Pragma")
-                        .header("Cache-Control", String.format(Locale.getDefault(),"max-age=%d", cacheSurvivalTime));
+                Response response = chain.proceed(request);
+                return response.newBuilder()
+                        .removeHeader("Pragma")
+                        .header("Cache-Control", String.format(Locale.getDefault(),"max-age=%d", cacheSurvivalTime))
+                        .build();
             }
-            return resBuilder.build();
+            return chain.proceed(request);
         }
     };
 
     /**
      * 缓存应用拦截器
      */
-    private Interceptor CACHE_CONTROL_INTERCEPTOR = new Interceptor() {
+    private Interceptor NO_NETWORK_INTERCEPTOR = new Interceptor() {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request originalRequest = chain.request();
+            Response response = null;
             switch (cacheType){
+                case CACHE_THEN_NETWORK:
                 case FORCE_CACHE:
-                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                    break;
-                case FORCE_NETWORK:
-                    originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
+                    originalRequest = originalRequest.newBuilder()
+                            .cacheControl(CacheControl.FORCE_CACHE)
+                            .build();
+                    response =  chain.proceed(originalRequest).newBuilder()
+                            .header("Cache-Control", "public, only-if-cached, max-stale=3600")
+                            .removeHeader("Pragma")
+                            .build();
                     break;
                 case NETWORK_THEN_CACHE:
                     if(!isNetworkAvailable(application)){
                         originalRequest = originalRequest.newBuilder()
                                 .cacheControl(CacheControl.FORCE_CACHE)
                                 .build();
-                    }else {
-                        originalRequest = originalRequest.newBuilder()
-                                .cacheControl(CacheControl.FORCE_NETWORK)
+                        response =  chain.proceed(originalRequest).newBuilder()
+                                .header("Cache-Control", "public, only-if-cached, max-stale=3600")
+                                .removeHeader("Pragma")
                                 .build();
+                    }else{
+                        response = chain.proceed(originalRequest);
                     }
                     break;
-                case CACHE_THEN_NETWORK:
-                    if(!isNetworkAvailable(application)){
-                        originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                    }
+                case FORCE_NETWORK:
+                    response = chain.proceed(originalRequest);
                     break;
             }
-            return chain.proceed(originalRequest);
+            return response;
         }
     };
 
@@ -460,9 +467,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
                 .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
-                .retryOnConnectionFailure(builder.retryOnConnectionFailure)
-                .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
-                .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
+                .retryOnConnectionFailure(builder.retryOnConnectionFailure);
+        clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
+        clientBuilder.addNetworkInterceptor(NETWORK_INTERCEPTOR);
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
@@ -603,7 +610,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
-        //设置连接超时
+        //设置连接超时（单位：秒）
         public Builder setConnectTimeout(int connectTimeout) {
             if(connectTimeout <= 0)
                 throw new IllegalArgumentException("connectTimeout must be > 0");
@@ -611,7 +618,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
-        //设置读超时
+        //设置读超时（单位：秒）
         public Builder setReadTimeout(int readTimeout) {
             if(readTimeout <= 0)
                 throw new IllegalArgumentException("readTimeout must be > 0");
@@ -619,7 +626,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
-        //设置写超时
+        //设置写超时（单位：秒）
         public Builder setWriteTimeout(int writeTimeout) {
             if(writeTimeout <= 0)
                 throw new IllegalArgumentException("writeTimeout must be > 0");
