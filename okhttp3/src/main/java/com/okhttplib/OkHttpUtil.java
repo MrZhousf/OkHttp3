@@ -468,8 +468,10 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
                 .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure);
-        clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
-        clientBuilder.addNetworkInterceptor(NETWORK_INTERCEPTOR);
+        if(builder.cacheType != FORCE_NETWORK){
+            clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
+            clientBuilder.addNetworkInterceptor(NETWORK_INTERCEPTOR);
+        }
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
