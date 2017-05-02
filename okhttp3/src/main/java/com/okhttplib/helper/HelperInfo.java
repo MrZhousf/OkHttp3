@@ -1,6 +1,8 @@
 package com.okhttplib.helper;
 
+import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.Encoding;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
@@ -15,6 +17,10 @@ import okhttp3.OkHttpClient;
  */
 public class HelperInfo {
 
+    //** 请求参数定义**/
+    private HttpInfo httpInfo;
+    private int cacheSurvivalTime;//缓存存活时间（秒）
+    private @CacheType int cacheType;//缓存类型
     private String LogTAG;//打印日志标识
     private String timeStamp;//时间戳
     private boolean showHttpLog;//是否显示Http请求日志
@@ -26,6 +32,7 @@ public class HelperInfo {
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     private String downloadFileDir;//下载文件保存目录
     private @Encoding String responseEncoding;//服务器响应编码
+    private boolean isGzip = false;//Gzip压缩
 
 
     public String getLogTAG() {
@@ -114,5 +121,37 @@ public class HelperInfo {
 
     public void setResponseEncoding(@Encoding String responseEncoding) {
         this.responseEncoding = responseEncoding;
+    }
+
+    public int getCacheSurvivalTime() {
+        return cacheSurvivalTime;
+    }
+
+    public void setCacheSurvivalTime(int cacheSurvivalTime) {
+        this.cacheSurvivalTime = cacheSurvivalTime;
+    }
+
+    public @CacheType  int getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(@CacheType int cacheType) {
+        this.cacheType = cacheType;
+    }
+
+    public HttpInfo getHttpInfo() {
+        return httpInfo;
+    }
+
+    public void setHttpInfo(HttpInfo httpInfo) {
+        this.httpInfo = httpInfo;
+    }
+
+    public boolean isGzip() {
+        return isGzip;
+    }
+
+    public void setGzip(boolean gzip) {
+        isGzip = gzip;
     }
 }

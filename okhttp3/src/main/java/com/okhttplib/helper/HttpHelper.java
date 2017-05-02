@@ -60,7 +60,7 @@ class HttpHelper extends BaseHelper{
      */
     HttpInfo doRequestSync(OkHttpHelper helper){
         Call call = null;
-        final HttpInfo info = helper.getHttpInfo();
+        final HttpInfo info = httpInfo;
         Request request = helper.getRequest();
         String url = info.getUrl();
         if(!checkUrl(url)){
@@ -87,7 +87,7 @@ class HttpHelper extends BaseHelper{
             }
             return retInfo(info,HttpInfo.WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,HttpInfo.CheckURL);
+            return retInfo(info,HttpInfo.CheckNet,"["+e.getMessage()+"]");
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
@@ -101,7 +101,7 @@ class HttpHelper extends BaseHelper{
      * 异步请求
      */
     void doRequestAsync(final OkHttpHelper helper){
-        final HttpInfo info = helper.getHttpInfo();
+        final HttpInfo info = httpInfo;
         final BaseCallback callback = helper.getCallback();
         Request request = helper.getRequest();
         String url = info.getUrl();
@@ -126,7 +126,7 @@ class HttpHelper extends BaseHelper{
                 //主线程回调
                 Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                         callback,
-                        retInfo(info,HttpInfo.NoResult,"["+e.getMessage()+"]"),
+                        retInfo(info,HttpInfo.CheckNet,"["+e.getMessage()+"]"),
                         requestTag,
                         call)
                         .build();
@@ -229,7 +229,7 @@ class HttpHelper extends BaseHelper{
      */
     private HttpInfo dealResponse(OkHttpHelper helper,Response res,Call call){
         showLog(String.format(Locale.getDefault(),"CostTime: %.3fs",(System.nanoTime()-startTime)/1e9d));
-        final HttpInfo info = helper.getHttpInfo();
+        final HttpInfo info = httpInfo;
         BufferedReader bufferedReader = null ;
         String result = "";
         try {
@@ -253,8 +253,10 @@ class HttpHelper extends BaseHelper{
                         return helper.getDownUpLoadHelper().downloadingFile(helper,res,call);
                     }
                 }else{
-                    showLog("HttpStatus: "+res.code());
-                    if(netCode == 404){//请求页面路径错误
+                    showLog("HttpStatus: "+netCode);
+                    if(netCode == 400){
+                        return retInfo(info,netCode,HttpInfo.RequestParamError);
+                    }else if(netCode == 404){//请求页面路径错误
                         return retInfo(info,netCode,HttpInfo.ServerNotFound);
                     }else if(netCode == 416) {//请求数据流范围错误
                         return retInfo(info, netCode, HttpInfo.Message, "请求Http数据流范围错误\n" + result);

@@ -33,6 +33,7 @@ public class HttpInfo {
     private int retCode;//返回码
     private String retDetail;//返回结果
     private int netCode;//网络返回码
+    private boolean fromCache;//响应是否来自缓存
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
@@ -313,6 +314,7 @@ public class HttpInfo {
     public final static int GatewayTimeOut = 12;
     public final static int GatewayBad = 13;
     public final static int ServerNotFound = 14;
+    public final static int RequestParamError = 15;
 
 
     public HttpInfo packInfo(int netCode,int retCode, String retDetail){
@@ -353,13 +355,16 @@ public class HttpInfo {
                 this.retDetail = "";
                 break;
             case GatewayTimeOut:
-                this.retDetail = "网关超时/未找到缓存，请检查网络连接是否正常";
+                this.retDetail = "缓存不存在或网关超时，请检查网络连接是否正常";
                 break;
             case GatewayBad:
                 this.retDetail = "错误的网关，请检查请求链路";
                 break;
             case ServerNotFound:
-                this.retDetail = "服务器找不到请求页面(服务器内部错误)";
+                this.retDetail = "服务器找不到请求页面（页面已被移除）";
+                break;
+            case RequestParamError:
+                this.retDetail = "请求参数错误，请检查请求参数是否正确";
                 break;
         }
         if(!TextUtils.isEmpty(retDetail)){
@@ -424,4 +429,11 @@ public class HttpInfo {
         return responseEncoding;
     }
 
+    public boolean isFromCache() {
+        return fromCache;
+    }
+
+    public void setFromCache(boolean fromCache) {
+        this.fromCache = fromCache;
+    }
 }

@@ -54,7 +54,7 @@ class DownUpLoadHelper extends BaseHelper{
      */
     void uploadFile(OkHttpHelper helper){
         try {
-            final HttpInfo info = helper.getHttpInfo();
+            final HttpInfo info = httpInfo;
             List<UploadFileInfo> uploadFileList = helper.getUploadFileInfoList();
             String url = info.getUrl();
             if(TextUtils.isEmpty(url)){
@@ -105,14 +105,14 @@ class DownUpLoadHelper extends BaseHelper{
      */
     void downloadFile(final OkHttpHelper helper){
         try {
-            final HttpInfo httpInfo = helper.getHttpInfo();
+            final HttpInfo info = httpInfo;
             final DownloadFileInfo fileInfo = helper.getDownloadFileInfo();
             String url = fileInfo.getUrl();
             if(TextUtils.isEmpty(url)){
                 showLog("下载文件失败：文件下载地址不能为空！");
                 return ;
             }
-            httpInfo.setUrl(url);
+            info.setUrl(url);
             ProgressCallback progressCallback = fileInfo.getProgressCallback();
             //获取文件断点
             long completedSize = fetchCompletedSize(fileInfo);
@@ -139,7 +139,7 @@ class DownUpLoadHelper extends BaseHelper{
             Request.Builder requestBuilder = new Request.Builder();
             requestBuilder.url(url)
                     .header("RANGE", "bytes=" + completedSize + "-");
-            helper.getHttpHelper().addHeadsToRequest(httpInfo, requestBuilder);
+            helper.getHttpHelper().addHeadsToRequest(info, requestBuilder);
             Request request = requestBuilder.build();
             helper.setRequest(request);
             helper.setHttpClient(httpClient);
@@ -158,7 +158,7 @@ class DownUpLoadHelper extends BaseHelper{
      * 开始文件下载
      */
     HttpInfo downloadingFile(OkHttpHelper okHttpInfo ,Response res, Call call){
-        final HttpInfo info = okHttpInfo.getHttpInfo();
+        final HttpInfo info = httpInfo;
         final DownloadFileInfo fileInfo = okHttpInfo.getDownloadFileInfo();
         RandomAccessFile accessFile = null;
         InputStream inputStream = null;

@@ -15,6 +15,7 @@ import com.okhttp3.util.LogUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
+import com.okhttplib.util.EncryptUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,10 @@ public class UploadFileActivity extends BaseActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.uploadFileBtn:
-                uploadFile(filePath);
+//                uploadFile(filePath);
+//                doUploadBatch();
+                String md5 = EncryptUtil.getFileMd5(filePath);
+                LogUtil.d("############",md5);
                 break;
         }
     }
@@ -100,7 +104,7 @@ public class UploadFileActivity extends BaseActivity {
     private void doUploadBatch(){
         imgList.clear();
         imgList.add("/storage/emulated/0/okHttp_download/test.apk");
-        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
+//        imgList.add("/storage/emulated/0/okHttp_download/test.rar");
         HttpInfo.Builder builder = HttpInfo.Builder()
                 .setUrl(url);
         //循环添加上传文件
@@ -108,20 +112,26 @@ public class UploadFileActivity extends BaseActivity {
             //若服务器为php，接口文件参数名称后面追加"[]"表示数组，示例：builder.addUploadFile("uploadFile[]",path);
             builder.addUploadFile("uploadFile",path);
         }
-        HttpInfo info = builder.build();
-        OkHttpUtil.getDefault(UploadFileActivity.this).doUploadFileAsync(info,new ProgressCallback(){
+        final HttpInfo info = builder.build();
+        new Thread(new Runnable() {
             @Override
-            public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                uploadProgress.setProgress(percent);
-                LogUtil.d(TAG, "上传进度：" + percent);
-            }
+            public void run() {
+                OkHttpUtil.getDefault(UploadFileActivity.this).doUploadFileSync(info,new ProgressCallback(){
+                    @Override
+                    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                        uploadProgress.setProgress(percent);
+                        LogUtil.d(TAG, "上传进度：" + percent);
+                    }
 
-            @Override
-            public void onResponseMain(String filePath, HttpInfo info) {
-                LogUtil.d(TAG, "上传结果：" + info.getRetDetail());
-                tvResult.setText(info.getRetDetail());
+                    @Override
+                    public void onResponseMain(String filePath, HttpInfo info) {
+                        LogUtil.d(TAG, "上传结果：" + info.getRetDetail());
+                        tvResult.setText(info.getRetDetail());
+                    }
+                });
             }
-        });
+        }).start();
+
     }
 
     @Override

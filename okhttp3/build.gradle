@@ -28,7 +28,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.+'
+    compile 'com.android.support:support-annotations:23.+'
     compile 'com.squareup.okhttp3:okhttp:3.7.0'
 }
 

@@ -11,29 +11,54 @@
     android:orientation="vertical"
     tools:context="com.okhttp3.activity.MainActivity">
     <Button
-        android:id="@+id/syncBtn"
+        android:id="@+id/sync_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="同步请求"
         />
     <Button
-        android:id="@+id/asyncBtn"
+        android:id="@+id/async_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="异步请求"
         />
     <Button
-        android:id="@+id/cacheBtn"
+        android:id="@+id/force_network_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="缓存请求"
+        android:text="FORCE_NETWORK"
         />
     <Button
-        android:id="@+id/offlineBtn"
+        android:id="@+id/force_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="断网请求"
+        android:text="FORCE_CACHE"
         />
+    <Button
+        android:id="@+id/network_then_cache_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="NETWORK_THEN_CACHE"
+        />
+    <Button
+        android:id="@+id/cache_then_network_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CACHE_THEN_NETWORK"
+        />
+    <Button
+        android:id="@+id/ten_second_cache_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="缓存10秒失效"
+        />
+
+    <TextView
+        android:id="@+id/fromCacheTV"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"/>
 
     <TextView
         android:id="@+id/resultTV"

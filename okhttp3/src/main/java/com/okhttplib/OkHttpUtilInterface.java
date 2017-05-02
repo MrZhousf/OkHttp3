@@ -106,4 +106,9 @@ public interface OkHttpUtilInterface {
      */
     OkHttpClient getDefaultClient();
 
+    /**
+     * 清理缓存：只清理网络请求的缓存，不清理下载文件
+     */
+    void deleteCache();
+
 }

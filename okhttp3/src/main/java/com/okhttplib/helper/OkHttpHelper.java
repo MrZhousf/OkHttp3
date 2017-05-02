@@ -49,6 +49,7 @@ public class OkHttpHelper {
         progressCallback = builder.progressCallback;
         businessType = builder.businessType;
         responseEncoding = builder.helperInfo.getResponseEncoding();
+        builder.helperInfo.setHttpInfo(httpInfo);
         httpHelper = new HttpHelper(builder.helperInfo);
         if(null != downloadFileInfo || !uploadFileInfoList.isEmpty())
             downUpLoadHelper = new DownUpLoadHelper(builder.helperInfo);

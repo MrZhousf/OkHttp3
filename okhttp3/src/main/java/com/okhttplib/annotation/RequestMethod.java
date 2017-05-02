@@ -14,12 +14,12 @@ import java.lang.annotation.RetentionPolicy;
 public @interface RequestMethod {
 
     /**
-     * GET
+     * POST
      */
     int POST = 1;
 
     /**
-     * POST
+     * GET
      */
     int GET = 2;
 

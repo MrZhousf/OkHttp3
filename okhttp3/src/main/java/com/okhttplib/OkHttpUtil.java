@@ -7,7 +7,6 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import com.okhttplib.annotation.CacheLevel;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.Encoding;
 import com.okhttplib.annotation.RequestMethod;
@@ -22,30 +21,18 @@ import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
-import okhttp3.CacheControl;
 import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
-import static com.okhttplib.annotation.CacheLevel.FIRST_LEVEL;
-import static com.okhttplib.annotation.CacheLevel.FOURTH_LEVEL;
-import static com.okhttplib.annotation.CacheLevel.SECOND_LEVEL;
-import static com.okhttplib.annotation.CacheLevel.THIRD_LEVEL;
-import static com.okhttplib.annotation.CacheType.CACHE_THEN_NETWORK;
-import static com.okhttplib.annotation.CacheType.FORCE_CACHE;
 import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
-import static com.okhttplib.annotation.CacheType.NETWORK_THEN_CACHE;
 
 
 /**
@@ -73,8 +60,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private static OkHttpClient httpClient;
     private static ExecutorService executorService;
     private Builder builder;
-    private int cacheSurvivalTime;//缓存存活时间（秒）
-    private @CacheType int cacheType;//缓存类型
+    private int cacheSurvivalTime = 0;//缓存存活时间（秒）
+    private @CacheType int cacheType = CacheType.FORCE_NETWORK;//缓存类型
 
     /**
      * 初始化：请在Application中调用
@@ -339,66 +326,10 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         httpClient = client;
     }
 
-    /**
-     * 网络请求拦截器
-     */
-    private Interceptor NETWORK_INTERCEPTOR = new Interceptor() {
-        @Override
-        public Response intercept(Chain chain) throws IOException {
-            Request request = chain.request();
-            if(cacheSurvivalTime > 0){
-                Response response = chain.proceed(request);
-                return response.newBuilder()
-                        .removeHeader("Pragma")
-                        .header("Cache-Control", String.format(Locale.getDefault(),"max-age=%d", cacheSurvivalTime))
-                        .build();
-            }
-            return chain.proceed(request);
-        }
-    };
-
-    /**
-     * 缓存应用拦截器
-     */
-    private Interceptor NO_NETWORK_INTERCEPTOR = new Interceptor() {
-        @Override
-        public Response intercept(Chain chain) throws IOException {
-            Request originalRequest = chain.request();
-            Response response = null;
-            switch (cacheType){
-                case CACHE_THEN_NETWORK:
-                case FORCE_CACHE:
-                    originalRequest = originalRequest.newBuilder()
-                            .cacheControl(CacheControl.FORCE_CACHE)
-                            .build();
-                    response =  chain.proceed(originalRequest).newBuilder()
-                            .header("Cache-Control", "public, only-if-cached, max-stale=3600")
-                            .removeHeader("Pragma")
-                            .build();
-                    break;
-                case NETWORK_THEN_CACHE:
-                    if(!isNetworkAvailable(application)){
-                        originalRequest = originalRequest.newBuilder()
-                                .cacheControl(CacheControl.FORCE_CACHE)
-                                .build();
-                        response =  chain.proceed(originalRequest).newBuilder()
-                                .header("Cache-Control", "public, only-if-cached, max-stale=3600")
-                                .removeHeader("Pragma")
-                                .build();
-                    }else{
-                        response = chain.proceed(originalRequest);
-                    }
-                    break;
-                case FORCE_NETWORK:
-                    response = chain.proceed(originalRequest);
-                    break;
-            }
-            return response;
-        }
-    };
-
-    private boolean isNetworkAvailable(Context context) {
-        ConnectivityManager cm = (ConnectivityManager) context
+    public boolean isNetworkAvailable() {
+        if(application == null)
+            return true;
+        ConnectivityManager cm = (ConnectivityManager) application
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo net = cm.getActiveNetworkInfo();
         return net != null && net.getState() == NetworkInfo.State.CONNECTED;
@@ -409,25 +340,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         this.builder = builder;
         this.cacheType = builder.cacheType;
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
-        if(this.cacheSurvivalTime == 0){
-            final int deviation = 5;
-            switch (builder.cacheLevel){
-                case FIRST_LEVEL:
-                    this.cacheSurvivalTime = 0;
-                    break;
-                case SECOND_LEVEL:
-                    this.cacheSurvivalTime = 15 + deviation;
-                    break;
-                case THIRD_LEVEL:
-                    this.cacheSurvivalTime = 30 + deviation;
-                    break;
-                case FOURTH_LEVEL:
-                    this.cacheSurvivalTime = 60 + deviation;
-                    break;
-            }
-        }
-        if(this.cacheSurvivalTime > 0)
-            this.cacheType = CACHE_THEN_NETWORK;
         if(null == application)
             this.cacheType = FORCE_NETWORK;
         if(null == executorService)
@@ -458,6 +370,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setDefault(builder.isDefault);
         helperInfo.setLogTAG(builder.httpLogTAG == null ? TAG : builder.httpLogTAG);
         helperInfo.setResponseEncoding(builder.responseEncoding);
+        helperInfo.setCacheSurvivalTime(cacheSurvivalTime);
+        helperInfo.setCacheType(cacheType);
+        helperInfo.setGzip(builder.isGzip);
         return helperInfo;
     }
 
@@ -468,10 +383,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
                 .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure);
-        if(builder.cacheType != FORCE_NETWORK){
-            clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
-            clientBuilder.addNetworkInterceptor(NETWORK_INTERCEPTOR);
-        }
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
@@ -503,7 +414,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
         private int cacheSurvivalTime;//缓存存活时间（秒）
         private @CacheType int cacheType;//缓存类型
-        private @CacheLevel int cacheLevel;//缓存级别
         private boolean isGlobalConfig;//是否全局配置
         private boolean showHttpLog;//是否显示Http请求日志
         private String httpLogTAG;//显示Http请求日志标识
@@ -513,6 +423,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private CookieJar cookieJar;
         private boolean isDefault;//是否默认请求
         private @Encoding String responseEncoding = Encoding.UTF_8 ;//服务器响应编码
+        private boolean isGzip = false;//Gzip压缩
 
         public Builder() {
         }
@@ -555,8 +466,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setWriteTimeout(30);
             setRetryOnConnectionFailure(true);
             setCacheSurvivalTime(0);
-            setCacheType(CACHE_THEN_NETWORK);
-            setCacheLevel(FIRST_LEVEL);
+            setCacheType(CacheType.FORCE_NETWORK);
             setNetworkInterceptors(null);
             setInterceptors(null);
             setResultInterceptors(null);
@@ -564,6 +474,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setShowHttpLog(true);
             setShowLifecycleLog(false);
             setDownloadFileDir(Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/");
+            setIsGzip(false);
         }
 
         /**
@@ -579,7 +490,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setRetryOnConnectionFailure(builder.retryOnConnectionFailure);
             setCacheSurvivalTime(builder.cacheSurvivalTime);
             setCacheType(builder.cacheType);
-            setCacheLevel(builder.cacheLevel);
             setNetworkInterceptors(builder.networkInterceptors);
             setInterceptors(builder.interceptors);
             setResultInterceptors(builder.resultInterceptors);
@@ -592,6 +502,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             }
             setCookieJar(builder.cookieJar);
             setResponseEncoding(builder.responseEncoding);
+            setIsGzip(builder.isGzip);
         }
 
         private Builder isDefault(boolean isDefault){
@@ -703,12 +614,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             return this;
         }
 
-        //设置缓存级别
-        public Builder setCacheLevel(@CacheLevel int cacheLevel) {
-            this.cacheLevel = cacheLevel;
-            return this;
-        }
-
         //设置显示Http请求日志
         public Builder setShowHttpLog(boolean showHttpLog) {
             this.showHttpLog = showHttpLog;
@@ -751,6 +656,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             this.responseEncoding = responseEncoding;
             return this;
         }
+
+        //Gzip压缩，需要服务端支持
+        public Builder setIsGzip(boolean isGzip){
+            this.isGzip = isGzip;
+            return this;
+        }
     }
 
     private static String parseRequestTag(Object object){
@@ -768,6 +679,16 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             }
         }
         return requestTag;
+    }
+
+    @Override
+    public void deleteCache() {
+        try {
+            if(httpClient != null && httpClient.cache() != null)
+            httpClient.cache().delete();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 
