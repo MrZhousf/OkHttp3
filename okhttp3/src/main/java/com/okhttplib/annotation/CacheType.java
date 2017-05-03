@@ -29,7 +29,7 @@ public @interface CacheType {
     int NETWORK_THEN_CACHE = 3;
 
     /**
-     * 先缓存在网络
+     * 先缓存再网络
      */
     int CACHE_THEN_NETWORK = 4;
 }

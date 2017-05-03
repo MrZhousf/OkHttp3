@@ -3,9 +3,12 @@
 ## 功能点
 * 支持Http/Https等协议
 * 支持Cookie持久化
+* 支持Gzip压缩
 * 支持协议头参数Head设置、二进制参数请求
 * 支持Unicode自动转码、服务器响应编码设置
-* 支持同步/异步请求、断网请求、缓存响应、缓存等级
+* 支持同步/异步请求
+* 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
+* 支持自定义缓存存活时间与缓存清理功能
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
 * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
 * Application中自定义全局配置/增加系统默认配置
@@ -22,18 +25,18 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.6.9.5</version>
+  <version>2.7.0</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.6.9.5'
+compile 'com.zhousf.lib:okhttp3:2.7.0'
 ```
 若出现V7版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.6.9.5'){
-    exclude(module: 'appcompat-v7')
+compile ('com.zhousf.lib:okhttp3:2.7.0'){
+    exclude(module: 'support-annotations')
 }
 ```
 ### ProGuard
@@ -55,19 +58,13 @@ compile ('com.zhousf.lib:okhttp3:2.6.9.5'){
 * 2016-8-9
     *  增加文件上传功能，支持批量上传
 * 2016-8-10
-    *  增加文件下载功能，支持批量下载
-* 2016-8-17
-    *  增加文件断点下载功能
+    *  增加文件下载功能，支持批量下载、断点下载
 * 2016-10-10
     *  增加请求结果拦截以及异常处理拦截
-* 2016-10-12
-    *  增加Cookie持久化
 * 2016-10-25
-    *  支持协议头参数Head设置
-* 2016-12-7
-    *  增加取消指定请求功能
+    *  支持Cookie持久化、协议头参数Head设置
 * 2016-12-12
-    *  增加单例客户端，提高网络请求速率
+    *  增加单例客户端，提高网络请求速率、取消指定请求功能
 * 2017-3-3
     *  修复上传文件入参bug（感谢*Sanqi5401*指正）
 * 2017-3-6
@@ -77,6 +74,7 @@ compile ('com.zhousf.lib:okhttp3:2.6.9.5'){
     *  增加单次批量上传文件功能：一次请求上传多个文件
 * 2017-4-21
     *  增加二进制流请求功能，DEMO中已添加动态权限申请功能
+
 
 ## 权限
 ```
@@ -95,30 +93,36 @@ compile ('com.zhousf.lib:okhttp3:2.6.9.5'){
 项目中已包含所有支持业务的demo，详情请下载项目参考源码。
 ## 自定义全局配置
 在Application中配置如下：
-```
+```java
+String downloadFileDir = Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/";
+String cacheDir = Environment.getExternalStorageDirectory().getPath();
+if(getExternalCacheDir() != null){
+    //缓存目录，APP卸载后会自动删除缓存数据
+    cacheDir = getExternalCacheDir().getPath();
+}
 OkHttpUtil.init(this)
-                .setConnectTimeout(30)//连接超时时间
-                .setWriteTimeout(30)//写超时时间
-                .setReadTimeout(30)//读超时时间
-                .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
-                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
-                .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
-                .setShowHttpLog(true)//显示请求日志
-                .setHttpLogTAG("HttpLog")//设置请求日志标识
-                .setShowLifecycleLog(false)//显示Activity销毁日志
-                .setRetryOnConnectionFailure(false)//失败后不自动重连
-                .setDownloadFileDir(downloadFileDir)//文件下载保存目录
-                .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
-                .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
-                .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
-                .setCookieJar(new PersistentCookieJar(new SetCookieCache(), 
-                new SharedPrefsCookiePersistor(this)))//持久化cookie
-                .build();
+        .setConnectTimeout(15)//连接超时时间
+        .setWriteTimeout(15)//写超时时间
+        .setReadTimeout(15)//读超时时间
+        .setMaxCacheSize(10 * 1024 * 1024)//缓存空间大小
+        .setCacheType(CacheType.FORCE_NETWORK)//缓存类型
+        .setHttpLogTAG("HttpLog")//设置请求日志标识
+        .setIsGzip(false)//Gzip压缩，需要服务端支持
+        .setShowHttpLog(true)//显示请求日志
+        .setShowLifecycleLog(false)//显示Activity销毁日志
+        .setRetryOnConnectionFailure(false)//失败后不自动重连
+        .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
+        .setDownloadFileDir(downloadFileDir)//文件下载保存目录
+        .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
+        .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
+        .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
+        .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this)))//持久化cookie
+        .build();
             
 ```
 
 ## 获取网络请求客户端单例示例
-```
+```java
 //获取单例客户端（默认）
  方法一、OkHttpUtil.getDefault(this)//绑定生命周期
             .doGetSync(HttpInfo.Builder().setUrl(url).build());
@@ -131,7 +135,7 @@ OkHttpUtil.init(this)
 建议在视图中采用OkHttpUtil.getDefault(this)的方式进行请求绑定，该方式会在Activity/Fragment销毁时自动取消当前视图下的所有请求；
 请求标识类型支持Object、String、Integer、Float、Double；
 **<font color=red>请求标识务必保证唯一</font>**。
-```
+```java
 //*******请求时先绑定请求标识，根据该标识进行取消*******/
 //方法一：
 OkHttpUtil.Builder()
@@ -148,79 +152,202 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
 ```
 
 ## 在Activity中同步调用示例
-```
+```java
     /**
      * 同步请求：由于不能在UI线程中进行网络请求操作，所以采用子线程方式
      */
-    private void doHttpSync() {
-        new Thread(()-> {
-                HttpInfo info = HttpInfo.Builder()
-                .setUrl(url)
-                .addHead("head","test")//协议头参数设置
-                .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
-                .build();
-                OkHttpUtil.getDefault(MainActivity.this).doGetSync(info);
-                if (info.isSuccessful()) {
-                    final String result = info.getRetDetail();
-                    runOnUiThread(() -> {
-                            resultTV.setText("同步请求：" + result);
-                        }
-                    );
-                }
+    private void sync() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final HttpInfo info = HttpInfo.Builder()
+                        .setUrl(url)
+                        .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+                        .build();
+                OkHttpUtil.getDefault(this)
+                        .doGetSync(info);
+                final String result = info.getRetDetail();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        resultTV.setText("同步请求：" + result);
+                        setFromCacheTV(info);
+
+                    }
+                });
             }
-        ).start();
+        }).start();
     }
 ```
 
 ## 在Activity中异步调用示例
-```
-  /**
+```java
+    /**
      * 异步请求：回调方法可以直接操作UI
      */
-    private void doHttpAsync() {
-                //回调方式一
-                OkHttpUtil.getDefault(this).doGetAsync(
-                        HttpInfo.Builder()
-                                .setUrl(url)
-                                .build(),
-                        new CallbackOk() {
-                            @Override
-                            public void onResponse(HttpInfo info) throws IOException {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("异步请求："+result);
-                                }
-                            }
-                        });
-                //回调方式二
-                OkHttpUtil.getDefault(this).doGetAsync(
-                        HttpInfo.Builder()
-                                .setUrl(url)
-                                .build(),
-                        new Callback() {
-                            @Override
-                            public void onFailure(HttpInfo info) throws IOException {
-                                String result = info.getRetDetail();
-                                resultTV.setText("异步请求失败："+result);
-                            }
+    private void async() {
+        OkHttpUtil.getDefault(this).doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                new Callback() {
+                    @Override
+                    public void onFailure(HttpInfo info) throws IOException {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求失败：" + result);
+                    }
 
+                    @Override
+                    public void onSuccess(HttpInfo info) throws IOException {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求成功：" + result);
+                        //GSon解析
+                        TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                        LogUtil.d("MainActivity", time.getResult().toString());
+                        setFromCacheTV(info);
+                    }
+                });
+    }
+```
+
+## 仅网络请求
+```java
+    /**
+     * 仅网络请求
+     */
+    private void forceNetwork(){
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_NETWORK).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
                             @Override
                             public void onSuccess(HttpInfo info) throws IOException {
                                 String result = info.getRetDetail();
-                                resultTV.setText("异步请求成功："+result);
-                                //GSon解析
-                                TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
-                                LogUtil.d("MainActivity",time.getResult().toString());
+                                resultTV.setText("FORCE_NETWORK：" + result);
+                                setFromCacheTV(info);
                             }
-                        });
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("FORCE_NETWORK：" + info.getRetDetail());
+                            }
+                        }
+                );
     }
+```
 
+## 仅缓存请求
+```java
+    /**
+     * 仅缓存请求
+     */
+    private void forceCache(){
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_CACHE).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("FORCE_CACHE：" + result);
+                                setFromCacheTV(info);
+                            }
 
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("FORCE_CACHE：" + info.getRetDetail());
+                            }
+                        }
+                );
+    }
+```
 
+##先网络再缓存
+```java
+    /**
+     * 先网络再缓存：先请求网络，失败则请求缓存
+     */
+    private void networkThenCache() {
+        OkHttpUtil.Builder().setCacheType(CacheType.NETWORK_THEN_CACHE).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("NETWORK_THEN_CACHE：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("NETWORK_THEN_CACHE：" + info.getRetDetail());
+                            }
+                        }
+                );
+    }
+```
+
+##先缓存再网络
+```java
+    /**
+     * 先缓存再网络：先请求缓存，失败则请求网络
+     */
+    private void cacheThenNetwork() {
+        OkHttpUtil.Builder().setCacheType(CacheType.CACHE_THEN_NETWORK).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("CACHE_THEN_NETWORK：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("CACHE_THEN_NETWORK：" + info.getRetDetail());
+                            }
+                        }
+                );
+    }
+```
+
+##缓存10秒失效
+```java
+    /**
+     * 缓存10秒失效：连续点击进行测试10秒内再次请求为缓存响应，10秒后再请求则缓存失效并进行网络请求
+     */
+    private void tenSecondCache(){
+        //由于采用同一个url测试，需要先清理缓存
+        if(isNeedDeleteCache){
+            isNeedDeleteCache = false;
+            OkHttpUtil.getDefault().deleteCache();
+        }
+        OkHttpUtil.Builder()
+                .setCacheType(CacheType.CACHE_THEN_NETWORK)
+                .setCacheSurvivalTime(10)//缓存存活时间为10秒
+                .build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("缓存10秒失效：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("缓存10秒失效：" + info.getRetDetail());
+                            }
+                        }
+                );
+    }
 ```
 
 ## 在Activity中上传图片示例
-```
+```java
  /**
      * 异步上传图片：显示上传进度
      */
@@ -243,7 +370,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
 ## 在Activity中单次批量上传文件示例
 * 若服务器为php，接口文件参数名称后面追加"[]"表示数组，
 示例：builder.addUploadFile("<font color=red>uploadFile[]</font>",path);
-```
+```java
 /**
      * 单次批量上传：一次请求上传多个文件
      */
@@ -275,7 +402,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
 ```
 
 ## 在Activity中断点下载文件示例
-```
+```java
  @OnClick({R.id.downloadBtn, R.id.pauseBtn, R.id.continueBtn})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -316,7 +443,7 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
 ```
 
 ## 二进制流方式请求
-```
+```java
 HttpInfo info = new HttpInfo.Builder()
         .setUrl("http://192.168.120.154:8082/StanClaimProd-app/surveySubmit/getFileLen")
         .addParamBytes(byte)//添加二进制流
@@ -337,7 +464,7 @@ OkHttpUtil.getDefault().doPostAsync(info, new Callback() {
 
 ## 请求结果统一预处理拦截器/请求链路异常信息拦截器示例
 请求结果拦截器与链路异常拦截器方便项目进行网络请求业务时对信息返回的统一管理与设置
-```
+```java
 /**
  * Http拦截器
  * 1、请求结果统一预处理拦截器
@@ -397,7 +524,7 @@ public class HttpInterceptor {
 
 ## Cookie持久化示例
 没有在Application中进行全局Cookie持久化配置时可以采用以下方式：
-```
+```java
 OkHttpUtilInterface okHttpUtil = OkHttpUtil.Builder()
             .setCacheLevel(FIRST_LEVEL)
             .setConnectTimeout(25).build(this);
@@ -417,8 +544,12 @@ okHttpUtil.doGetAsync(
 
 
 ## 相关截图
-### 网络请求界面
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.jpg?raw=true)
+### 网络请求演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.gif?raw=true)
+### 先网络再缓存演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.gif?raw=true)
+### 先缓存再网络演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.gif?raw=true)
 ### 上传图片界面
 ![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
 ### 断点下载文件界面
@@ -453,6 +584,7 @@ okHttpUtil.doGetAsync(
  */
 public interface OkHttpUtilInterface {
 
+
     /**
      * 同步Post请求
      * @param info 请求信息体
@@ -461,25 +593,39 @@ public interface OkHttpUtilInterface {
     HttpInfo doPostSync(HttpInfo info);
 
     /**
+     * 同步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     * @return HttpInfo
+     */
+    HttpInfo doPostSync(HttpInfo info, ProgressCallback callback);
+
+    /**
      * 异步Post请求
      * @param info 请求信息体
-     * @param callback 回调接口
+     * @param callback 结果回调接口
      */
-    void doPostAsync(HttpInfo info, CallbackOk callback);
+    void doPostAsync(HttpInfo info, BaseCallback callback);
+
+    /**
+     * 异步Post请求
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doPostAsync(HttpInfo info, ProgressCallback callback);
 
     /**
      * 同步Get请求
      * @param info 请求信息体
-     * @return HttpInfo
      */
     HttpInfo doGetSync(HttpInfo info);
 
     /**
      * 异步Get请求
      * @param info 请求信息体
-     * @param callback 回调接口
+     * @param callback 结果回调接口
      */
-    void doGetAsync(HttpInfo info, CallbackOk callback);
+    void doGetAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 异步上传文件
@@ -488,10 +634,24 @@ public interface OkHttpUtilInterface {
     void doUploadFileAsync(final HttpInfo info);
 
     /**
+     * 批量异步上传文件
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doUploadFileAsync(final HttpInfo info, ProgressCallback callback);
+
+    /**
      * 同步上传文件
      * @param info 请求信息体
      */
     void doUploadFileSync(final HttpInfo info);
+
+    /**
+     * 批量同步上传文件
+     * @param info 请求信息体
+     * @param callback 进度回调接口
+     */
+    void doUploadFileSync(final HttpInfo info, ProgressCallback callback);
 
     /**
      * 异步下载文件
@@ -499,80 +659,111 @@ public interface OkHttpUtilInterface {
      */
     void doDownloadFileAsync(final HttpInfo info);
 
+
     /**
      * 同步下载文件
      * @param info 请求信息体
      */
     void doDownloadFileSync(final HttpInfo info);
-    
+
+
     /**
      * 取消请求
      * @param requestTag 请求标识
      */
     void cancelRequest(Object requestTag);
-    
+
+
+    /**
+     * 获取默认的HttpClient
+     */
+    OkHttpClient getDefaultClient();
+
+    /**
+     * 清理缓存：只清理网络请求的缓存，不清理下载文件
+     */
+    boolean deleteCache();
+
 }
+
 ```
 
 ### MainActivity
 ```java
-   package com.okhttp3;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+/**
+ * 网络请求：支持同步/异步、GET/POST、缓存请求
+ *
+ * @author zhousf
+ */
+public class MainActivity extends BaseActivity {
 
-import com.okhttplib.annotation.CacheLevel;
-import com.okhttplib.annotation.CacheType;
-import com.okhttplib.HttpInfo;
-import com.okhttplib.OkHttpUtil;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import util.NetWorkUtil;
-
-public class MainActivity extends AppCompatActivity {
-
-    @Bind(R.id.syncBtn)
-    Button syncBtn;
-    @Bind(R.id.asyncBtn)
-    Button asyncBtn;
-    @Bind(R.id.cacheBtn)
-    Button cacheBtn;
+    @Bind(R.id.fromCacheTV)
+    TextView fromCacheTV;
     @Bind(R.id.resultTV)
     TextView resultTV;
-    @Bind(R.id.offlineBtn)
-    Button offlineBtn;
-
     /**
      * 注意：测试时请更换该地址
      */
     private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
+    
+    private boolean isNeedDeleteCache = true;
+
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_main;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.syncBtn, R.id.asyncBtn, R.id.cacheBtn, R.id.offlineBtn})
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @OnClick({
+            R.id.sync_btn,
+            R.id.async_btn,
+            R.id.force_network_btn,
+            R.id.force_cache_btn,
+            R.id.network_then_cache_btn,
+            R.id.cache_then_network_btn,
+            R.id.ten_second_cache_btn,
+            R.id.delete_cache_btn
+    })
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.syncBtn:
-                doHttpSync();
+            case R.id.sync_btn://同步请求
+                sync();
                 break;
-            case R.id.asyncBtn:
-                doHttpAsync();
+            case R.id.async_btn://异步请求
+                async();
                 break;
-            case R.id.cacheBtn:
-                doHttpCache();
+            case R.id.force_network_btn://仅网络
+                forceNetwork();
                 break;
-            case R.id.offlineBtn:
-                doHttpOffline();
+            case R.id.force_cache_btn://仅缓存
+                forceCache();
+                break;
+            case R.id.network_then_cache_btn://先网络再缓存
+                networkThenCache();
+                break;
+            case R.id.cache_then_network_btn://先缓存再网络
+                cacheThenNetwork();
+                break;
+            case R.id.ten_second_cache_btn://缓存10秒失效
+                tenSecondCache();
+                break;
+            case R.id.delete_cache_btn://清理缓存
+                deleteCache();
                 break;
         }
     }
@@ -580,77 +771,204 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 同步请求：由于不能在UI线程中进行网络请求操作，所以采用子线程方式
      */
-    private void doHttpSync() {
+    private void sync() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpInfo info = HttpInfo.Builder().setUrl(url).build(MainActivity.this);
-                OkHttpUtil.Builder().build().doGetSync(info);
-                if (info.isSuccessful()) {
-                    String result = info.getRetDetail();
-                    runOnUiThread(() -> {
-                        resultTV.setText("同步请求："+result);
-                    });
-                }
+                final HttpInfo info = HttpInfo.Builder()
+                        .setUrl(url)
+                        .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+                        .build();
+                OkHttpUtil.getDefault(this)
+                        .doGetSync(info);
+                final String result = info.getRetDetail();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        resultTV.setText("同步请求：" + result);
+                        setFromCacheTV(info);
+
+                    }
+                });
             }
         }).start();
+        needDeleteCache(true);
     }
 
     /**
      * 异步请求：回调方法可以直接操作UI
      */
-    private void doHttpAsync() {
-        OkHttpUtil.Builder().setCacheLevel(CacheLevel.FIRST_LEVEL).setConnectTimeout(25).build().doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(this),
-                info -> {
-                    if (info.isSuccessful()) {
+    private void async() {
+        OkHttpUtil.getDefault(this).doGetAsync(
+                HttpInfo.Builder().setUrl(url).build(),
+                new Callback() {
+                    @Override
+                    public void onFailure(HttpInfo info) throws IOException {
                         String result = info.getRetDetail();
-                        resultTV.setText("异步请求："+result);
+                        resultTV.setText("异步请求失败：" + result);
+                    }
+
+                    @Override
+                    public void onSuccess(HttpInfo info) throws IOException {
+                        String result = info.getRetDetail();
+                        resultTV.setText("异步请求成功：" + result);
+                        //GSon解析
+                        TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                        LogUtil.d("MainActivity", time.getResult().toString());
+                        setFromCacheTV(info);
                     }
                 });
-
+        needDeleteCache(true);
     }
 
     /**
-     * 缓存请求：请连续点击缓存请求，会发现在缓存有效期内，从第一次请求后的每一次请求花费为0秒，说明该次请求为缓存响应
+     * 仅网络请求
      */
-    private void doHttpCache() {
-        OkHttpUtil.Builder()
-                .setCacheLevel(CacheLevel.SECOND_LEVEL)
-                .build()
+    private void forceNetwork(){
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_NETWORK).build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(this),
-                        info -> {
-                            if (info.isSuccessful()) {
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
                                 String result = info.getRetDetail();
-                                resultTV.setText("缓存请求："+result);
+                                resultTV.setText("FORCE_NETWORK：" + result);
+                                setFromCacheTV(info);
                             }
-                        });
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("FORCE_NETWORK：" + info.getRetDetail());
+                            }
+                        }
+                );
+        needDeleteCache(true);
     }
 
     /**
-     * 断网请求：请先点击其他请求再测试断网请求
+     * 仅缓存请求
      */
-    private void doHttpOffline(){
-        if(!NetWorkUtil.isNetworkAvailable(this)){
-            OkHttpUtil.Builder()
-                    .setCacheType(CacheType.CACHE_THEN_NETWORK)//缓存类型可以不设置
-                    .build()
-                    .doGetAsync(
-                            HttpInfo.Builder().setUrl(url).build(this),
-                            info -> {
-                                if (info.isSuccessful()) {
-                                    String result = info.getRetDetail();
-                                    resultTV.setText("断网请求："+result);
-                                }
-                            });
+    private void forceCache(){
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_CACHE).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("FORCE_CACHE：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("FORCE_CACHE：" + info.getRetDetail());
+                            }
+                        }
+                );
+        needDeleteCache(true);
+    }
+
+    /**
+     * 先网络再缓存：先请求网络，失败则请求缓存
+     */
+    private void networkThenCache() {
+        OkHttpUtil.Builder().setCacheType(CacheType.NETWORK_THEN_CACHE).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("NETWORK_THEN_CACHE：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("NETWORK_THEN_CACHE：" + info.getRetDetail());
+                            }
+                        }
+                );
+        needDeleteCache(true);
+    }
+
+    /**
+     * 先缓存再网络：先请求缓存，失败则请求网络
+     */
+    private void cacheThenNetwork() {
+        OkHttpUtil.Builder().setCacheType(CacheType.CACHE_THEN_NETWORK).build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("CACHE_THEN_NETWORK：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("CACHE_THEN_NETWORK：" + info.getRetDetail());
+                            }
+                        }
+                );
+        needDeleteCache(true);
+    }
+
+    /**
+     * 缓存10秒失效：连续点击进行测试10秒内再次请求为缓存响应，10秒后再请求则缓存失效并进行网络请求
+     */
+    private void tenSecondCache(){
+        //由于采用同一个url测试，需要先清理缓存
+        if(isNeedDeleteCache){
+            isNeedDeleteCache = false;
+            OkHttpUtil.getDefault().deleteCache();
+        }
+        OkHttpUtil.Builder()
+                .setCacheType(CacheType.CACHE_THEN_NETWORK)
+                .setCacheSurvivalTime(10)//缓存存活时间为10秒
+                .build(this)
+                .doGetAsync(
+                        HttpInfo.Builder().setUrl(url).build(),
+                        new Callback() {
+                            @Override
+                            public void onSuccess(HttpInfo info) throws IOException {
+                                String result = info.getRetDetail();
+                                resultTV.setText("缓存10秒失效：" + result);
+                                setFromCacheTV(info);
+                            }
+
+                            @Override
+                            public void onFailure(HttpInfo info) throws IOException {
+                                resultTV.setText("缓存10秒失效：" + info.getRetDetail());
+                            }
+                        }
+                );
+    }
+
+
+    private void needDeleteCache(boolean delete){
+        isNeedDeleteCache = delete;
+    }
+
+    private void setFromCacheTV(HttpInfo info){
+        fromCacheTV.setText(info.isFromCache()?"缓存请求":"网络请求");
+    }
+
+    /**
+     * 清理缓存
+     */
+    private void deleteCache(){
+        if(OkHttpUtil.getDefault().deleteCache()){
+            ToastUtil.show(this,"清理缓存成功");
         }else{
-            resultTV.setText("请先断网！");
+            ToastUtil.show(this,"清理缓存失败");
         }
     }
 
 
+
 }
-
-
 ```

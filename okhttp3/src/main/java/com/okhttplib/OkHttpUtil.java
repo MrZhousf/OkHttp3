@@ -36,18 +36,24 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 
 
 /**
- * 网络请求工具类
- * 1、同步/异步，GET/POST网络请求，缓存响应
- * 2、http/https
- * 3、当Activity/Fragment销毁时自动取消相应的所有网络请求
- * 4、自动切换UI线程，摒弃runOnUiThread
- * 5、Application中自定义全局配置/增加系统默认配置
- * 6、文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
- * 7、文件断点下载，独立下载的模块摒弃了数据库记录断点
- * 8、日志跟踪与异常处理
- * 9、支持请求结果拦截以及异常处理拦截
- * 10、支持Cookie持久化
- * 11、支持协议头参数Head设置
+ * 网络请求工具类:
+ * 支持Http/Https等协议
+ * 支持Cookie持久化
+ * 支持Gzip压缩
+ * 支持协议头参数Head设置、二进制参数请求
+ * 支持Unicode自动转码、服务器响应编码设置
+ * 支持同步/异步请求
+ * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
+ * 支持自定义缓存存活时间与缓存清理功能
+ * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
+ * 异步请求响应自动切换到UI线程，摒弃runOnUiThread
+ * Application中自定义全局配置/增加系统默认配置
+ * 支持文件和图片上传/批量上传，支持同步/异步上传，支持进度提示
+ * 支持文件下载/批量下载，支持同步/异步下载，支持进度提示
+ * 支持文件断点下载，独立下载的模块摒弃了数据库记录断点的过时方法
+ * 完整的日志跟踪与异常处理
+ * 支持请求结果拦截以及异常处理拦截
+ * 支持单例客户端，提高网络请求速率
  *
  * 引入版本com.squareup.okhttp3:okhttp:3.7.0
  * @author zhousf
@@ -682,13 +688,15 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     @Override
-    public void deleteCache() {
+    public boolean deleteCache() {
         try {
             if(httpClient != null && httpClient.cache() != null)
             httpClient.cache().delete();
         } catch (Exception e){
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
 

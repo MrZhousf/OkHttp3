@@ -26,31 +26,37 @@
         android:id="@+id/force_network_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="FORCE_NETWORK"
+        android:text="仅网络"
         />
     <Button
         android:id="@+id/force_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="FORCE_CACHE"
+        android:text="仅缓存"
         />
     <Button
         android:id="@+id/network_then_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="NETWORK_THEN_CACHE"
+        android:text="先网络再缓存"
         />
     <Button
         android:id="@+id/cache_then_network_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="CACHE_THEN_NETWORK"
+        android:text="先缓存再网络"
         />
     <Button
         android:id="@+id/ten_second_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="缓存10秒失效"
+        />
+    <Button
+        android:id="@+id/delete_cache_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="清理缓存"
         />
 
     <TextView

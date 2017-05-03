@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.okhttp3.R;
 import com.okhttp3.bean.TimeAndDate;
 import com.okhttp3.util.LogUtil;
+import com.okhttp3.util.ToastUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.CacheType;
@@ -34,7 +35,10 @@ public class MainActivity extends BaseActivity {
     /**
      * 注意：测试时请更换该地址
      */
-    private String url = "http://192.168.120.206:8080/office/api/time?key=zhousf_key";
+    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
+//    private String url = "http://192.168.120.206:8080/office/api/time?key=zhousf_key";
+
+    private boolean isNeedDeleteCache = true;
 
     @Override
     protected int initLayout() {
@@ -63,31 +67,34 @@ public class MainActivity extends BaseActivity {
             R.id.force_cache_btn,
             R.id.network_then_cache_btn,
             R.id.cache_then_network_btn,
-            R.id.ten_second_cache_btn
+            R.id.ten_second_cache_btn,
+            R.id.delete_cache_btn
     })
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.sync_btn:
+            case R.id.sync_btn://同步请求
                 sync();
                 break;
-            case R.id.async_btn:
+            case R.id.async_btn://异步请求
                 async();
-
                 break;
-            case R.id.force_network_btn:
+            case R.id.force_network_btn://仅网络
                 forceNetwork();
                 break;
-            case R.id.force_cache_btn:
+            case R.id.force_cache_btn://仅缓存
                 forceCache();
                 break;
-            case R.id.network_then_cache_btn:
+            case R.id.network_then_cache_btn://先网络再缓存
                 networkThenCache();
                 break;
-            case R.id.cache_then_network_btn:
+            case R.id.cache_then_network_btn://先缓存再网络
                 cacheThenNetwork();
                 break;
-            case R.id.ten_second_cache_btn:
+            case R.id.ten_second_cache_btn://缓存10秒失效
                 tenSecondCache();
+                break;
+            case R.id.delete_cache_btn://清理缓存
+                deleteCache();
                 break;
         }
     }
@@ -110,12 +117,13 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         resultTV.setText("同步请求：" + result);
+                        setFromCacheTV(info);
 
                     }
                 });
             }
         }).start();
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
 
     /**
@@ -123,9 +131,7 @@ public class MainActivity extends BaseActivity {
      */
     private void async() {
         OkHttpUtil.getDefault(this).doGetAsync(
-                HttpInfo.Builder()
-                        .setUrl(url)
-                        .build(),
+                HttpInfo.Builder().setUrl(url).build(),
                 new Callback() {
                     @Override
                     public void onFailure(HttpInfo info) throws IOException {
@@ -140,17 +146,17 @@ public class MainActivity extends BaseActivity {
                         //GSon解析
                         TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
                         LogUtil.d("MainActivity", time.getResult().toString());
+                        setFromCacheTV(info);
                     }
                 });
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
 
     /**
      * 仅网络请求
      */
     private void forceNetwork(){
-        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_NETWORK)
-                .build(this)
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_NETWORK).build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
                         new Callback() {
@@ -167,15 +173,14 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                 );
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
 
     /**
      * 仅缓存请求
      */
     private void forceCache(){
-        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_CACHE)
-                .build(this)
+        OkHttpUtil.Builder().setCacheType(CacheType.FORCE_CACHE).build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
                         new Callback() {
@@ -192,15 +197,14 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                 );
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
 
     /**
-     * 先请求网络，失败则请求缓存
+     * 先网络再缓存：先请求网络，失败则请求缓存
      */
     private void networkThenCache() {
-        OkHttpUtil.Builder().setCacheType(CacheType.NETWORK_THEN_CACHE)
-                .build(this)
+        OkHttpUtil.Builder().setCacheType(CacheType.NETWORK_THEN_CACHE).build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
                         new Callback() {
@@ -217,15 +221,14 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                 );
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
 
     /**
-     * 先请求缓存，失败则请求网络
+     * 先缓存再网络：先请求缓存，失败则请求网络
      */
     private void cacheThenNetwork() {
-        OkHttpUtil.Builder().setCacheType(CacheType.CACHE_THEN_NETWORK)
-                .build(this)
+        OkHttpUtil.Builder().setCacheType(CacheType.CACHE_THEN_NETWORK).build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
                         new Callback() {
@@ -242,25 +245,21 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                 );
-        isNeedDeleteCache(true);
+        needDeleteCache(true);
     }
-
-    private void isNeedDeleteCache(boolean delete){
-        isNeedDeleteCache = delete;
-    }
-
-    private boolean isNeedDeleteCache = true;
 
     /**
-     * 连续点击进行测试10秒内再次请求为缓存响应，10秒后再请求则缓存失效并进行网络请求
+     * 缓存10秒失效：连续点击进行测试10秒内再次请求为缓存响应，10秒后再请求则缓存失效并进行网络请求
      */
     private void tenSecondCache(){
         //由于采用同一个url测试，需要先清理缓存
         if(isNeedDeleteCache){
-            OkHttpUtil.getDefault().deleteCache();
             isNeedDeleteCache = false;
+            OkHttpUtil.getDefault().deleteCache();
         }
-        OkHttpUtil.Builder().setCacheType(CacheType.CACHE_THEN_NETWORK).setCacheSurvivalTime(10)
+        OkHttpUtil.Builder()
+                .setCacheType(CacheType.CACHE_THEN_NETWORK)
+                .setCacheSurvivalTime(10)//缓存存活时间为10秒
                 .build(this)
                 .doGetAsync(
                         HttpInfo.Builder().setUrl(url).build(),
@@ -280,8 +279,24 @@ public class MainActivity extends BaseActivity {
                 );
     }
 
+
+    private void needDeleteCache(boolean delete){
+        isNeedDeleteCache = delete;
+    }
+
     private void setFromCacheTV(HttpInfo info){
         fromCacheTV.setText(info.isFromCache()?"缓存请求":"网络请求");
+    }
+
+    /**
+     * 清理缓存
+     */
+    private void deleteCache(){
+        if(OkHttpUtil.getDefault().deleteCache()){
+            ToastUtil.show(this,"清理缓存成功");
+        }else{
+            ToastUtil.show(this,"清理缓存失败");
+        }
     }
 
 
