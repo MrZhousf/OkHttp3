@@ -19,6 +19,28 @@
 * 支持请求结果拦截以及异常处理拦截
 * 支持单例客户端，提高网络请求速率
 * 后续优化中...
+
+
+## 相关截图
+### 网络请求演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.gif?raw=true)
+### 先网络再缓存演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.gif?raw=true)
+### 先缓存再网络演示
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.gif?raw=true)
+### 上传图片界面
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
+### 断点下载文件界面
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/4.jpg?raw=true)
+### 日志
+![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
+* GET-URL/POST-URL：请求地址
+* CostTime：请求耗时（单位：秒）
+* Response：响应串
+
+## 项目演示DEMO
+项目中已包含所有支持业务的demo，详情请下载项目参考源码。
+
 ## 引用方式
 ### Maven
 ```
@@ -89,8 +111,6 @@ compile ('com.zhousf.lib:okhttp3:2.7.0'){
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 ```
 
-## 项目演示DEMO
-项目中已包含所有支持业务的demo，详情请下载项目参考源码。
 ## 自定义全局配置
 在Application中配置如下：
 ```java
@@ -541,25 +561,6 @@ okHttpUtil.doGetAsync(
                     }
                 });
 ```
-
-
-## 相关截图
-### 网络请求演示
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/1.gif?raw=true)
-### 先网络再缓存演示
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.gif?raw=true)
-### 先缓存再网络演示
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.gif?raw=true)
-### 上传图片界面
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/3.jpg?raw=true)
-### 断点下载文件界面
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/4.jpg?raw=true)
-### 日志
-![](https://github.com/MrZhousf/OkHttp3/blob/master/pic/2.jpg?raw=true)
-* GET-URL/POST-URL：请求地址
-* CostTime：请求耗时（单位：秒）
-* Response：响应串
-
 
 ## 有问题反馈
 在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
