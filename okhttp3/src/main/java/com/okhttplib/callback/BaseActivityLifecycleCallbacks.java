@@ -112,8 +112,8 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
                 if(null != c && !c.isCanceled())
                     c.cancel();
                 callList.delete(originalCall.hashCode());
-                if(callList.size() == 0)
-                    callsMap.remove(tag);
+//                if(callList.size() == 0)
+//                    callsMap.remove(tag);
                 showLog(true,tag);
             }
         }else{
@@ -125,8 +125,8 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
                         call.cancel();
                         callList.delete(call.hashCode());
                     }
-                    if(callList.size() == 0)
-                        callsMap.remove(tag);
+//                    if(callList.size() == 0)
+//                        callsMap.remove(tag);
                     showLog(true,tag);
                 }
             }

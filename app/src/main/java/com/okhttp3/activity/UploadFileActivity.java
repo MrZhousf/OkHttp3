@@ -15,7 +15,6 @@ import com.okhttp3.util.LogUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
-import com.okhttplib.util.EncryptUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,16 +60,13 @@ public class UploadFileActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.chooseFileBtn:
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-//                intent.setType("video/*;image/*");//图片和视频
                 intent.setType("*/*");//文件
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 startActivityForResult(intent, 1);
                 break;
             case R.id.uploadFileBtn:
-//                uploadFile(filePath);
+                uploadFile(filePath);
 //                doUploadBatch();
-                String md5 = EncryptUtil.getFileMd5(filePath);
-                LogUtil.d("############",md5);
                 break;
         }
     }

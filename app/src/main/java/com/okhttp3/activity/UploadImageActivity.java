@@ -44,7 +44,7 @@ public class UploadImageActivity extends BaseActivity {
     /**
      * 文件上传地址
      */
-    private String url = "";
+    private String url = "http://192.168.120.206:8080/office/upload/uploadFile";
 
     private String filePathOne;
     private String filePathTwo;
@@ -107,7 +107,7 @@ public class UploadImageActivity extends BaseActivity {
     private void uploadImgOne() {
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
-                .addUploadFile("file", filePathOne, new ProgressCallback() {
+                .addUploadFile("uploadFile", filePathOne, new ProgressCallback() {
                     //onProgressMain为UI线程回调，可以直接操作UI
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
@@ -125,11 +125,19 @@ public class UploadImageActivity extends BaseActivity {
     private void uploadImgTwo() {
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
-                .addUploadFile("file", filePathTwo,new ProgressCallback() {
+                .addUploadFile("uploadFile", filePathTwo,new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         uploadProgressTwo.setProgress(percent);
                         LogUtil.d(TAG, "上传进度2：" + percent);
+                    }
+                    @Override
+                    public void onResponseMain(String filePath, HttpInfo info) {
+                        LogUtil.d(TAG, "上传结果2 Main：\n" + filePath+"\n"+info.getRetDetail());
+                    }
+                    @Override
+                    public void onResponseSync(String filePath, HttpInfo info) {
+                        LogUtil.d(TAG, "上传结果2 Sync：\n" + filePath+"\n"+info.getRetDetail());
                     }
                 })
                 .build();
@@ -163,6 +171,7 @@ public class UploadImageActivity extends BaseActivity {
                     public void onResponseMain(String filePath, HttpInfo info) {
                         LogUtil.d(TAG, "上传结果2：\n" + filePath+"\n"+info.getRetDetail());
                     }
+
                 })
                 .build();
         doUploadImg(info);

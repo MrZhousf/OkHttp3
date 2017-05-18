@@ -115,7 +115,7 @@ public class HelperInfo {
         isDefault = aDefault;
     }
 
-    public String getResponseEncoding() {
+    public @Encoding String getResponseEncoding() {
         return responseEncoding;
     }
 

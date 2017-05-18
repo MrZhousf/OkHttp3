@@ -351,12 +351,12 @@ class HttpHelper extends BaseHelper{
     /**
      * 请求结果回调
      */
-    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code,boolean isDownload,String requestTag){
+    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code,String requestTag){
         //同步回调
         if(null != progressCallback)
             progressCallback.onResponseSync(info.getUrl(),info);
         //异步主线程回调
-        if(isDownload){
+        if(OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK == code){
             Message msg = new DownloadMessage(
                     code,
                     info.getUrl(),
@@ -364,7 +364,7 @@ class HttpHelper extends BaseHelper{
                     progressCallback,requestTag)
                     .build();
             OkMainHandler.getInstance().sendMessage(msg);
-        }else{
+        } else if(OkMainHandler.RESPONSE_UPLOAD_CALLBACK == code){
             Message msg = new UploadMessage(
                     code,
                     info.getUrl(),
