@@ -101,7 +101,7 @@ abstract class BaseHelper {
             Response originalResponse = chain.proceed(originalRequest);
             httpInfo.setFromCache(false);
             if(cacheSurvivalTime == 0){
-                cacheSurvivalTime = 60*60*24*365;//默认缓存时间为1年
+                cacheSurvivalTime = 60*60*24*365;//默认缓存时间为365天
             }
             return originalResponse.newBuilder()
                     .header("Cache-Control", String.format(Locale.getDefault(),"max-age=%d", cacheSurvivalTime))
@@ -165,7 +165,7 @@ abstract class BaseHelper {
             Response originalResponse = null;
             count ++;
             try {
-                //proceed是递归遍历拦截器，整个设计思想类似AOP面向切面编程
+                //责任链模式处理拦截器
                 originalResponse = chain.proceed(request);
                 if(count >= 4)
                     return originalResponse;

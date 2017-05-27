@@ -10,7 +10,7 @@ android {
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
-        versionName "2.7.2"
+        versionName "2.7.3"
     }
 
     buildTypes {
@@ -32,4 +32,4 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.7.0'
 }
 
-//apply from: "bintrayUpload.gradle"
+apply from: "bintrayUpload.gradle"

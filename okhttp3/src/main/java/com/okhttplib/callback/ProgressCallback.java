@@ -10,7 +10,7 @@ public class ProgressCallback extends ProgressCallbackAbs {
 
     /**
      * 异步UI线程：返回请求结果
-     * @param filePath 文件路径
+     * @param filePath 文件网络路径
      * @param info 结果信息类
      */
     @Override
@@ -20,7 +20,7 @@ public class ProgressCallback extends ProgressCallbackAbs {
 
     /**
      * 同步非UI线程：返回请求结果
-     * @param filePath 文件路径
+     * @param filePath 文件网络路径
      * @param info 结果信息类
      */
     @Override

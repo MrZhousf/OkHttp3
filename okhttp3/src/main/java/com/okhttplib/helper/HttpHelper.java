@@ -39,6 +39,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.okhttplib.HttpInfo.ConnectionTimeOut;
+import static com.okhttplib.HttpInfo.WriteAndReadTimeOut;
+
 /**
  * Http网络请求业务类
  * @author zhousf
@@ -81,13 +84,13 @@ class HttpHelper extends BaseHelper{
         } catch (SocketTimeoutException e){
             if(null != e.getMessage()){
                 if(e.getMessage().contains("failed to connect to"))
-                    return retInfo(info,HttpInfo.ConnectionTimeOut);
+                    return retInfo(info, ConnectionTimeOut);
                 if(e.getMessage().equals("timeout"))
-                    return retInfo(info,HttpInfo.WriteAndReadTimeOut);
+                    return retInfo(info, WriteAndReadTimeOut);
             }
-            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
+            return retInfo(info, WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,HttpInfo.CheckNet,"["+e.getMessage()+"]");
+            return retInfo(info,HttpInfo.CheckURL,"["+e.getMessage()+"]");
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
@@ -124,9 +127,20 @@ class HttpHelper extends BaseHelper{
             @Override
             public void onFailure(Call call, IOException e) {
                 //主线程回调
+                int code = HttpInfo.CheckNet;
+                if(e instanceof UnknownHostException){
+                    code = HttpInfo.CheckURL;
+                } else if(e instanceof SocketTimeoutException){
+                    if(null != e.getMessage()){
+                        if(e.getMessage().contains("failed to connect to"))
+                            code = HttpInfo.ConnectionTimeOut;
+                        if(e.getMessage().equals("timeout"))
+                            code = HttpInfo.WriteAndReadTimeOut;
+                    }
+                }
                 Message msg =  new CallbackMessage(OkMainHandler.RESPONSE_CALLBACK,
                         callback,
-                        retInfo(info,HttpInfo.CheckNet,"["+e.getMessage()+"]"),
+                        retInfo(info,code,"["+e.getMessage()+"]"),
                         requestTag,
                         call)
                         .build();

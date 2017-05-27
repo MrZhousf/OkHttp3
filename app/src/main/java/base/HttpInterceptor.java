@@ -42,9 +42,6 @@ public class HttpInterceptor {
                 case HttpInfo.ProtocolException:
                     info.setRetDetail("协议类型错误["+info.getNetCode()+"]");
                     break;
-                case HttpInfo.CheckNet:
-                    info.setRetDetail("请检查网络连接是否正常["+info.getNetCode()+"]");
-                    break;
                 case HttpInfo.ConnectionTimeOut:
                     info.setRetDetail("连接超时");
                     break;
