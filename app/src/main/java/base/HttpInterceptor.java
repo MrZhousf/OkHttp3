@@ -32,27 +32,28 @@ public class HttpInterceptor {
     public static ExceptionInterceptor ExceptionInterceptor = new ExceptionInterceptor() {
         @Override
         public HttpInfo intercept(HttpInfo info) throws Exception {
+            String result = info.getRetDetail();
             switch (info.getRetCode()){
                 case HttpInfo.NonNetwork:
-                    info.setRetDetail("网络中断");
+                    info.setRetDetail("网络中断："+result);
                     break;
                 case HttpInfo.CheckURL:
-                    info.setRetDetail("网络地址错误["+info.getNetCode()+"]");
+                    info.setRetDetail("网络地址错误["+info.getNetCode()+"]："+result);
                     break;
                 case HttpInfo.CheckNet:
-                    info.setRetDetail("请检查网络连接是否正常["+info.getNetCode()+"]");
+                    info.setRetDetail("请检查网络连接是否正常["+info.getNetCode()+"]："+result);
                     break;
                 case HttpInfo.ProtocolException:
-                    info.setRetDetail("协议类型错误["+info.getNetCode()+"]");
+                    info.setRetDetail("协议类型错误["+info.getNetCode()+"]："+result);
                     break;
                 case HttpInfo.ConnectionTimeOut:
-                    info.setRetDetail("连接超时");
+                    info.setRetDetail("连接超时："+result);
                     break;
                 case HttpInfo.WriteAndReadTimeOut:
-                    info.setRetDetail("读写超时");
+                    info.setRetDetail("读写超时："+result);
                     break;
                 case HttpInfo.ConnectionInterruption:
-                    info.setRetDetail("连接中断");
+                    info.setRetDetail("连接中断："+result);
                     break;
             }
             return info;
