@@ -131,7 +131,10 @@ public class MainActivity extends BaseActivity {
      */
     private void async() {
         OkHttpUtil.getDefault(this).doGetAsync(
-                HttpInfo.Builder().setUrl(url).build(),
+                HttpInfo.Builder()
+                        .setUrl(url)
+                        .addHead("head","test")//添加头参数
+                        .build(),
                 new Callback() {
                     @Override
                     public void onFailure(HttpInfo info) throws IOException {

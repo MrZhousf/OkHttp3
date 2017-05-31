@@ -90,7 +90,11 @@ class HttpHelper extends BaseHelper{
             }
             return retInfo(info, WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,HttpInfo.CheckURL,"["+e.getMessage()+"]");
+            if(!helperInfo.getOkHttpUtil().isNetworkAvailable()){
+                return retInfo(info,HttpInfo.CheckNet,"["+e.getMessage()+"]");
+            }else{
+                return retInfo(info,HttpInfo.CheckURL,"["+e.getMessage()+"]");
+            }
         } catch(NetworkOnMainThreadException e){
             return retInfo(info,HttpInfo.NetworkOnMainThreadException);
         } catch(Exception e) {
@@ -129,7 +133,11 @@ class HttpHelper extends BaseHelper{
                 //主线程回调
                 int code = HttpInfo.CheckNet;
                 if(e instanceof UnknownHostException){
-                    code = HttpInfo.CheckURL;
+                    if(!helperInfo.getOkHttpUtil().isNetworkAvailable()){
+                        code = HttpInfo.CheckNet;
+                    }else{
+                        code = HttpInfo.CheckURL;
+                    }
                 } else if(e instanceof SocketTimeoutException){
                     if(null != e.getMessage()){
                         if(e.getMessage().contains("failed to connect to"))
