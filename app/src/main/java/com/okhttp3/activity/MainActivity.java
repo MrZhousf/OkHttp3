@@ -134,6 +134,7 @@ public class MainActivity extends BaseActivity {
                 HttpInfo.Builder()
                         .setUrl(url)
                         .addHead("head","test")//添加头参数
+                        .addParam("param","test")//添加接口参数
                         .build(),
                 new Callback() {
                     @Override

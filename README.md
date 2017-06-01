@@ -2,11 +2,12 @@
 基于OkHttp3封装的网络请求工具类
 ## 功能点
 * 支持Http/Https等协议
+* 支持同步/异步请求
+* 支持Post/Get/Put/Delete请求
 * 支持Cookie持久化
 * 支持Gzip压缩
 * 支持协议头参数Head设置、二进制参数请求
 * 支持Unicode自动转码、服务器响应编码设置
-* 支持同步/异步请求
 * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
 * 支持自定义缓存存活时间与缓存清理功能
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
@@ -47,17 +48,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.7.5</version>
+  <version>2.7.6</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.7.5'
+compile 'com.zhousf.lib:okhttp3:2.7.6'
 ```
 若出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.7.5'){
+compile ('com.zhousf.lib:okhttp3:2.7.6'){
     exclude(module: 'support-annotations')
 }
 ```

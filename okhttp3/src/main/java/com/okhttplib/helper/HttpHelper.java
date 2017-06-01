@@ -192,21 +192,7 @@ class HttpHelper extends BaseHelper{
                 RequestBody fileBody = RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"),info.getParamFile());
                 requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
             } else{
-                FormBody.Builder builder = new FormBody.Builder();
-                if(null != info.getParams() && !info.getParams().isEmpty()){
-                    StringBuilder log = new StringBuilder("PostParams: ");
-                    String logInfo;
-                    String value;
-                    for (String key : info.getParams().keySet()) {
-                        value = info.getParams().get(key);
-                        value = value == null ? "" : value;
-                        builder.add(key, value);
-                        logInfo = key+"="+value+", ";
-                        log.append(logInfo);
-                    }
-                    showLog(log.toString());
-                }
-                requestBuilder.url(url).post(builder.build());
+                requestBuilder.url(url).post(packageFormBody(info,url,requestBuilder).build());
             }
         } else if(method == RequestMethod.GET){
             StringBuilder params = new StringBuilder();
@@ -230,6 +216,10 @@ class HttpHelper extends BaseHelper{
                 }
             }
             requestBuilder.url(params.toString()).get();
+        } else if(method == RequestMethod.PUT){
+            requestBuilder.url(url).put(packageFormBody(info,url,requestBuilder).build());
+        } else if(method == RequestMethod.DELETE){
+            requestBuilder.url(url).delete(packageFormBody(info,url,requestBuilder).build());
         } else{
             requestBuilder.url(url).get();
         }
@@ -239,6 +229,24 @@ class HttpHelper extends BaseHelper{
         addHeadsToRequest(info,requestBuilder);
         request = requestBuilder.build();
         return request;
+    }
+
+    private FormBody.Builder packageFormBody(HttpInfo info,String url,Request.Builder requestBuilder){
+        FormBody.Builder builder = new FormBody.Builder();
+        if(null != info.getParams() && !info.getParams().isEmpty()){
+            StringBuilder log = new StringBuilder("PostParams: ");
+            String logInfo;
+            String value;
+            for (String key : info.getParams().keySet()) {
+                value = info.getParams().get(key);
+                value = value == null ? "" : value;
+                builder.add(key, value);
+                logInfo = key+"="+value+", ";
+                log.append(logInfo);
+            }
+            showLog(log.toString());
+        }
+        return builder;
     }
 
     private void showUrlLog(Request request){

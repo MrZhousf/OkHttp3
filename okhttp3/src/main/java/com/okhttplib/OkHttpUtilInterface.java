@@ -93,6 +93,33 @@ public interface OkHttpUtilInterface {
      */
     void doDownloadFileSync(final HttpInfo info);
 
+    /**
+     * 同步Delete请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doDeleteSync(HttpInfo info);
+
+    /**
+     * 异步Delete请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    void doDeleteAsync(HttpInfo info, BaseCallback callback);
+
+    /**
+     * 同步Put请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doPutSync(HttpInfo info);
+
+    /**
+     * 异步PUT请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    void doPutAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 取消请求

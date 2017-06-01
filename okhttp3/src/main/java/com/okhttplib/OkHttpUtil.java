@@ -96,6 +96,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return new Builder(false).isDefault(true).build(requestTag);
     }
 
+
     /**
      * 同步Post请求
      * @param info 请求信息体
@@ -312,6 +313,68 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     .build()
                     .downloadFile();
         }
+    }
+
+    /**
+     * 同步Delete请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    @Override
+    public HttpInfo doDeleteSync(HttpInfo info){
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.DELETE)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
+    }
+
+    /**
+     * 异步Delete请求
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    @Override
+    public void doDeleteAsync(HttpInfo info, BaseCallback callback){
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.DELETE)
+                .callback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
+    }
+
+    /**
+     * 同步Put请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    @Override
+    public HttpInfo doPutSync(HttpInfo info){
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.PUT)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
+    }
+
+    /**
+     * 异步Put请求
+     * @param info 请求信息体
+     * @param callback 回调接口
+     */
+    @Override
+    public void doPutAsync(HttpInfo info, BaseCallback callback){
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestMethod(RequestMethod.PUT)
+                .callback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
     }
 
     /**
