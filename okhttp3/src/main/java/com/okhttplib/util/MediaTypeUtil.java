@@ -2,6 +2,8 @@ package com.okhttplib.util;
 
 import android.text.TextUtils;
 
+import com.okhttplib.annotation.MineType;
+
 import okhttp3.MediaType;
 
 /**
@@ -32,7 +34,7 @@ public class MediaTypeUtil {
             }else if("ico".equals(extension)){
                 extension = "image/ico";
             }else{
-                extension = "multipart/form-data";
+                extension = MineType.FORM_DATA;
             }
             return MediaType.parse(extension);
         }

@@ -7,6 +7,7 @@ import android.text.TextUtils;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
+import com.okhttplib.annotation.MineType;
 import com.okhttplib.annotation.RequestMethod;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadMessage;
@@ -186,11 +187,14 @@ class HttpHelper extends BaseHelper{
         final String url = info.getUrl();
         if(method == RequestMethod.POST){
             if(info.getParamBytes() != null){
-                RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"),info.getParamBytes());
-                requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
+                RequestBody byteBody = RequestBody.create(MediaType.parse(MineType.STREAM),info.getParamBytes());
+                requestBuilder.url(url).post(new ProgressRequestBody(byteBody,progressCallback,timeStamp,requestTag));
             } else if(info.getParamFile() != null){
-                RequestBody fileBody = RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"),info.getParamFile());
+                RequestBody fileBody = RequestBody.create(MediaType.parse(MineType.MARKDOWN),info.getParamFile());
                 requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
+            } else if(info.getParamJson() != null){
+                RequestBody jsonBody = RequestBody.create(MediaType.parse(MineType.JSON),info.getParamJson());
+                requestBuilder.url(url).post(new ProgressRequestBody(jsonBody,progressCallback,timeStamp,requestTag));
             } else{
                 requestBuilder.url(url).post(packageFormBody(info,url,requestBuilder).build());
             }

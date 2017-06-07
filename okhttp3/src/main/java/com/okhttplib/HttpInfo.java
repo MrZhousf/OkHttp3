@@ -24,10 +24,11 @@ public class HttpInfo {
     private Map<String,String> params;
     private byte[] paramBytes;
     private File paramFile;
+    private String paramJson;
     private List<UploadFileInfo> uploadFiles;
     private List<DownloadFileInfo> downloadFiles;
     private Map<String,String> heads;
-    private @Encoding String responseEncoding ;//服务器响应编码
+    private @Encoding String responseEncoding;
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -40,6 +41,7 @@ public class HttpInfo {
         this.params = builder.params;
         this.paramBytes = builder.paramBytes;
         this.paramFile = builder.paramFile;
+        this.paramJson = builder.paramJson;
         this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
@@ -57,6 +59,7 @@ public class HttpInfo {
         private Map<String,String> params;//请求参数
         private byte[] paramBytes;//请求参数（字节数组）
         private File paramFile;//请求参数（文件）
+        private String paramJson;//请求参数:application/json
         private List<UploadFileInfo> uploadFiles;//上传文件参数
         private List<DownloadFileInfo> downloadFiles;//下载文件参数
         private Map<String,String> heads;//请求头参数http head
@@ -146,6 +149,20 @@ public class HttpInfo {
         }
 
         /**
+         * 添加接口参数（json）
+         * 请采用POST请求方式
+         * MediaType.parse("application/json; charset=utf-8")
+         * @param json json格式参数值
+         */
+        public Builder addParamJson(String json){
+            if(TextUtils.isEmpty(json)){
+                throw new IllegalArgumentException("json param must not be null");
+            }
+            this.paramJson = json;
+            return this;
+        }
+
+        /**
          * 添加协议头参数
          * @param heads 头参数集合
          */
@@ -218,6 +235,10 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 上传文件
+         * @param uploadFiles 上传文件信息体
+         */
         public Builder addUploadFiles(List<UploadFileInfo> uploadFiles){
             if(null == uploadFiles)
                 return this;
@@ -267,6 +288,10 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 下载文件
+         * @param downloadFile 下载文件信息体
+         */
         public Builder addDownloadFile(DownloadFileInfo downloadFile){
             if(null == downloadFile)
                 return this;
@@ -277,6 +302,10 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 下载文件
+         * @param downloadFiles 下载文件信息体集合
+         */
         public Builder addDownloadFiles(List<DownloadFileInfo> downloadFiles){
             if(null == downloadFiles)
                 return this;
@@ -407,6 +436,10 @@ public class HttpInfo {
 
     public File getParamFile() {
         return paramFile;
+    }
+
+    public String getParamJson() {
+        return paramJson;
     }
 
     public List<UploadFileInfo> getUploadFiles() {

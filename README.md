@@ -48,17 +48,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.7.6</version>
+  <version>2.7.9</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.7.6'
+compile 'com.zhousf.lib:okhttp3:2.7.9'
 ```
 若出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.7.6'){
+compile ('com.zhousf.lib:okhttp3:2.7.9'){
     exclude(module: 'support-annotations')
 }
 ```
@@ -97,7 +97,8 @@ compile ('com.zhousf.lib:okhttp3:2.7.6'){
     *  增加单次批量上传文件功能：一次请求上传多个文件
 * 2017-4-21
     *  增加二进制流请求功能，DEMO中已添加动态权限申请功能
-
+* 2017-6-1
+    *  支持PUT、DELETE请求
 
 ## 权限
 ```
@@ -170,6 +171,22 @@ OkHttpUtil.getDefault("请求标识")//绑定请求标识
 //*******取消指定请求*******/ 
 OkHttpUtil.getDefault().cancelRequest("请求标识");
  
+```
+
+## HttpInfo参数解析：表单提交采用addParam方法，JSON提交采用addParamJson方法
+```java
+HttpInfo.Builder()
+        .setUrl(url)
+        .addHead("head","test")//添加头参数
+        .addParam("param","test")//添加接口参数
+        .addParams(new HashMap<String, String>())//添加接口参数集合
+        .addParamBytes("byte")//添加二进制流
+        .addParamJson("json")//添加Json参数
+        .addParamFile(new File(""))//添加文档参数
+        .addDownloadFile(new DownloadFileInfo("fileURL", "myMP4",null))//添加下载文件
+        .addUploadFile("interfaceParamName","filePathWithName",null)//添加上传文件
+        .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+        .build()
 ```
 
 ## 在Activity中同步调用示例
@@ -668,6 +685,33 @@ public interface OkHttpUtilInterface {
      */
     void doDownloadFileSync(final HttpInfo info);
 
+    /**
+     * 同步Delete请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doDeleteSync(HttpInfo info);
+
+    /**
+     * 异步Delete请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    void doDeleteAsync(HttpInfo info, BaseCallback callback);
+
+    /**
+     * 同步Put请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doPutSync(HttpInfo info);
+
+    /**
+     * 异步PUT请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    void doPutAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 取消请求
