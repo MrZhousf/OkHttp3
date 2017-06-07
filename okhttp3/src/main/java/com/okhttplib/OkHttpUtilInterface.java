@@ -11,6 +11,19 @@ import okhttp3.OkHttpClient;
  */
 public interface OkHttpUtilInterface {
 
+    /**
+     * 同步请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    HttpInfo doSync(HttpInfo info);
+
+    /**
+     * 异步请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    void doAsync(HttpInfo info, BaseCallback callback);
 
     /**
      * 同步Post请求

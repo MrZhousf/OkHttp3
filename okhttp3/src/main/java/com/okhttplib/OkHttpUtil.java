@@ -9,7 +9,7 @@ import android.text.TextUtils;
 
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.Encoding;
-import com.okhttplib.annotation.RequestMethod;
+import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
@@ -96,6 +96,36 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return new Builder(false).isDefault(true).build(requestTag);
     }
 
+    /**
+     * 同步请求
+     * @param info 请求信息体
+     * @return HttpInfo
+     */
+    @Override
+    public HttpInfo doSync(HttpInfo info) {
+        return OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestType(info.getRequestType())
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestSync();
+    }
+
+    /**
+     * 异步请求
+     * @param info 请求信息体
+     * @param callback 结果回调接口
+     */
+    @Override
+    public void doAsync(HttpInfo info, BaseCallback callback) {
+        OkHttpHelper.Builder()
+                .httpInfo(info)
+                .requestType(info.getRequestType())
+                .callback(callback)
+                .helperInfo(packageHelperInfo())
+                .build()
+                .doRequestAsync();
+    }
 
     /**
      * 同步Post请求
@@ -106,7 +136,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public HttpInfo doPostSync(HttpInfo info){
         return OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.POST)
+                .requestType(RequestType.POST)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestSync();
@@ -122,7 +152,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public HttpInfo doPostSync(HttpInfo info, ProgressCallback callback){
         return OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.POST)
+                .requestType(RequestType.POST)
                 .progressCallback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -138,7 +168,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doPostAsync(HttpInfo info, BaseCallback callback){
         OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.POST)
+                .requestType(RequestType.POST)
                 .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -154,7 +184,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doPostAsync(HttpInfo info, ProgressCallback callback) {
         OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.POST)
+                .requestType(RequestType.POST)
                 .progressCallback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -170,7 +200,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public HttpInfo doGetSync(HttpInfo info){
         return OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.GET)
+                .requestType(RequestType.GET)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestSync();
@@ -185,7 +215,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doGetAsync(HttpInfo info, BaseCallback callback) {
         OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.GET)
+                .requestType(RequestType.GET)
                 .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -206,7 +236,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     OkHttpHelper.Builder()
                             .httpInfo(info)
                             .uploadFileInfo(fileInfo)
-                            .requestMethod(RequestMethod.POST)
+                            .requestType(RequestType.POST)
                             .helperInfo(packageHelperInfo())
                             .build()
                             .uploadFile();
@@ -228,7 +258,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 OkHttpHelper.Builder()
                         .httpInfo(info)
                         .uploadFileInfoList(uploadFiles)
-                        .requestMethod(RequestMethod.POST)
+                        .requestType(RequestType.POST)
                         .progressCallback(callback)
                         .helperInfo(packageHelperInfo())
                         .build()
@@ -248,7 +278,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             OkHttpHelper.Builder()
                     .httpInfo(info)
                     .uploadFileInfo(fileInfo)
-                    .requestMethod(RequestMethod.POST)
+                    .requestType(RequestType.POST)
                     .helperInfo(packageHelperInfo())
                     .build()
                     .uploadFile();
@@ -265,7 +295,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         OkHttpHelper.Builder()
                 .httpInfo(info)
                 .uploadFileInfoList(uploadFiles)
-                .requestMethod(RequestMethod.POST)
+                .requestType(RequestType.POST)
                 .progressCallback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -286,7 +316,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     OkHttpHelper.Builder()
                             .httpInfo(info)
                             .downloadFileInfo(fileInfo)
-                            .requestMethod(RequestMethod.GET)
+                            .requestType(RequestType.GET)
                             .clientBuilder(newBuilderFromCopy())
                             .helperInfo(packageHelperInfo())
                             .build()
@@ -307,7 +337,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             OkHttpHelper.Builder()
                     .httpInfo(info)
                     .downloadFileInfo(fileInfo)
-                    .requestMethod(RequestMethod.GET)
+                    .requestType(RequestType.GET)
                     .clientBuilder(newBuilderFromCopy())
                     .helperInfo(packageHelperInfo())
                     .build()
@@ -324,7 +354,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public HttpInfo doDeleteSync(HttpInfo info){
         return OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.DELETE)
+                .requestType(RequestType.DELETE)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestSync();
@@ -339,7 +369,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doDeleteAsync(HttpInfo info, BaseCallback callback){
         OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.DELETE)
+                .requestType(RequestType.DELETE)
                 .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()
@@ -355,7 +385,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public HttpInfo doPutSync(HttpInfo info){
         return OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.PUT)
+                .requestType(RequestType.PUT)
                 .helperInfo(packageHelperInfo())
                 .build()
                 .doRequestSync();
@@ -370,7 +400,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doPutAsync(HttpInfo info, BaseCallback callback){
         OkHttpHelper.Builder()
                 .httpInfo(info)
-                .requestMethod(RequestMethod.PUT)
+                .requestType(RequestType.PUT)
                 .callback(callback)
                 .helperInfo(packageHelperInfo())
                 .build()

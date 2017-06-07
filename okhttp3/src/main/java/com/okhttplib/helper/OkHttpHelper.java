@@ -3,7 +3,7 @@ package com.okhttplib.helper;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
 import com.okhttplib.annotation.Encoding;
-import com.okhttplib.annotation.RequestMethod;
+import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.BaseCallback;
@@ -30,7 +30,7 @@ public class OkHttpHelper {
     private DownloadFileInfo downloadFileInfo;
     private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
     private OkHttpClient.Builder clientBuilder;
-    private @RequestMethod  int requestMethod;
+    private @RequestType int requestType;
     private BaseCallback callback;
     private ProgressCallback progressCallback;
     private Request request;
@@ -44,7 +44,7 @@ public class OkHttpHelper {
         downloadFileInfo = builder.downloadFileInfo;
         uploadFileInfoList = builder.uploadFileInfoList;
         clientBuilder = builder.clientBuilder;
-        requestMethod = builder.requestMethod;
+        requestType = builder.requestType;
         callback = builder.callback;
         progressCallback = builder.progressCallback;
         businessType = builder.businessType;
@@ -82,7 +82,7 @@ public class OkHttpHelper {
         private DownloadFileInfo downloadFileInfo;
         private List<UploadFileInfo> uploadFileInfoList = new ArrayList<>();
         private OkHttpClient.Builder clientBuilder;
-        private @RequestMethod  int requestMethod;
+        private @RequestType int requestType;
         private BaseCallback callback;
         private ProgressCallback progressCallback;
         private @BusinessType int businessType;
@@ -132,8 +132,8 @@ public class OkHttpHelper {
             return this;
         }
 
-        public Builder requestMethod(@RequestMethod  int requestMethod){
-            this.requestMethod = requestMethod;
+        public Builder requestType(@RequestType int requestType){
+            this.requestType = requestType;
             return this;
         }
 
@@ -180,8 +180,8 @@ public class OkHttpHelper {
         return clientBuilder;
     }
 
-    @RequestMethod int getRequestMethod() {
-        return requestMethod;
+    @RequestType int getRequestType() {
+        return requestType;
     }
 
     BaseCallback getCallback() {

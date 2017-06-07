@@ -13,6 +13,7 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.Encoding;
+import com.okhttplib.annotation.RequestType;
 import com.okhttplib.callback.Callback;
 
 import java.io.IOException;
@@ -130,9 +131,10 @@ public class MainActivity extends BaseActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void async() {
-        OkHttpUtil.getDefault(this).doGetAsync(
+        OkHttpUtil.getDefault(this).doAsync(
                 HttpInfo.Builder()
                         .setUrl(url)
+                        .setRequestType(RequestType.GET)//设置请求方式
                         .addHead("head","test")//添加头参数
                         .addParam("param","test")//添加接口参数
                         .build(),

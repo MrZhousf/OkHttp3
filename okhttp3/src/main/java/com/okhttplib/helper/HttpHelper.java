@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
 import com.okhttplib.annotation.MineType;
-import com.okhttplib.annotation.RequestMethod;
+import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadMessage;
 import com.okhttplib.bean.UploadMessage;
@@ -70,7 +70,7 @@ class HttpHelper extends BaseHelper{
         if(!checkUrl(url)){
             return retInfo(info,HttpInfo.CheckURL);
         }
-        request = request == null ? buildRequest(info,helper.getRequestMethod(),helper.getProgressCallback()) : request;
+        request = request == null ? buildRequest(info,helper.getRequestType(),helper.getProgressCallback()) : request;
         showUrlLog(request);
         helper.setRequest(request);
         OkHttpClient httpClient = helper.getHttpClient();
@@ -124,7 +124,7 @@ class HttpHelper extends BaseHelper{
             OkMainHandler.getInstance().sendMessage(msg);
             return ;
         }
-        request = request == null ? buildRequest(info,helper.getRequestMethod(),helper.getProgressCallback()) : request;
+        request = request == null ? buildRequest(info,helper.getRequestType(),helper.getProgressCallback()) : request;
         showUrlLog(request);
         Call call = httpClient.newCall(request);
         BaseActivityLifecycleCallbacks.putCall(requestTag,call);
@@ -181,11 +181,11 @@ class HttpHelper extends BaseHelper{
     /**
      * 构建Request
      */
-    private Request buildRequest(HttpInfo info, @RequestMethod int method, ProgressCallback progressCallback){
+    private Request buildRequest(HttpInfo info, @RequestType int method, ProgressCallback progressCallback){
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
-        if(method == RequestMethod.POST){
+        if(method == RequestType.POST){
             if(info.getParamBytes() != null){
                 RequestBody byteBody = RequestBody.create(MediaType.parse(MineType.STREAM),info.getParamBytes());
                 requestBuilder.url(url).post(new ProgressRequestBody(byteBody,progressCallback,timeStamp,requestTag));
@@ -198,7 +198,7 @@ class HttpHelper extends BaseHelper{
             } else{
                 requestBuilder.url(url).post(packageFormBody(info,url,requestBuilder).build());
             }
-        } else if(method == RequestMethod.GET){
+        } else if(method == RequestType.GET){
             StringBuilder params = new StringBuilder();
             params.append(url);
             if(null != info.getParams() && !info.getParams().isEmpty()){
@@ -220,9 +220,9 @@ class HttpHelper extends BaseHelper{
                 }
             }
             requestBuilder.url(params.toString()).get();
-        } else if(method == RequestMethod.PUT){
+        } else if(method == RequestType.PUT){
             requestBuilder.url(url).put(packageFormBody(info,url,requestBuilder).build());
-        } else if(method == RequestMethod.DELETE){
+        } else if(method == RequestType.DELETE){
             requestBuilder.url(url).delete(packageFormBody(info,url,requestBuilder).build());
         } else{
             requestBuilder.url(url).get();

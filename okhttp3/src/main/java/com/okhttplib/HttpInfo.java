@@ -3,6 +3,7 @@ package com.okhttplib;
 import android.text.TextUtils;
 
 import com.okhttplib.annotation.Encoding;
+import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
@@ -29,6 +30,7 @@ public class HttpInfo {
     private List<DownloadFileInfo> downloadFiles;
     private Map<String,String> heads;
     private @Encoding String responseEncoding;
+    private @RequestType int requestType;
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -46,6 +48,7 @@ public class HttpInfo {
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
         this.responseEncoding = builder.responseEncoding;
+        this.requestType = builder.requestType;
     }
 
     public static Builder Builder() {
@@ -64,6 +67,7 @@ public class HttpInfo {
         private List<DownloadFileInfo> downloadFiles;//下载文件参数
         private Map<String,String> heads;//请求头参数http head
         private @Encoding String responseEncoding ;//服务器响应编码
+        private @RequestType  int requestType;//请求方式
 
 
         public Builder() {
@@ -325,6 +329,16 @@ public class HttpInfo {
             this.responseEncoding = responseEncoding;
             return this;
         }
+
+        /**
+         * 设置请求方式
+         * @param requestType 请求方式
+         */
+        public Builder setRequestType(@RequestType int requestType){
+            this.requestType = requestType;
+            return this;
+        }
+
     }
 
 
@@ -460,6 +474,10 @@ public class HttpInfo {
 
     public String getResponseEncoding() {
         return responseEncoding;
+    }
+
+    public @RequestType int getRequestType() {
+        return requestType;
     }
 
     public boolean isFromCache() {

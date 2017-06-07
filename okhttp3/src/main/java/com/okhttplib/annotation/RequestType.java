@@ -6,12 +6,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * 请求方法
+ * 请求方式
  * @author zhousf
  */
-@IntDef({RequestMethod.POST,RequestMethod.GET,RequestMethod.PUT,RequestMethod.DELETE})
+@IntDef({RequestType.POST, RequestType.GET, RequestType.PUT, RequestType.DELETE})
 @Retention(RetentionPolicy.SOURCE)
-public @interface RequestMethod {
+public @interface RequestType {
 
     /**
      * POST
