@@ -15,8 +15,9 @@ public class MediaTypeUtil {
     /**
      * 根据请求url返回媒体类型
      * @param url 请求地址
+     * @param requestEncoding 编码格式
      */
-    public static MediaType fetchFileMediaType(String url){
+    public static MediaType fetchFileMediaType(String url,String requestEncoding){
         if(!TextUtils.isEmpty(url) && url.contains(".")){
             String extension = url.substring(url.lastIndexOf(".") + 1);
             if("png".equals(extension)){
@@ -36,7 +37,7 @@ public class MediaTypeUtil {
             }else{
                 extension = MineType.FORM_DATA;
             }
-            return MediaType.parse(extension);
+            return MediaType.parse(extension+requestEncoding);
         }
         return null;
     }

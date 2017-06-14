@@ -109,7 +109,8 @@ public class MainActivity extends BaseActivity {
             public void run() {
                 final HttpInfo info = HttpInfo.Builder()
                         .setUrl(url)
-                        .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+                        .setResponseEncoding(Encoding.UTF_8)//设置该接口服务器响应编码
+                        .setRequestEncoding(Encoding.UTF_8)//设置该接口请求参数编码
                         .build();
                 OkHttpUtil.getDefault(this)
                         .doGetSync(info);

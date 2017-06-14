@@ -28,7 +28,7 @@ public @interface MineType {
     /**
      * JSON
      */
-    String JSON = "application/json; charset=utf-8";
+    String JSON = "application/json";
 
     /**
      * 二进制流
@@ -38,12 +38,12 @@ public @interface MineType {
     /**
      * 文档
      */
-    String MARKDOWN = "text/x-markdown; charset=utf-8";
+    String MARKDOWN = "text/x-markdown";
 
     /**
      * XML
      */
-    String XML = "text/xml; charset=utf-8";
+    String XML = "text/xml";
 
 
     /**

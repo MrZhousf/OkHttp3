@@ -83,9 +83,14 @@ class DownUpLoadHelper extends BaseHelper{
                 log.append("=");
                 log.append(filePath);
                 log.append(",");
-                mBuilder.addFormDataPart(interfaceParamName,
-                        file.getName(),
-                        RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath), file));
+                String requestEncoding = info.getRequestEncoding();
+                if(!TextUtils.isEmpty(requestEncoding)){
+                    requestEncoding = ";charset=" + requestEncoding.toLowerCase();
+                }else{
+                    requestEncoding = ";charset=" + helper.getResponseEncoding().toLowerCase();
+                }
+                mBuilder.addFormDataPart(interfaceParamName,file.getName(),
+                        RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath,requestEncoding), file));
             }
             showLog(log.toString());
             RequestBody requestBody = mBuilder.build();

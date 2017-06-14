@@ -32,6 +32,7 @@ public class HelperInfo {
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
     private String downloadFileDir;//下载文件保存目录
     private @Encoding String responseEncoding;//服务器响应编码
+    private @Encoding String requestEncoding;//请求参数编码
     private boolean isGzip = false;//Gzip压缩
 
 
@@ -121,6 +122,14 @@ public class HelperInfo {
 
     public void setResponseEncoding(@Encoding String responseEncoding) {
         this.responseEncoding = responseEncoding;
+    }
+
+    public @Encoding String getRequestEncoding() {
+        return requestEncoding;
+    }
+
+    public void setRequestEncoding(@Encoding String requestEncoding) {
+        this.requestEncoding = requestEncoding;
     }
 
     public int getCacheSurvivalTime() {

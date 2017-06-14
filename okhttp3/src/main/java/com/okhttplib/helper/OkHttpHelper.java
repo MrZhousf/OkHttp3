@@ -37,6 +37,7 @@ public class OkHttpHelper {
     private OkHttpClient httpClient;
     private @BusinessType int businessType;//业务类型
     private @Encoding String responseEncoding;//服务器响应编码
+    private @Encoding String requestEncoding;//请求参数编码
 
 
     private OkHttpHelper(Builder builder) {
@@ -49,6 +50,7 @@ public class OkHttpHelper {
         progressCallback = builder.progressCallback;
         businessType = builder.businessType;
         responseEncoding = builder.helperInfo.getResponseEncoding();
+        requestEncoding = builder.helperInfo.getRequestEncoding();
         builder.helperInfo.setHttpInfo(httpInfo);
         httpHelper = new HttpHelper(builder.helperInfo);
         if(null != downloadFileInfo || !uploadFileInfoList.isEmpty())
@@ -166,6 +168,10 @@ public class OkHttpHelper {
 
     String getResponseEncoding() {
         return responseEncoding;
+    }
+
+    String getRequestEncoding() {
+        return requestEncoding;
     }
 
     DownloadFileInfo getDownloadFileInfo() {

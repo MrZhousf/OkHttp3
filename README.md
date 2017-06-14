@@ -1,13 +1,13 @@
 ## OkHttp3
 基于OkHttp3封装的网络请求工具类
 ## 功能点
-* 支持Http/Https等协议
+* 支持Http/Https协议
 * 支持同步/异步请求
 * 支持Post/Get/Put/Delete请求
-* 支持Cookie持久化
-* 支持Gzip压缩
-* 支持协议头参数Head设置、二进制参数请求
-* 支持Unicode自动转码、服务器响应编码设置
+* 支持Cookie持久化，支持Gzip压缩
+* 支持协议头参数Head设置
+* 支持二进制参数、JSON、表单提交
+* 支持Unicode自动转码、请求参数编码以及服务器响应编码设置
 * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
 * 支持自定义缓存存活时间与缓存清理功能
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
@@ -136,6 +136,7 @@ OkHttpUtil.init(this)
         .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
         .setDownloadFileDir(downloadFileDir)//文件下载保存目录
         .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
+        .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
         .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
         .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
         .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(this)))//持久化cookie
@@ -173,20 +174,28 @@ OkHttpUtil.getDefault().cancelRequest("请求标识");
  
 ```
 
-## HttpInfo参数解析：表单提交采用addParam方法，JSON提交采用addParamJson方法
+## HttpInfo参数解析：
+* 键值对提交采用addParam/addParams方法
+* Json提交采用addParamJson方法
+* 表单提交采用addParamForm方法
+* 二进制字节流提交采用addParamBytes方法
+* 文件上传采用addDownloadFile方法
+* 文件下载采用addUploadFile方法
 ```java
 HttpInfo.Builder()
         .setUrl(url)
         .setRequestType(RequestType.GET)//请求方式
         .addHead("head","test")//添加头参数
-        .addParam("param","test")//添加接口参数
-        .addParams(new HashMap<String, String>())//添加接口参数集合
+        .addParam("param","test")//添加接口键值对参数
+        .addParams(new HashMap<String, String>())//添加接口键值对参数集合
         .addParamBytes("byte")//添加二进制流
         .addParamJson("json")//添加Json参数
         .addParamFile(new File(""))//添加文档参数
+        .addParamForm("form")//添加表单参数
         .addDownloadFile(new DownloadFileInfo("fileURL", "myMP4",null))//添加下载文件
         .addUploadFile("interfaceParamName","filePathWithName",null)//添加上传文件
         .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+        .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
         .build()
 ```
 
@@ -201,7 +210,8 @@ HttpInfo.Builder()
             public void run() {
                 final HttpInfo info = HttpInfo.Builder()
                         .setUrl(url)
-                        .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
+                        .setResponseEncoding(Encoding.UTF_8)//设置该接口的服务器响应编码
+                        .setRequestEncoding(Encoding.UTF_8)//设置该接口的请求参数编码
                         .build();
                 OkHttpUtil.getDefault(this)
                         .doGetSync(info);

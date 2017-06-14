@@ -26,10 +26,12 @@ public class HttpInfo {
     private byte[] paramBytes;
     private File paramFile;
     private String paramJson;
+    private String paramForm;
     private List<UploadFileInfo> uploadFiles;
     private List<DownloadFileInfo> downloadFiles;
     private Map<String,String> heads;
     private @Encoding String responseEncoding;
+    private @Encoding String requestEncoding ;
     private @RequestType int requestType;
 
     //**响应返回参数定义**/
@@ -45,9 +47,11 @@ public class HttpInfo {
         this.paramFile = builder.paramFile;
         this.paramJson = builder.paramJson;
         this.uploadFiles = builder.uploadFiles;
+        this.paramForm = builder.paramForm;
         this.downloadFiles = builder.downloadFiles;
         this.heads = builder.heads;
         this.responseEncoding = builder.responseEncoding;
+        this.requestEncoding = builder.requestEncoding;
         this.requestType = builder.requestType;
     }
 
@@ -59,14 +63,16 @@ public class HttpInfo {
     public static final class Builder {
 
         private String url;//请求地址
-        private Map<String,String> params;//请求参数
+        private Map<String,String> params;//请求参数：键值对
         private byte[] paramBytes;//请求参数（字节数组）
         private File paramFile;//请求参数（文件）
         private String paramJson;//请求参数:application/json
+        private String paramForm;//请求参数
         private List<UploadFileInfo> uploadFiles;//上传文件参数
         private List<DownloadFileInfo> downloadFiles;//下载文件参数
         private Map<String,String> heads;//请求头参数http head
-        private @Encoding String responseEncoding ;//服务器响应编码
+        private @Encoding String responseEncoding;//服务器响应编码
+        private @Encoding String requestEncoding;//请求参数编码
         private @RequestType  int requestType;//请求方式
 
 
@@ -98,7 +104,7 @@ public class HttpInfo {
         }
 
         /**
-         * 添加接口参数
+         * 添加接口参数：键值对
          * @param key 参数名
          * @param value 参数值
          */
@@ -109,6 +115,20 @@ public class HttpInfo {
                 value = value == null ? "" : value;
                 this.params.put(key,value);
             }
+            return this;
+        }
+
+        /**
+         * 添加接口参数：表单提交
+         * 请采用POST请求方式
+         * MediaType.parse("application/x-www-form-urlencoded")
+         * @param paramForm 参数值
+         */
+        public Builder addParamForm(String paramForm){
+            if(TextUtils.isEmpty(paramForm)){
+                throw new IllegalArgumentException("param must not be null");
+            }
+            this.paramForm = paramForm;
             return this;
         }
 
@@ -331,6 +351,15 @@ public class HttpInfo {
         }
 
         /**
+         * 设置请求参数编码格式（默认：UTF-8）
+         * @param requestEncoding 编码格式
+         */
+        public Builder setRequestEncoding(@Encoding String requestEncoding) {
+            this.requestEncoding = requestEncoding;
+            return this;
+        }
+
+        /**
          * 设置请求方式
          * @param requestType 请求方式
          */
@@ -456,6 +485,10 @@ public class HttpInfo {
         return paramJson;
     }
 
+    public String getParamForm() {
+        return paramForm;
+    }
+
     public List<UploadFileInfo> getUploadFiles() {
         return uploadFiles;
     }
@@ -474,6 +507,10 @@ public class HttpInfo {
 
     public String getResponseEncoding() {
         return responseEncoding;
+    }
+
+    public String getRequestEncoding() {
+        return requestEncoding;
     }
 
     public @RequestType int getRequestType() {

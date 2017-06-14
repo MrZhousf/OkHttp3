@@ -469,6 +469,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setDefault(builder.isDefault);
         helperInfo.setLogTAG(builder.httpLogTAG == null ? TAG : builder.httpLogTAG);
         helperInfo.setResponseEncoding(builder.responseEncoding);
+        helperInfo.setRequestEncoding(builder.requestEncoding);
         helperInfo.setCacheSurvivalTime(cacheSurvivalTime);
         helperInfo.setCacheType(cacheType);
         helperInfo.setGzip(builder.isGzip);
@@ -521,7 +522,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private String requestTag;
         private CookieJar cookieJar;
         private boolean isDefault;//是否默认请求
-        private @Encoding String responseEncoding = Encoding.UTF_8 ;//服务器响应编码
+        private @Encoding String responseEncoding;//服务器响应编码
+        private @Encoding String requestEncoding;//请求参数应编码
         private boolean isGzip = false;//Gzip压缩
 
         public Builder() {
@@ -574,6 +576,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setShowLifecycleLog(false);
             setDownloadFileDir(Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/");
             setIsGzip(false);
+            setResponseEncoding(Encoding.UTF_8);
+            setRequestEncoding(Encoding.UTF_8);
         }
 
         /**
@@ -601,6 +605,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             }
             setCookieJar(builder.cookieJar);
             setResponseEncoding(builder.responseEncoding);
+            setRequestEncoding(builder.requestEncoding);
             setIsGzip(builder.isGzip);
         }
 
@@ -753,6 +758,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         //设置服务器响应编码（默认：UTF-8）
         public Builder setResponseEncoding(@Encoding String responseEncoding) {
             this.responseEncoding = responseEncoding;
+            return this;
+        }
+
+        //设置请求参数编码（默认：UTF-8）
+        public Builder setRequestEncoding(@Encoding String requestEncoding){
+            this.requestEncoding = requestEncoding;
             return this;
         }
 

@@ -186,15 +186,27 @@ class HttpHelper extends BaseHelper{
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
         if(method == RequestType.POST){
+            //设置请求参数编码格式
+            String requestEncoding = info.getRequestEncoding();
+            if(TextUtils.isEmpty(requestEncoding)){
+                requestEncoding = ";charset=" + helperInfo.getRequestEncoding().toLowerCase();
+            }else{
+                requestEncoding = ";charset=" + requestEncoding.toLowerCase();
+            }
             if(info.getParamBytes() != null){
-                RequestBody byteBody = RequestBody.create(MediaType.parse(MineType.STREAM),info.getParamBytes());
+                RequestBody byteBody = RequestBody.create(MediaType.parse(MineType.STREAM+requestEncoding),info.getParamBytes());
                 requestBuilder.url(url).post(new ProgressRequestBody(byteBody,progressCallback,timeStamp,requestTag));
             } else if(info.getParamFile() != null){
-                RequestBody fileBody = RequestBody.create(MediaType.parse(MineType.MARKDOWN),info.getParamFile());
+                RequestBody fileBody = RequestBody.create(MediaType.parse(MineType.MARKDOWN+requestEncoding),info.getParamFile());
                 requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
             } else if(info.getParamJson() != null){
-                RequestBody jsonBody = RequestBody.create(MediaType.parse(MineType.JSON),info.getParamJson());
+                showLog("PostParams: "+info.getParamJson());
+                RequestBody jsonBody = RequestBody.create(MediaType.parse(MineType.JSON+requestEncoding),info.getParamJson());
                 requestBuilder.url(url).post(new ProgressRequestBody(jsonBody,progressCallback,timeStamp,requestTag));
+            } else if(info.getParamForm() != null){
+                showLog("PostParams: "+info.getParamForm());
+                RequestBody formBody = RequestBody.create(MediaType.parse(MineType.FORM+requestEncoding),info.getParamForm());
+                requestBuilder.url(url).post(new ProgressRequestBody(formBody,progressCallback,timeStamp,requestTag));
             } else{
                 requestBuilder.url(url).post(packageFormBody(info,url,requestBuilder).build());
             }
