@@ -7,7 +7,7 @@ import android.text.TextUtils;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
-import com.okhttplib.annotation.MineType;
+import com.okhttplib.annotation.ContentType;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.bean.DownloadMessage;
@@ -185,32 +185,7 @@ class HttpHelper extends BaseHelper{
         Request request;
         Request.Builder requestBuilder = new Request.Builder();
         final String url = info.getUrl();
-        if(method == RequestType.POST){
-            //设置请求参数编码格式
-            String requestEncoding = info.getRequestEncoding();
-            if(TextUtils.isEmpty(requestEncoding)){
-                requestEncoding = ";charset=" + helperInfo.getRequestEncoding().toLowerCase();
-            }else{
-                requestEncoding = ";charset=" + requestEncoding.toLowerCase();
-            }
-            if(info.getParamBytes() != null){
-                RequestBody byteBody = RequestBody.create(MediaType.parse(MineType.STREAM+requestEncoding),info.getParamBytes());
-                requestBuilder.url(url).post(new ProgressRequestBody(byteBody,progressCallback,timeStamp,requestTag));
-            } else if(info.getParamFile() != null){
-                RequestBody fileBody = RequestBody.create(MediaType.parse(MineType.MARKDOWN+requestEncoding),info.getParamFile());
-                requestBuilder.url(url).post(new ProgressRequestBody(fileBody,progressCallback,timeStamp,requestTag));
-            } else if(info.getParamJson() != null){
-                showLog("PostParams: "+info.getParamJson());
-                RequestBody jsonBody = RequestBody.create(MediaType.parse(MineType.JSON+requestEncoding),info.getParamJson());
-                requestBuilder.url(url).post(new ProgressRequestBody(jsonBody,progressCallback,timeStamp,requestTag));
-            } else if(info.getParamForm() != null){
-                showLog("PostParams: "+info.getParamForm());
-                RequestBody formBody = RequestBody.create(MediaType.parse(MineType.FORM+requestEncoding),info.getParamForm());
-                requestBuilder.url(url).post(new ProgressRequestBody(formBody,progressCallback,timeStamp,requestTag));
-            } else{
-                requestBuilder.url(url).post(packageFormBody(info,url,requestBuilder).build());
-            }
-        } else if(method == RequestType.GET){
+        if(method == RequestType.GET){
             StringBuilder params = new StringBuilder();
             params.append(url);
             if(null != info.getParams() && !info.getParams().isEmpty()){
@@ -232,12 +207,18 @@ class HttpHelper extends BaseHelper{
                 }
             }
             requestBuilder.url(params.toString()).get();
-        } else if(method == RequestType.PUT){
-            requestBuilder.url(url).put(packageFormBody(info,url,requestBuilder).build());
-        } else if(method == RequestType.DELETE){
-            requestBuilder.url(url).delete(packageFormBody(info,url,requestBuilder).build());
-        } else{
-            requestBuilder.url(url).get();
+        }else{
+            RequestBody requestBody = matchContentType(info,requestBuilder,progressCallback);
+            ProgressRequestBody progress = new ProgressRequestBody(requestBody,progressCallback,timeStamp,requestTag);
+            if(method == RequestType.POST){
+                requestBuilder.url(url).post(progress);
+            } else if(method == RequestType.PUT){
+                requestBuilder.url(url).put(progress);
+            } else if(method == RequestType.DELETE){
+                requestBuilder.url(url).delete(progress);
+            } else{
+                requestBuilder.url(url).post(progress);
+            }
         }
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
             requestBuilder.addHeader("Connection", "close");
@@ -247,7 +228,33 @@ class HttpHelper extends BaseHelper{
         return request;
     }
 
-    private FormBody.Builder packageFormBody(HttpInfo info,String url,Request.Builder requestBuilder){
+    private RequestBody matchContentType(HttpInfo info, Request.Builder requestBuilder, ProgressCallback progressCallback){
+        final String url = info.getUrl();
+        RequestBody requestBody;
+        //设置请求参数编码格式
+        String requestEncoding = info.getRequestEncoding();
+        if(TextUtils.isEmpty(requestEncoding)){
+            requestEncoding = ";charset=" + helperInfo.getRequestEncoding().toLowerCase();
+        }else{
+            requestEncoding = ";charset=" + requestEncoding.toLowerCase();
+        }
+        if(info.getParamBytes() != null){
+            requestBody = RequestBody.create(MediaType.parse(ContentType.STREAM+requestEncoding),info.getParamBytes());
+        } else if(info.getParamFile() != null){
+            requestBody = RequestBody.create(MediaType.parse(ContentType.MARKDOWN+requestEncoding),info.getParamFile());
+        } else if(info.getParamJson() != null){
+            showLog("PostParams: "+info.getParamJson());
+            requestBody = RequestBody.create(MediaType.parse(ContentType.JSON+requestEncoding),info.getParamJson());
+        } else if(info.getParamForm() != null){
+            showLog("PostParams: "+info.getParamForm());
+            requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),info.getParamForm());
+        } else{
+            requestBody = packageFormBody(info,url,requestBuilder);
+        }
+        return requestBody;
+    }
+
+    private RequestBody packageFormBody(HttpInfo info,String url,Request.Builder requestBuilder){
         FormBody.Builder builder = new FormBody.Builder();
         if(null != info.getParams() && !info.getParams().isEmpty()){
             StringBuilder log = new StringBuilder("PostParams: ");
@@ -262,7 +269,7 @@ class HttpHelper extends BaseHelper{
             }
             showLog(log.toString());
         }
-        return builder;
+        return builder.build();
     }
 
     private void showUrlLog(Request request){

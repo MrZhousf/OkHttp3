@@ -6,19 +6,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * MIME媒体类型
+ * 内容类型
  * @author zhousf
  */
 @StringDef({
-        MineType.FORM,
-        MineType.JSON,
-        MineType.STREAM,
-        MineType.MARKDOWN,
-        MineType.XML,
-        MineType.FORM_DATA
+        ContentType.FORM,
+        ContentType.JSON,
+        ContentType.STREAM,
+        ContentType.MARKDOWN,
+        ContentType.XML,
+        ContentType.FORM_DATA
 })
 @Retention(RetentionPolicy.SOURCE)
-public @interface MineType {
+public @interface ContentType {
 
     /**
      * 表单
