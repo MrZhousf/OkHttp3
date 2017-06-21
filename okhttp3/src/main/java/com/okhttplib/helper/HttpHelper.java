@@ -243,10 +243,10 @@ class HttpHelper extends BaseHelper{
         } else if(info.getParamFile() != null){
             requestBody = RequestBody.create(MediaType.parse(ContentType.MARKDOWN+requestEncoding),info.getParamFile());
         } else if(info.getParamJson() != null){
-            showLog("PostParams: "+info.getParamJson());
+            showLog("Params: "+info.getParamJson());
             requestBody = RequestBody.create(MediaType.parse(ContentType.JSON+requestEncoding),info.getParamJson());
         } else if(info.getParamForm() != null){
-            showLog("PostParams: "+info.getParamForm());
+            showLog("Params: "+info.getParamForm());
             requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),info.getParamForm());
         } else{
             requestBody = packageFormBody(info,url,requestBuilder);
@@ -257,15 +257,17 @@ class HttpHelper extends BaseHelper{
     private RequestBody packageFormBody(HttpInfo info,String url,Request.Builder requestBuilder){
         FormBody.Builder builder = new FormBody.Builder();
         if(null != info.getParams() && !info.getParams().isEmpty()){
-            StringBuilder log = new StringBuilder("PostParams: ");
-            String logInfo;
+            StringBuilder log = new StringBuilder("Params: ");
             String value;
             for (String key : info.getParams().keySet()) {
                 value = info.getParams().get(key);
                 value = value == null ? "" : value;
                 builder.add(key, value);
-                logInfo = key+"="+value+", ";
-                log.append(logInfo);
+                log.append(key).append("=").append(value).append(" | ");
+            }
+            int point = log.lastIndexOf("|");
+            if(point != -1){
+                log.deleteCharAt(point);
             }
             showLog(log.toString());
         }
@@ -433,9 +435,16 @@ class HttpHelper extends BaseHelper{
      */
     Request.Builder addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
         if(null != info.getHeads() && !info.getHeads().isEmpty()){
+            StringBuilder log = new StringBuilder("Heads: ");
             for (String key : info.getHeads().keySet()) {
                 requestBuilder.addHeader(key,info.getHeads().get(key));
+                log.append(key).append("=").append(info.getHeads().get(key)).append(" | ");
             }
+            int point = log.lastIndexOf("|");
+            if(point != -1){
+                log.deleteCharAt(point);
+            }
+            showLog(log.toString());
         }
         return requestBuilder;
     }
