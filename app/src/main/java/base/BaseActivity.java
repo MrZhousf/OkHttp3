@@ -31,16 +31,11 @@ public abstract class BaseActivity extends AppCompatActivity implements
      * 需要进行检测的权限数组
      */
     protected String[] needPermissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.READ_PHONE_STATE
     };
 
     private static final int PERMISSION_REQUEST_CODE = 0;
