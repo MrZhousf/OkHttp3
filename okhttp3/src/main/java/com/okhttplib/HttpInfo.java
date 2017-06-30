@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Http请求实体类
@@ -33,6 +34,8 @@ public class HttpInfo {
     private @Encoding String responseEncoding;
     private @Encoding String requestEncoding ;
     private @RequestType int requestType;
+    private long delayExecTime;
+    private TimeUnit delayExecUnit;
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -53,6 +56,8 @@ public class HttpInfo {
         this.responseEncoding = builder.responseEncoding;
         this.requestEncoding = builder.requestEncoding;
         this.requestType = builder.requestType;
+        this.delayExecTime = builder.delayExecTime;
+        this.delayExecUnit = builder.delayExecUnit;
     }
 
     public static Builder Builder() {
@@ -74,6 +79,8 @@ public class HttpInfo {
         private @Encoding String responseEncoding;//服务器响应编码
         private @Encoding String requestEncoding;//请求参数编码
         private @RequestType  int requestType;//请求方式
+        private long delayExecTime = 0;//延迟执行时间
+        private TimeUnit delayExecUnit = TimeUnit.SECONDS;//延迟执行时间单位
 
 
         public Builder() {
@@ -368,6 +375,23 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 设置异步延迟执行时间
+         * @param delayExecTime 延迟执行时间
+         * @param timeUnit 时间单位
+         */
+        public Builder setDelayExec(long delayExecTime,TimeUnit timeUnit){
+            this.delayExecTime = delayExecTime;
+            this.delayExecUnit = timeUnit;
+            if(delayExecTime < 0){
+                this.delayExecTime = 0;
+            }
+            if(timeUnit == null){
+                this.delayExecUnit = TimeUnit.SECONDS;
+            }
+            return this;
+        }
+
     }
 
 
@@ -523,5 +547,13 @@ public class HttpInfo {
 
     public void setFromCache(boolean fromCache) {
         this.fromCache = fromCache;
+    }
+
+    public long getDelayExecTime() {
+        return delayExecTime;
+    }
+
+    public TimeUnit getDelayExecUnit() {
+        return delayExecUnit;
     }
 }

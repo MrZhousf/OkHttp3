@@ -3,6 +3,7 @@
 ## 功能点
 * 支持Http/Https协议
 * 支持同步/异步请求
+* 支持异步延迟执行
 * 支持Post/Get/Put/Delete请求
 * 支持Cookie持久化，支持Gzip压缩
 * 支持协议头参数Head设置
@@ -48,17 +49,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.8.1</version>
+  <version>2.8.5</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.8.1'
+compile 'com.zhousf.lib:okhttp3:2.8.5'
 ```
 若出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.8.1'){
+compile ('com.zhousf.lib:okhttp3:2.8.5'){
     exclude(module: 'support-annotations')
 }
 ```
@@ -99,6 +100,8 @@ compile ('com.zhousf.lib:okhttp3:2.8.1'){
     *  增加二进制流请求功能，DEMO中已添加动态权限申请功能
 * 2017-6-1
     *  支持PUT、DELETE请求
+* 2017-6-30
+    *  支持异步延迟执行
 
 ## 权限
 ```
@@ -196,6 +199,7 @@ HttpInfo.Builder()
         .addUploadFile("interfaceParamName","filePathWithName",null)//添加上传文件
         .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
         .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
+        .setDelayExec(2, TimeUnit.SECONDS)//延迟2秒执行
         .build()
 ```
 

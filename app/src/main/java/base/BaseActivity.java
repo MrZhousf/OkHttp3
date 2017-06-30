@@ -1,6 +1,5 @@
 package base;
 
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -12,16 +11,16 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-
 import com.okhttp3.R;
-
 import java.util.ArrayList;
 import java.util.List;
-
+import base.networkstate.NetInfo;
+import base.networkstate.NetworkStateListener;
+import base.networkstate.NetworkStateReceiver;
 import butterknife.ButterKnife;
 
 /**
- * Activity基类：支持动态权限申请
+ * Activity基类：支持动态权限申请，网络状态监听
  * @author zhousf
  */
 public abstract class BaseActivity extends AppCompatActivity implements
@@ -45,6 +44,9 @@ public abstract class BaseActivity extends AppCompatActivity implements
      */
     private boolean isNeedCheck = true;
 
+    /** 网络状态监听器 **/
+    private NetworkStateListener networkStateListener;
+
     protected abstract int initLayout();
 
     @Override
@@ -52,6 +54,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(initLayout());
         ButterKnife.bind(this);
+        initNetworkStateListener();
     }
 
     @Override
@@ -61,6 +64,30 @@ public abstract class BaseActivity extends AppCompatActivity implements
             checkPermissions(needPermissions);
         }
     }
+
+    /**
+     * 初始化网络状态监听器
+     */
+    private void initNetworkStateListener(){
+        NetworkStateReceiver.registerNetworkStateReceiver(this);
+        networkStateListener = new NetworkStateListener() {
+            @Override
+            public void onNetworkState(boolean isNetworkAvailable, NetInfo netInfo) {
+                BaseActivity.this.onNetworkState(isNetworkAvailable,netInfo);
+            }
+        };
+        //添加网络状态监听
+        NetworkStateReceiver.addNetworkStateListener(networkStateListener);
+    }
+
+    /**
+     * 网络状态
+     * @param isNetworkAvailable 网络是否可用
+     * @param netInfo 网络信息
+     */
+    public  void onNetworkState(boolean isNetworkAvailable, NetInfo netInfo){
+
+    };
 
     /**
      * 检测权限
@@ -154,6 +181,11 @@ public abstract class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onDestroy() {
         ButterKnife.unbind(this);
+        //移除网络状态监听
+        if(null != networkStateListener) {
+            NetworkStateReceiver.removeNetworkStateListener(networkStateListener);
+            NetworkStateReceiver.unRegisterNetworkStateReceiver(this);
+        }
         super.onDestroy();
     }
 

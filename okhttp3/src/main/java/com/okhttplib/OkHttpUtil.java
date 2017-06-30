@@ -19,14 +19,12 @@ import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import okhttp3.Cache;
 import okhttp3.CookieJar;
 import okhttp3.Interceptor;
@@ -43,6 +41,7 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
  * 支持协议头参数Head设置、二进制参数请求
  * 支持Unicode自动转码、服务器响应编码设置
  * 支持同步/异步请求
+ * 支持异步延迟执行
  * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
  * 支持自定义缓存存活时间与缓存清理功能
  * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
@@ -64,10 +63,10 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private static Application application;
     private static Builder builderGlobal;
     private static OkHttpClient httpClient;
-    private static ExecutorService executorService;
+    private static ScheduledExecutorService executorService;
     private Builder builder;
     private int cacheSurvivalTime = 0;//缓存存活时间（秒）
-    private @CacheType int cacheType = CacheType.FORCE_NETWORK;//缓存类型
+    private @CacheType int cacheType = FORCE_NETWORK;//缓存类型
 
     /**
      * 初始化：请在Application中调用
@@ -117,14 +116,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 结果回调接口
      */
     @Override
-    public void doAsync(HttpInfo info, BaseCallback callback) {
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(info.getRequestType())
-                .callback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doAsync(final HttpInfo info, final BaseCallback callback) {
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(info.getRequestType())
+                        .callback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -165,14 +169,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doPostAsync(HttpInfo info, BaseCallback callback){
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(RequestType.POST)
-                .callback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doPostAsync(final HttpInfo info,final BaseCallback callback){
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(RequestType.POST)
+                        .callback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -181,14 +190,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 进度回调接口
      */
     @Override
-    public void doPostAsync(HttpInfo info, ProgressCallback callback) {
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(RequestType.POST)
-                .progressCallback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doPostAsync(final HttpInfo info,final ProgressCallback callback) {
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(RequestType.POST)
+                        .progressCallback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -212,14 +226,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doGetAsync(HttpInfo info, BaseCallback callback) {
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(RequestType.GET)
-                .callback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doGetAsync(final HttpInfo info,final BaseCallback callback) {
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(RequestType.GET)
+                        .callback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -230,7 +249,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doUploadFileAsync(final HttpInfo info){
         List<UploadFileInfo> uploadFiles = info.getUploadFiles();
         for(final UploadFileInfo fileInfo : uploadFiles){
-            executorService.execute(new Runnable() {
+            executorService.schedule(new Runnable() {
                 @Override
                 public void run() {
                     OkHttpHelper.Builder()
@@ -241,7 +260,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                             .build()
                             .uploadFile();
                 }
-            });
+            },info.getDelayExecTime(),info.getDelayExecUnit());
         }
     }
 
@@ -252,7 +271,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     @Override
     public void doUploadFileAsync(final HttpInfo info, final ProgressCallback callback){
         final List<UploadFileInfo> uploadFiles = info.getUploadFiles();
-        executorService.execute(new Runnable() {
+        executorService.schedule(new Runnable() {
             @Override
             public void run() {
                 OkHttpHelper.Builder()
@@ -264,7 +283,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .build()
                         .uploadFile();
             }
-        });
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -310,7 +329,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public void doDownloadFileAsync(final HttpInfo info){
         List<DownloadFileInfo> downloadFiles = info.getDownloadFiles();
         for(final DownloadFileInfo fileInfo : downloadFiles){
-            executorService.execute(new Runnable() {
+            executorService.schedule(new Runnable() {
                 @Override
                 public void run() {
                     OkHttpHelper.Builder()
@@ -322,7 +341,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                             .build()
                             .downloadFile();
                 }
-            });
+            },info.getDelayExecTime(),info.getDelayExecUnit());
         }
     }
 
@@ -366,14 +385,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doDeleteAsync(HttpInfo info, BaseCallback callback){
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(RequestType.DELETE)
-                .callback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doDeleteAsync(final HttpInfo info,final BaseCallback callback){
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(RequestType.DELETE)
+                        .callback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -397,14 +421,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * @param callback 回调接口
      */
     @Override
-    public void doPutAsync(HttpInfo info, BaseCallback callback){
-        OkHttpHelper.Builder()
-                .httpInfo(info)
-                .requestType(RequestType.PUT)
-                .callback(callback)
-                .helperInfo(packageHelperInfo())
-                .build()
-                .doRequestAsync();
+    public void doPutAsync(final HttpInfo info,final BaseCallback callback){
+        executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpHelper.Builder()
+                        .httpInfo(info)
+                        .requestType(RequestType.PUT)
+                        .callback(callback)
+                        .helperInfo(packageHelperInfo())
+                        .build()
+                        .doRequestAsync();
+            }
+        },info.getDelayExecTime(),info.getDelayExecUnit());
     }
 
     /**
@@ -440,9 +469,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         this.cacheType = builder.cacheType;
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
         if(null == application)
-            this.cacheType = FORCE_NETWORK;
+            this.cacheType = CacheType.FORCE_NETWORK;
         if(null == executorService)
-            executorService = Executors.newCachedThreadPool();
+            executorService = new ScheduledThreadPoolExecutor(20);
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
         if(builder.isGlobalConfig){
             OkHttpHelper.Builder()
@@ -567,7 +596,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setWriteTimeout(30);
             setRetryOnConnectionFailure(true);
             setCacheSurvivalTime(0);
-            setCacheType(CacheType.FORCE_NETWORK);
+            setCacheType(FORCE_NETWORK);
             setNetworkInterceptors(null);
             setInterceptors(null);
             setResultInterceptors(null);
