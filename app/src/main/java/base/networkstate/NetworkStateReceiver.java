@@ -35,12 +35,13 @@ public class NetworkStateReceiver extends BroadcastReceiver {
 
 
     public static BroadcastReceiver getBroadcastReceiver(){
-        return broadcastReceiver == null ? new NetworkStateReceiver() : broadcastReceiver;
+        return broadcastReceiver == null ? broadcastReceiver = new NetworkStateReceiver() : broadcastReceiver;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        broadcastReceiver = NetworkStateReceiver.this;
+        if(broadcastReceiver == null)
+            broadcastReceiver = NetworkStateReceiver.this;
         if (intent.getAction().equalsIgnoreCase(ANDROID_NET_CHANGE_ACTION)) {
             boolean isNetworkAvailable = NetworkUtil.isNetworkAvailable(context);
             String networkType = NetworkUtil.getNetworkType(context);

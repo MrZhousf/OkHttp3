@@ -60,7 +60,7 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 public class OkHttpUtil implements OkHttpUtilInterface{
 
     private final String TAG = getClass().getSimpleName();
-    private static Application application;
+    private static Context context;
     private static Builder builderGlobal;
     private static OkHttpClient httpClient;
     private static ScheduledExecutorService executorService;
@@ -72,9 +72,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
      * 初始化：请在Application中调用
      * @param context 上下文
      */
-    public static Builder init(Application context){
-        application = context;
-        application.registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
+    public static Builder init(Context context){
+        OkHttpUtil.context = context;
+        ((Application)OkHttpUtil.context).registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
         return BuilderGlobal();
     }
 
@@ -455,9 +455,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     }
 
     public boolean isNetworkAvailable() {
-        if(application == null)
+        if(context == null)
             return true;
-        ConnectivityManager cm = (ConnectivityManager) application
+        ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo net = cm.getActiveNetworkInfo();
         return net != null && net.getState() == NetworkInfo.State.CONNECTED;
@@ -468,7 +468,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         this.builder = builder;
         this.cacheType = builder.cacheType;
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
-        if(null == application)
+        if(null == context)
             this.cacheType = CacheType.FORCE_NETWORK;
         if(null == executorService)
             executorService = new ScheduledThreadPoolExecutor(20);
@@ -586,8 +586,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
          */
         private void initDefaultConfig(){
             setMaxCacheSize(10 * 1024 * 1024);
-            if(null != application){
-                setCachedDir(application.getExternalCacheDir());
+            if(null != context){
+                setCachedDir(context.getExternalCacheDir());
             }else{
                 setCachedDir(Environment.getExternalStorageDirectory());
             }

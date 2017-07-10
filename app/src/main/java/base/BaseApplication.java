@@ -44,7 +44,7 @@ public class BaseApplication extends Application {
                 .setHttpLogTAG("HttpLog")//设置请求日志标识
                 .setIsGzip(false)//Gzip压缩，需要服务端支持
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(false)//显示Activity销毁日志
+                .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
                 .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
