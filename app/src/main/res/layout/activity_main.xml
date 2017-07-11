@@ -18,48 +18,56 @@
         android:id="@+id/sync_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="同步请求"
         />
     <Button
         android:id="@+id/async_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="异步请求"
         />
     <Button
         android:id="@+id/force_network_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="仅网络"
         />
     <Button
         android:id="@+id/force_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="仅缓存"
         />
     <Button
         android:id="@+id/network_then_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="5dp"
         android:text="先网络再缓存"
         />
     <Button
         android:id="@+id/cache_then_network_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="先缓存再网络"
         />
     <Button
         android:id="@+id/ten_second_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="缓存10秒失效"
         />
     <Button
         android:id="@+id/delete_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="2dp"
         android:text="清理缓存"
         />
 
