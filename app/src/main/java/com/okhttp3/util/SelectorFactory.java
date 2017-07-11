@@ -13,7 +13,8 @@ import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.TextView;
-//
+
+//选择器工厂：边框设置，字体设置
 public class SelectorFactory {
 
     public static ShapeSelector newShapeSelector() {
