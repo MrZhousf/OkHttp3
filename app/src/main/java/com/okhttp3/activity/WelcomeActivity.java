@@ -40,7 +40,7 @@ public class WelcomeActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //设置按钮样式
+        //设置按钮圆角样式
         SelectorFactory.newShapeSelector()
                 .setStrokeWidth(2)
                 .setCornerRadius(15)
