@@ -35,11 +35,6 @@ public class BaseProvider extends ContentProvider {
      */
     void initOkHttp(Context context){
         String downloadFileDir = Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/";
-        String cacheDir = Environment.getExternalStorageDirectory().getPath();
-//        if(context.getExternalCacheDir() != null){
-//            //缓存目录，APP卸载后会自动删除缓存数据
-//            cacheDir = context.getExternalCacheDir().getPath();
-//        }
         OkHttpUtil.init(context)
                 .setConnectTimeout(15)//连接超时时间
                 .setWriteTimeout(15)//写超时时间
@@ -49,9 +44,8 @@ public class BaseProvider extends ContentProvider {
                 .setHttpLogTAG("HttpLog")//设置请求日志标识
                 .setIsGzip(false)//Gzip压缩，需要服务端支持
                 .setShowHttpLog(true)//显示请求日志
-                .setShowLifecycleLog(true)//显示Activity销毁日志
+                .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
-//                .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
                 .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
