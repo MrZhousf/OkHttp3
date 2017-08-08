@@ -49,17 +49,17 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.8.8</version>
+  <version>2.8.9</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.8.8'
+compile 'com.zhousf.lib:okhttp3:2.8.9'
 ```
 若出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.8.8'){
+compile ('com.zhousf.lib:okhttp3:2.8.9'){
     exclude(module: 'support-annotations')
 }
 ```
