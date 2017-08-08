@@ -46,7 +46,7 @@
         android:id="@+id/network_then_cache_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="2dp"
         android:text="先网络再缓存"
         />
     <Button
