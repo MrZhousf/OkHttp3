@@ -16,8 +16,6 @@ import com.okhttplib.cookie.PersistentCookieJar;
 import com.okhttplib.cookie.cache.SetCookieCache;
 import com.okhttplib.cookie.persistence.SharedPrefsCookiePersistor;
 
-import java.io.File;
-
 /**
  * Author : zhousf
  * Description : 采用占位方式初始化第三方组件（onCreate比Application的onCreate先执行）
@@ -38,10 +36,10 @@ public class BaseProvider extends ContentProvider {
     void initOkHttp(Context context){
         String downloadFileDir = Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/";
         String cacheDir = Environment.getExternalStorageDirectory().getPath();
-        if(context.getExternalCacheDir() != null){
-            //缓存目录，APP卸载后会自动删除缓存数据
-            cacheDir = context.getExternalCacheDir().getPath();
-        }
+//        if(context.getExternalCacheDir() != null){
+//            //缓存目录，APP卸载后会自动删除缓存数据
+//            cacheDir = context.getExternalCacheDir().getPath();
+//        }
         OkHttpUtil.init(context)
                 .setConnectTimeout(15)//连接超时时间
                 .setWriteTimeout(15)//写超时时间
@@ -53,7 +51,7 @@ public class BaseProvider extends ContentProvider {
                 .setShowHttpLog(true)//显示请求日志
                 .setShowLifecycleLog(true)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
-                .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
+//                .setCachedDir(new File(cacheDir,"okHttp_cache"))//缓存目录
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
                 .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码

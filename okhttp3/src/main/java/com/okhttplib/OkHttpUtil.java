@@ -510,8 +510,10 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
                 .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
-                .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure);
+        if(builder.cachedDir != null){
+            clientBuilder.cache(new Cache(builder.cachedDir,builder.maxCacheSize));
+        }
         if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
         if(null != builder.interceptors && !builder.interceptors.isEmpty())
@@ -586,11 +588,6 @@ public class OkHttpUtil implements OkHttpUtilInterface{
          */
         private void initDefaultConfig(){
             setMaxCacheSize(10 * 1024 * 1024);
-            if(null != context){
-                setCachedDir(context.getExternalCacheDir());
-            }else{
-                setCachedDir(Environment.getExternalStorageDirectory());
-            }
             setConnectTimeout(30);
             setReadTimeout(30);
             setWriteTimeout(30);
