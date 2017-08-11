@@ -93,7 +93,7 @@ compile ('com.zhousf.lib:okhttp3:2.8.9'){
     *  修复上传文件入参bug（感谢*Sanqi5401*指正）
 * 2017-3-6
     *  在集成过程中出现了okio丢失的情况请添加 compile 'com.android.support:multidex:1.0.1'
-（感谢*kevin*提供相关解决方案）
+（感谢*kevin*提供相关解决方案）https://stackoverflow.com/questions/36649121/java-lang-noclassdeffounderror-okhttp3-okhttpclientbuilder
 * 2017-3-31
     *  增加单次批量上传文件功能：一次请求上传多个文件
 * 2017-4-21
