@@ -16,6 +16,8 @@ import com.okhttplib.cookie.PersistentCookieJar;
 import com.okhttplib.cookie.cache.SetCookieCache;
 import com.okhttplib.cookie.persistence.SharedPrefsCookiePersistor;
 
+import java.io.File;
+
 /**
  * Author : zhousf
  * Description : 采用占位方式初始化第三方组件（onCreate比Application的onCreate先执行）
@@ -35,6 +37,7 @@ public class BaseProvider extends ContentProvider {
      */
     void initOkHttp(Context context){
         String downloadFileDir = Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/";
+        String cacheDir = Environment.getExternalStorageDirectory().getPath()+"/okHttp_cache";
         OkHttpUtil.init(context)
                 .setConnectTimeout(15)//连接超时时间
                 .setWriteTimeout(15)//写超时时间
@@ -51,6 +54,7 @@ public class BaseProvider extends ContentProvider {
                 .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
+                .setCachedDir(new File(cacheDir))
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(context)))//持久化cookie
                 .build();
         Log.d("BaseProvider","OkHttp已初始化");
