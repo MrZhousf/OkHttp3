@@ -49,12 +49,12 @@ public class BaseProvider extends ContentProvider {
                 .setShowHttpLog(true)//显示请求日志
                 .setShowLifecycleLog(false)//显示Activity销毁日志
                 .setRetryOnConnectionFailure(false)//失败后不自动重连
+                .setCachedDir(new File(cacheDir))//设置缓存目录
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
                 .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
-                .setCachedDir(new File(cacheDir))
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(context)))//持久化cookie
                 .build();
         Log.d("BaseProvider","OkHttp已初始化");
