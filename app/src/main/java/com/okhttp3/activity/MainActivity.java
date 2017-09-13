@@ -5,7 +5,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
 import com.okhttp3.R;
 import com.okhttp3.bean.TimeAndDate;
 import com.okhttp3.util.LogUtil;
@@ -188,7 +187,7 @@ public class MainActivity extends BaseActivity {
                         String result = info.getRetDetail();
                         resultTV.setText("异步请求成功：" + result);
                         //GSon解析
-                        TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                        TimeAndDate time = info.getRetDetail(TimeAndDate.class);
                         LogUtil.d("MainActivity", time.getResult().toString());
                         setFromCacheTV(info);
                     }

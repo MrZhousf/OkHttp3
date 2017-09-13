@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:padding="@dimen/activity_vertical_margin"
     android:orientation="vertical"
+    android:background="@color/light_gray"
     tools:context="com.okhttp3.activity.WelcomeActivity">
 
     <Button

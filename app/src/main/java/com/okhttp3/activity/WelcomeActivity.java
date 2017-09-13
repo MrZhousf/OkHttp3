@@ -45,7 +45,7 @@ public class WelcomeActivity extends BaseActivity {
                 .setStrokeWidth(2)
                 .setCornerRadius(15)
                 .setDefaultStrokeColor(GRAY)
-                .setDefaultBgColor(getResources().getColor(R.color.light_gray))
+                .setDefaultBgColor(getResources().getColor(R.color.wihte))
                 .setPressedBgColor(getResources().getColor(R.color.light_blue))
                 .bind(httpBtn)
                 .bind(uploadImgBtn)

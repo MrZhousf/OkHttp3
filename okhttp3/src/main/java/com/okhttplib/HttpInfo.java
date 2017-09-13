@@ -2,6 +2,7 @@ package com.okhttplib;
 
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.okhttplib.annotation.Encoding;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.DownloadFileInfo;
@@ -9,6 +10,7 @@ import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -487,6 +489,14 @@ public class HttpInfo {
 
     public String getRetDetail() {
         return retDetail;
+    }
+
+    public <T> T getRetDetail(Type typeOfT){
+        return new Gson().fromJson(retDetail,typeOfT);
+    }
+
+    public <T> T getRetDetail(Class<T> classOfT){
+        return new Gson().fromJson(retDetail,classOfT);
     }
 
     public void setRetDetail(String retDetail) {

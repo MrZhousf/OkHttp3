@@ -8,7 +8,7 @@
 * 支持Cookie持久化，支持Gzip压缩
 * 支持协议头参数Head设置
 * 支持二进制参数、JSON、表单提交
-* 支持Unicode自动转码、请求参数编码以及服务器响应编码设置
+* 支持Gson解析、Unicode自动转码、请求参数编码以及服务器响应编码设置
 * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
 * 支持自定义缓存存活时间与缓存清理功能
 * 当Activity/Fragment销毁时自动取消相应的所有网络请求，支持取消指定请求
@@ -49,20 +49,28 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.8.9</version>
+  <version>2.9.0</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.8.9'
+compile 'com.zhousf.lib:okhttp3:2.9.0'
 ```
-若出现support-annotations版本冲突请采用下面方式进行依赖：
+若项目已包含support-annotations或出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.8.9'){
+compile ('com.zhousf.lib:okhttp3:2.9.0'){
     exclude(module: 'support-annotations')
 }
 ```
+若项目已包含Gson或出现Gson版本冲突请采用下面方式进行依赖：
+```
+compile ('com.zhousf.lib:okhttp3:2.9.0'){
+    exclude(module:'gson')
+}
+```
+
+
 ### ProGuard
 如果你使用了ProGuard混淆，请添加如下配置:
 ```
@@ -102,6 +110,8 @@ compile ('com.zhousf.lib:okhttp3:2.8.9'){
     *  支持PUT、DELETE请求
 * 2017-6-30
     *  支持异步延迟执行
+* 2017-9-13
+    *  Gson自动解析
 
 ## 权限
 ```
@@ -249,7 +259,7 @@ HttpInfo.Builder()
                         String result = info.getRetDetail();
                         resultTV.setText("异步请求成功：" + result);
                         //GSon解析
-                        TimeAndDate time = new Gson().fromJson(result, TimeAndDate.class);
+                        TimeAndDate time = info.getRetDetail(TimeAndDate.class);
                         LogUtil.d("MainActivity", time.getResult().toString());
                         setFromCacheTV(info);
                     }
