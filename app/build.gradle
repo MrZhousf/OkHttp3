@@ -29,8 +29,8 @@ android {
 }
 
 dependencies {
-//    compile project(':okhttp3')
-    compile ('com.zhousf.lib:okhttp3:2.9.0'){
+    //compile project(':okhttp3')
+    compile ('com.zhousf.lib:okhttp3:2.9.0.2'){
         exclude(module:'gson')
     }
     compile fileTree(include: ['*.jar'], dir: 'libs')

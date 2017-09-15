@@ -38,6 +38,7 @@ public class HttpInfo {
     private @RequestType int requestType;
     private long delayExecTime;
     private TimeUnit delayExecUnit;
+    private Gson gson;
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -60,6 +61,7 @@ public class HttpInfo {
         this.requestType = builder.requestType;
         this.delayExecTime = builder.delayExecTime;
         this.delayExecUnit = builder.delayExecUnit;
+        this.gson = builder.gson;
     }
 
     public static Builder Builder() {
@@ -83,6 +85,7 @@ public class HttpInfo {
         private @RequestType  int requestType;//请求方式
         private long delayExecTime = 0;//延迟执行时间
         private TimeUnit delayExecUnit = TimeUnit.SECONDS;//延迟执行时间单位
+        private Gson gson;
 
 
         public Builder() {
@@ -394,6 +397,16 @@ public class HttpInfo {
             return this;
         }
 
+        /**
+         * 设置Gson：采用绑定的Gson解析对象
+         * @param gson 绑定Gson对象
+         */
+        public Builder setGson(Gson gson){
+            if(gson != null)
+                this.gson = gson;
+            return this;
+        }
+
     }
 
 
@@ -491,12 +504,22 @@ public class HttpInfo {
         return retDetail;
     }
 
+    //Gson解析
     public <T> T getRetDetail(Type typeOfT){
-        return new Gson().fromJson(retDetail,typeOfT);
+        return myGson().fromJson(retDetail,typeOfT);
     }
 
+    //Gson解析
     public <T> T getRetDetail(Class<T> classOfT){
-        return new Gson().fromJson(retDetail,classOfT);
+        return myGson().fromJson(retDetail,classOfT);
+    }
+
+    private Gson myGson(){
+        if(gson != null){
+            return gson;
+        }else{
+            return new Gson();
+        }
     }
 
     public void setRetDetail(String retDetail) {

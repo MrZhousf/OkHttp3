@@ -10,7 +10,7 @@ android {
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
-        versionName "2.9.0"
+        versionName "2.9.0.2"
     }
 
     buildTypes {

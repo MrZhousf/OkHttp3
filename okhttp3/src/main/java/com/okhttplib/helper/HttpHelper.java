@@ -387,6 +387,8 @@ class HttpHelper extends BaseHelper{
      */
     private void dealInterceptor(HttpInfo info){
         try {
+            if(BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag))
+                return ;
             if(info.isSuccessful() && null != resultInterceptors){ //请求结果拦截器
                 for(ResultInterceptor interceptor : resultInterceptors){
                     interceptor.intercept(info);

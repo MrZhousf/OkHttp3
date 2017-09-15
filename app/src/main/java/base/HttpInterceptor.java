@@ -20,7 +20,7 @@ public class HttpInterceptor {
     public static ResultInterceptor ResultInterceptor = new ResultInterceptor() {
         @Override
         public HttpInfo intercept(HttpInfo info) throws Exception {
-            //请求结果预处理：可以进行GSon过滤与解析
+            //请求结果预处理
             return info;
         }
     };

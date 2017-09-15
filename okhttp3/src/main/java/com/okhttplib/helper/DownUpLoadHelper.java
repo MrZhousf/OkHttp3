@@ -6,7 +6,6 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.DownloadStatus;
 import com.okhttplib.bean.DownloadFileInfo;
 import com.okhttplib.bean.UploadFileInfo;
-import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.progress.ProgressRequestBody;
@@ -226,7 +225,6 @@ class DownUpLoadHelper extends BaseHelper{
             }catch (IOException e){
                 e.printStackTrace();
             }
-            BaseActivityLifecycleCallbacks.cancel(requestTag,call);
             //删除下载任务
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
