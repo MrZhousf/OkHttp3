@@ -61,12 +61,14 @@ public class OkMainHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         final int what = msg.what;
+        String requestTag = "";
         try {
             switch (what){
                 case RESPONSE_CALLBACK://网络请求
                     CallbackMessage callMsg = (CallbackMessage) msg.obj;
                     if(null != callMsg.callback){
                         //开始回调
+                        requestTag = callMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(callMsg.requestTag)){
                             BaseCallback callback = callMsg.callback;
                             if(callback instanceof CallbackOk){
@@ -86,12 +88,13 @@ public class OkMainHandler extends Handler {
                         if(!call.isCanceled()){
                             call.cancel();
                         }
-                        BaseActivityLifecycleCallbacks.cancel(callMsg.requestTag,call);
+                        BaseActivityLifecycleCallbacks.cancel(requestTag,call);
                     }
                     break;
                 case PROGRESS_CALLBACK://进度回调
                     ProgressMessage proMsg = (ProgressMessage) msg.obj;
                     if(null != proMsg.progressCallback){
+                        requestTag = proMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(proMsg.requestTag)){
                             proMsg.progressCallback.onProgressMain(proMsg.percent,proMsg.bytesWritten,proMsg.contentLength,proMsg.done);
                         }
@@ -100,6 +103,7 @@ public class OkMainHandler extends Handler {
                 case RESPONSE_UPLOAD_CALLBACK://上传结果回调
                     UploadMessage uploadMsg = (UploadMessage) msg.obj;
                     if(null != uploadMsg.progressCallback){
+                        requestTag = uploadMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(uploadMsg.requestTag)){
                             uploadMsg.progressCallback.onResponseMain(uploadMsg.filePath,uploadMsg.info);
                         }
@@ -108,6 +112,7 @@ public class OkMainHandler extends Handler {
                 case RESPONSE_DOWNLOAD_CALLBACK://下载结果回调
                     DownloadMessage downloadMsg = (DownloadMessage) msg.obj;
                     if(null != downloadMsg){
+                        requestTag = downloadMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(downloadMsg.requestTag)){
                             downloadMsg.progressCallback.onResponseMain(downloadMsg.filePath,downloadMsg.info);
                         }
@@ -119,6 +124,7 @@ public class OkMainHandler extends Handler {
             }
         }catch (Exception e){
             e.printStackTrace();
+            BaseActivityLifecycleCallbacks.cancel(requestTag);
         }
     }
 

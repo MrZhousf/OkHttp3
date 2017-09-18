@@ -60,7 +60,7 @@ public class DownloadActivity extends BaseActivity {
 
     private void downloadFile() {
         final HttpInfo info = HttpInfo.Builder()
-                .addDownloadFile(fileURL, "myMP4", new ProgressCallback() {
+                .addDownloadFile(fileURL, "myFile", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         downloadProgress.setProgress(percent);
@@ -72,6 +72,7 @@ public class DownloadActivity extends BaseActivity {
                     public void onResponseMain(String filePath, HttpInfo info) {
                         tvResult.setText(info.getRetDetail());
                         LogUtil.d(TAG, "下载结果：" + info.getRetDetail());
+                        OkHttpUtil.getDefault().cancelRequest(requestTag);
                     }
                 })
                 .build();
@@ -85,6 +86,5 @@ public class DownloadActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        OkHttpUtil.getDefault().cancelRequest(requestTag);
     }
 }

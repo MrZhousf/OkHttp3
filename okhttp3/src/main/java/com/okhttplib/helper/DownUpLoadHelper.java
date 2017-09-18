@@ -240,8 +240,17 @@ class DownUpLoadHelper extends BaseHelper{
         String saveFileName = fileInfo.getSaveFileName();
         String url = fileInfo.getUrl();
         String extension = url.substring(url.lastIndexOf(".") + 1);//扩展名
+        if(TextUtils.isEmpty(saveFileName)){
+            if(url.contains("/") && !url.endsWith("/")){
+                //文件原名称
+                saveFileName = url.substring(url.lastIndexOf("/")+1);
+            }
+        }
+        //文件原名称为空则采用自定义名称
+        if(TextUtils.isEmpty(saveFileName)){
+            saveFileName += "."+extension;
+        }
         String saveFileNameCopy = saveFileName+"["+timeStamp+"]"+"."+extension;
-        saveFileName += "."+extension;
         saveFileDir = TextUtils.isEmpty(saveFileDir) ? downloadFileDir : saveFileDir;
         mkDirNotExists(saveFileDir);
         fileInfo.setSaveFileDir(saveFileDir);
