@@ -64,7 +64,7 @@ public class DownloadBreakpointsActivity extends BaseActivity {
 
     private void download(){
         if(null == fileInfo)
-            fileInfo = new DownloadFileInfo(url,"test",new ProgressCallback(){
+            fileInfo = new DownloadFileInfo(url,"QQ8.9.1.exe",new ProgressCallback(){
                 @Override
                 public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                     downloadProgress.setProgress(percent);
