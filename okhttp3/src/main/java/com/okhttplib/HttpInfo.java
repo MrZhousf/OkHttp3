@@ -289,7 +289,7 @@ public class HttpInfo {
         /**
          * 添加下载文件
          * @param url 下载文件的网络地址
-         * @param saveFileName 文件保存名称：不包括扩展名
+         * @param saveFileName 文件保存名称：包括扩展名
          */
         public Builder addDownloadFile(String url,String saveFileName){
             addDownloadFile(url,null,saveFileName,null);
@@ -299,7 +299,7 @@ public class HttpInfo {
         /**
          * 添加下载文件
          * @param url 下载文件的网络地址
-         * @param saveFileName 文件保存名称：不包括扩展名
+         * @param saveFileName 文件保存名称：包括扩展名
          * @param progressCallback 下载进度回调接口
          */
         public Builder addDownloadFile(String url,String saveFileName,ProgressCallback progressCallback){
@@ -310,7 +310,7 @@ public class HttpInfo {
         /**
          * 添加下载文件
          * @param url 下载文件的网络地址
-         * @param saveFileDir 文件保存目录路径：不包括名称
+         * @param saveFileDir 文件保存目录路径：包括名称
          * @param saveFileName 文件保存名称：不包括扩展名
          * @param progressCallback 下载进度回调接口
          */

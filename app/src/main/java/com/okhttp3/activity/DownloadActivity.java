@@ -60,7 +60,7 @@ public class DownloadActivity extends BaseActivity {
 
     private void downloadFile() {
         final HttpInfo info = HttpInfo.Builder()
-                .addDownloadFile(fileURL, "myFile", new ProgressCallback() {
+                .addDownloadFile(fileURL, "qq.exe", new ProgressCallback() {
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         downloadProgress.setProgress(percent);
