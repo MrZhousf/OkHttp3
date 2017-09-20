@@ -45,6 +45,7 @@ public class LoadingDialog extends Dialog {
         return this;
     }
 
+    //显示对话框
     public void showDialog(){
         text("加载中");
         if(null != pb_loading && pb_loading.getVisibility() != View.VISIBLE){
@@ -54,10 +55,6 @@ public class LoadingDialog extends Dialog {
             iv_load_result.setVisibility(View.GONE);
         }
         show();
-    }
-
-    public void dismissDialog(){
-        dismiss();
     }
 
     // 加载成功

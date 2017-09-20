@@ -1,6 +1,7 @@
 package base;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +20,7 @@ import base.view.LoadingDialog;
  */
 public class HttpActivity extends AppCompatActivity implements BaseHandler.CallBack {
 
-    private BaseHandler baseHandler;//Handler句柄
+    private BaseHandler mainHandler;
 
     private LoadingDialog loadingDialog;//加载提示框
 
@@ -41,17 +42,17 @@ public class HttpActivity extends AppCompatActivity implements BaseHandler.CallB
      */
     protected HttpInfo doHttpSync(HttpInfo info) {
         //显示加载框
-        getBaseHandler().sendEmptyMessage(SHOW_DIALOG);
+        getMainHandler().sendEmptyMessage(SHOW_DIALOG);
         info = OkHttpUtil.getDefault(this).doSync(info);
         if(info.isSuccessful()){
             //显示加载成功
-            getBaseHandler().sendEmptyMessage(LOAD_SUCCEED);
+            getMainHandler().sendEmptyMessage(LOAD_SUCCEED);
         }else {
             //显示加载失败
-            getBaseHandler().sendEmptyMessage(LOAD_FAILED);
+            getMainHandler().sendEmptyMessage(LOAD_FAILED);
         }
         //隐藏加载框
-        getBaseHandler().sendEmptyMessageDelayed(DISMISS_DIALOG,1000);
+        getMainHandler().sendEmptyMessageDelayed(DISMISS_DIALOG,1000);
         return info;
     }
 
@@ -61,17 +62,17 @@ public class HttpActivity extends AppCompatActivity implements BaseHandler.CallB
      * @param callback 结果回调接口
      */
     protected void doHttpAsync(HttpInfo info, final Callback callback){
-        getBaseHandler().sendEmptyMessage(SHOW_DIALOG);
+        getMainHandler().sendEmptyMessage(SHOW_DIALOG);
         OkHttpUtil.getDefault(this).doAsync(info, new Callback() {
             @Override
             public void onSuccess(HttpInfo info) throws IOException {
-                getBaseHandler().sendEmptyMessage(DISMISS_DIALOG);
+                getLoadingDialog().dismiss();
                 callback.onSuccess(info);
             }
 
             @Override
             public void onFailure(HttpInfo info) throws IOException {
-                getBaseHandler().sendEmptyMessage(DISMISS_DIALOG);
+                getLoadingDialog().dismiss();
                 callback.onFailure(info);
             }
         });
@@ -89,11 +90,11 @@ public class HttpActivity extends AppCompatActivity implements BaseHandler.CallB
     /**
      * 获取通用句柄，自动释放
      */
-    protected BaseHandler getBaseHandler(){
-        if(null == baseHandler){
-            baseHandler = new BaseHandler(this);
+    protected BaseHandler getMainHandler(){
+        if(null == mainHandler){
+            mainHandler = new BaseHandler(this, Looper.getMainLooper());
         }
-        return baseHandler;
+        return mainHandler;
     }
 
 
@@ -110,7 +111,7 @@ public class HttpActivity extends AppCompatActivity implements BaseHandler.CallB
                 getLoadingDialog().failed();
                 break;
             case DISMISS_DIALOG:
-                getLoadingDialog().dismissDialog();
+                getLoadingDialog().dismiss();
                 break;
             default:
                 break;
@@ -120,8 +121,8 @@ public class HttpActivity extends AppCompatActivity implements BaseHandler.CallB
 
     @Override
     protected void onDestroy() {
-        if(null != baseHandler)
-            baseHandler.removeCallbacksAndMessages(null);
+        if(null != mainHandler)
+            mainHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 }

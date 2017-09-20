@@ -16,8 +16,8 @@ public class BaseHandler extends Handler {
         void handleMessage(Message msg);
     }
 
-    public BaseHandler(CallBack callBack){
-        super(Looper.getMainLooper());
+    public BaseHandler(CallBack callBack,Looper looper){
+        super(looper);
         this.callBack = callBack;
     }
 
