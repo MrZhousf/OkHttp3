@@ -147,8 +147,7 @@ public class MainActivity extends BaseActivity {
                         .setResponseEncoding(Encoding.UTF_8)//设置该接口服务器响应编码
                         .setRequestEncoding(Encoding.UTF_8)//设置该接口请求参数编码
                         .build();
-                OkHttpUtil.getDefault(this)
-                        .doGetSync(info);
+                doHttpSync(info);
                 final String result = info.getRetDetail();
                 runOnUiThread(new Runnable() {
                     @Override
@@ -167,8 +166,7 @@ public class MainActivity extends BaseActivity {
      * 异步请求：回调方法可以直接操作UI
      */
     private void async() {
-        OkHttpUtil.getDefault(this).doAsync(
-                HttpInfo.Builder()
+        doHttpAsync(HttpInfo.Builder()
                         .setUrl(url)
                         .setRequestType(RequestType.GET)//设置请求方式
                         .addHead("head", "test")//添加头参数

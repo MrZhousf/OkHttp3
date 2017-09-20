@@ -10,10 +10,12 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+
 import com.okhttp3.R;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import base.networkstate.NetInfo;
 import base.networkstate.NetworkStateListener;
 import base.networkstate.NetworkStateReceiver;
@@ -23,7 +25,7 @@ import butterknife.ButterKnife;
  * Activity基类：支持动态权限申请，网络状态监听
  * @author zhousf
  */
-public abstract class BaseActivity extends AppCompatActivity implements
+public abstract class BaseActivity extends HttpActivity implements
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
