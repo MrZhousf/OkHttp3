@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!-- 系统弹窗权限 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application
         android:name="base.BaseApplication"
@@ -47,6 +49,7 @@
         </activity>
         <activity android:name=".activity.DownloadBreakpointsActivity">
         </activity>
+        <service android:name="base.networkstate.NetSpeedService"/>
     </application>
 
 </manifest>

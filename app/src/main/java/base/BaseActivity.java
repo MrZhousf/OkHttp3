@@ -36,7 +36,7 @@ public abstract class BaseActivity extends HttpActivity implements
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.ACCESS_WIFI_STATE
     };
 
     private static final int PERMISSION_REQUEST_CODE = 0;

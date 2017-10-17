@@ -95,8 +95,10 @@ public class OkHttpHelper {
         public OkHttpHelper build(){
             if(!this.uploadFileInfoList.isEmpty()){
                 this.businessType = BusinessType.UploadFile;//文件上传
+                this.httpInfo.setUrl(uploadFileInfoList.get(0).getUrl());
             } else if(downloadFileInfo != null){
                 this.businessType = BusinessType.DownloadFile;//文件下载
+                this.httpInfo.setUrl(downloadFileInfo.getUrl());
             } else{
                 this.businessType = BusinessType.HttpOrHttps;//http/https请求
             }

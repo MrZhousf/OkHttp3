@@ -8,6 +8,10 @@ import com.okhttplib.annotation.CacheType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
@@ -94,10 +98,21 @@ abstract class BaseHelper {
         }
         if(null != cookieJar)
             clientBuilder.cookieJar(cookieJar);
-        if(helperInfo.getHttpsCertificateStream() == null){
-            setDefaultSslSocketFactory(clientBuilder);
-        }else{
-            setSslSocketFactory(clientBuilder);
+        if(httpInfo == null || httpInfo.getUrl() == null)
+            return clientBuilder.build();
+        try {
+            URI uri = new URL(httpInfo.getUrl()).toURI();
+            if("https".equals(uri.getScheme())){
+                if(helperInfo.getHttpsCertificateStream() == null){
+                    setDefaultSslSocketFactory(clientBuilder);
+                }else{
+                    setSslSocketFactory(clientBuilder);
+                }
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
         return clientBuilder.build();
     }

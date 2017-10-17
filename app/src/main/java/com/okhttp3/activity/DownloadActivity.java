@@ -1,6 +1,11 @@
 package com.okhttp3.activity;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -12,6 +17,7 @@ import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
 
 import base.BaseActivity;
+import base.networkstate.NetSpeedService;
 import butterknife.Bind;
 import butterknife.OnClick;
 
@@ -42,6 +48,8 @@ public class DownloadActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = new Intent(DownloadActivity.this, NetSpeedService.class);
+        bindService(intent,conn, Context.BIND_AUTO_CREATE);
     }
 
 
@@ -83,8 +91,21 @@ public class DownloadActivity extends BaseActivity {
 
     }
 
+    private ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService(conn);
     }
 }
