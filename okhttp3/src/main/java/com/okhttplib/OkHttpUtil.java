@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.okhttplib.annotation.CacheType;
 import com.okhttplib.annotation.Encoding;
@@ -20,6 +21,8 @@ import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,7 +63,7 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
 public class OkHttpUtil implements OkHttpUtilInterface{
 
     private final String TAG = getClass().getSimpleName();
-    private static Context context;
+    public static Context context;
     private static Builder builderGlobal;
     private static OkHttpClient httpClient;
     private static ScheduledExecutorService executorService;
@@ -105,7 +108,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestType(info.getRequestType())
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -124,7 +127,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(info.getRequestType())
                         .callback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -141,7 +144,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestType(RequestType.POST)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -158,7 +161,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .httpInfo(info)
                 .requestType(RequestType.POST)
                 .progressCallback(callback)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -177,7 +180,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(RequestType.POST)
                         .callback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -198,7 +201,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(RequestType.POST)
                         .progressCallback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -215,7 +218,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestType(RequestType.GET)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -234,7 +237,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(RequestType.GET)
                         .callback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -256,7 +259,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                             .httpInfo(info)
                             .uploadFileInfo(fileInfo)
                             .requestType(RequestType.POST)
-                            .helperInfo(packageHelperInfo())
+                            .helperInfo(packageHelperInfo(info))
                             .build()
                             .uploadFile();
                 }
@@ -279,7 +282,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .uploadFileInfoList(uploadFiles)
                         .requestType(RequestType.POST)
                         .progressCallback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .uploadFile();
             }
@@ -298,7 +301,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     .httpInfo(info)
                     .uploadFileInfo(fileInfo)
                     .requestType(RequestType.POST)
-                    .helperInfo(packageHelperInfo())
+                    .helperInfo(packageHelperInfo(info))
                     .build()
                     .uploadFile();
         }
@@ -316,7 +319,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                 .uploadFileInfoList(uploadFiles)
                 .requestType(RequestType.POST)
                 .progressCallback(callback)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .uploadFile();
     }
@@ -337,7 +340,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                             .downloadFileInfo(fileInfo)
                             .requestType(RequestType.GET)
                             .clientBuilder(newBuilderFromCopy())
-                            .helperInfo(packageHelperInfo())
+                            .helperInfo(packageHelperInfo(info))
                             .build()
                             .downloadFile();
                 }
@@ -358,7 +361,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     .downloadFileInfo(fileInfo)
                     .requestType(RequestType.GET)
                     .clientBuilder(newBuilderFromCopy())
-                    .helperInfo(packageHelperInfo())
+                    .helperInfo(packageHelperInfo(info))
                     .build()
                     .downloadFile();
         }
@@ -374,7 +377,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestType(RequestType.DELETE)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -393,7 +396,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(RequestType.DELETE)
                         .callback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -410,7 +413,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         return OkHttpHelper.Builder()
                 .httpInfo(info)
                 .requestType(RequestType.PUT)
-                .helperInfo(packageHelperInfo())
+                .helperInfo(packageHelperInfo(info))
                 .build()
                 .doRequestSync();
     }
@@ -429,7 +432,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                         .httpInfo(info)
                         .requestType(RequestType.PUT)
                         .callback(callback)
-                        .helperInfo(packageHelperInfo())
+                        .helperInfo(packageHelperInfo(info))
                         .build()
                         .doRequestAsync();
             }
@@ -475,7 +478,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
         if(builder.isGlobalConfig){
             OkHttpHelper.Builder()
-                    .helperInfo(packageHelperInfo())
+                    .helperInfo(packageHelperInfo(null))
                     .build();
         }
     }
@@ -483,7 +486,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     /**
      * 封装业务类信息
      */
-    private HelperInfo packageHelperInfo(){
+    private HelperInfo packageHelperInfo(HttpInfo info){
         HelperInfo helperInfo = new HelperInfo();
         helperInfo.setShowHttpLog(builder.showHttpLog);
         helperInfo.setRequestTag(builder.requestTag);
@@ -502,6 +505,40 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         helperInfo.setCacheSurvivalTime(cacheSurvivalTime);
         helperInfo.setCacheType(cacheType);
         helperInfo.setGzip(builder.isGzip);
+        String httpsCertificate = null;
+        InputStream httpsCertificateStream = null;
+        if(builder.httpsCertificate != null){
+            httpsCertificate = builder.httpsCertificate;
+        }
+        if(builder.httpsCertificateStream != null){
+            httpsCertificateStream = builder.httpsCertificateStream;
+        }
+        if(info != null){
+            if(info.getHttpsCertificate() != null){
+                httpsCertificate = info.getHttpsCertificate();
+            }
+            if(info.getHttpsCertificateStream() != null){
+                httpsCertificateStream = info.getHttpsCertificateStream();
+            }
+        }
+        if(httpsCertificate != null){
+            if(OkHttpUtil.context == null){
+                throw new IllegalArgumentException("请初始化OkHttpUtil");
+            }
+            InputStream inputStream = null;
+            try {
+                inputStream = context.getAssets().open(httpsCertificate);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(inputStream == null){
+                Log.e(builder.httpLogTAG,"Https证书不存在："+httpsCertificate);
+            }
+            helperInfo.setHttpsCertificateStream(inputStream);
+        }
+        if(httpsCertificateStream != null){
+            helperInfo.setHttpsCertificateStream(httpsCertificateStream);
+        }
         return helperInfo;
     }
 
@@ -556,6 +593,8 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         private @Encoding String responseEncoding;//服务器响应编码
         private @Encoding String requestEncoding;//请求参数应编码
         private boolean isGzip = false;//Gzip压缩
+        private String httpsCertificate;//Https证书
+        private InputStream httpsCertificateStream;//Https证书
 
         public Builder() {
         }
@@ -633,6 +672,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setResponseEncoding(builder.responseEncoding);
             setRequestEncoding(builder.requestEncoding);
             setIsGzip(builder.isGzip);
+            if(builder.httpsCertificate != null){
+                setHttpsCertificate(builder.httpsCertificate);
+            }
+            if(builder.httpsCertificateStream != null){
+                setHttpsCertificate(builder.httpsCertificateStream);
+            }
         }
 
         private Builder isDefault(boolean isDefault){
@@ -798,6 +843,19 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             this.isGzip = isGzip;
             return this;
         }
+
+        //设置Https证书：证书必须放在assets文件夹下
+        public Builder setHttpsCertificate(String httpsCertificate){
+            this.httpsCertificate = httpsCertificate;
+            return this;
+        }
+
+        //设置Https证书
+        public Builder setHttpsCertificate(InputStream httpsCertificate){
+            this.httpsCertificateStream = httpsCertificate;
+            return this;
+        }
+
     }
 
     private static String parseRequestTag(Object object){

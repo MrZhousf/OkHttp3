@@ -1,7 +1,7 @@
 ## OkHttp3
 基于OkHttp3封装的网络请求库
 ## 功能点
-* 支持Http/Https协议
+* 支持Http/Https协议/自定义Https证书认证
 * 支持同步/异步请求
 * 支持异步延迟执行
 * 支持Post/Get/Put/Delete请求
@@ -49,23 +49,23 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.9.1.2</version>
+  <version>2.9.1.3</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.9.1.2'
+compile 'com.zhousf.lib:okhttp3:2.9.1.3'
 ```
 若项目已包含support-annotations或出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.1.2'){
+compile ('com.zhousf.lib:okhttp3:2.9.1.3'){
     exclude(module: 'support-annotations')
 }
 ```
 若项目已包含Gson或出现Gson版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.1.2'){
+compile ('com.zhousf.lib:okhttp3:2.9.1.3'){
     exclude(module:'gson')
 }
 ```
@@ -114,7 +114,8 @@ compile ('com.zhousf.lib:okhttp3:2.9.1.2'){
     *  Gson自动解析
 * 2017-9-20
     *  增加加载提示框示例
-
+* 2017-10-17
+    *  支持自定义Https证书认证
 ## 权限
 ```
     <!-- 添加读写权限 -->
@@ -148,6 +149,7 @@ compile ('com.zhousf.lib:okhttp3:2.9.1.2'){
                 .setDownloadFileDir(downloadFileDir)//文件下载保存目录
                 .setResponseEncoding(Encoding.UTF_8)//设置全局的服务器响应编码
                 .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
+                .setHttpsCertificate("12306.cer")//设置全局Https证书
                 .addResultInterceptor(HttpInterceptor.ResultInterceptor)//请求结果拦截器
                 .addExceptionInterceptor(HttpInterceptor.ExceptionInterceptor)//请求链路异常拦截器
                 .setCookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(context)))//持久化cookie
@@ -208,6 +210,7 @@ HttpInfo.Builder()
         .setResponseEncoding(Encoding.UTF_8)//设置服务器响应编码
         .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
         .setDelayExec(2, TimeUnit.SECONDS)//延迟2秒执行
+        .setHttpsCertificate("12306.cer")//设置Https证书
         .build()
 ```
 

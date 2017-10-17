@@ -7,6 +7,7 @@ import com.okhttplib.annotation.Encoding;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
 
+import java.io.InputStream;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -34,6 +35,7 @@ public class HelperInfo {
     private @Encoding String responseEncoding;//服务器响应编码
     private @Encoding String requestEncoding;//请求参数编码
     private boolean isGzip = false;//Gzip压缩
+    private InputStream httpsCertificateStream;//Https证书
 
 
     public String getLogTAG() {
@@ -162,5 +164,13 @@ public class HelperInfo {
 
     public void setGzip(boolean gzip) {
         isGzip = gzip;
+    }
+
+    public InputStream getHttpsCertificateStream() {
+        return httpsCertificateStream;
+    }
+
+    public void setHttpsCertificateStream(InputStream httpsCertificateStream) {
+        this.httpsCertificateStream = httpsCertificateStream;
     }
 }

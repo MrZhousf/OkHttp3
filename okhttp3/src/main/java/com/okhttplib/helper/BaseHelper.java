@@ -1,21 +1,28 @@
 package com.okhttplib.helper;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.CacheType;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Locale;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.CacheControl;
@@ -87,7 +94,11 @@ abstract class BaseHelper {
         }
         if(null != cookieJar)
             clientBuilder.cookieJar(cookieJar);
-        setSslSocketFactory(clientBuilder);
+        if(helperInfo.getHttpsCertificateStream() == null){
+            setDefaultSslSocketFactory(clientBuilder);
+        }else{
+            setSslSocketFactory(clientBuilder);
+        }
         return clientBuilder.build();
     }
 
@@ -219,37 +230,70 @@ abstract class BaseHelper {
     }
 
     /**
-     * 设置HTTPS认证
+     * 设置HTTPS认证：默认信任所有证书
      */
-    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
+    private void setDefaultSslSocketFactory(OkHttpClient.Builder clientBuilder){
         clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
         try {
             SSLContext sc = SSLContext.getInstance("TLS");
-            X509TrustManager trustManager = new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                }
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-            };
-            sc.init(null,new TrustManager[]{trustManager}, new SecureRandom());
-            clientBuilder.sslSocketFactory(sc.getSocketFactory(),trustManager);
+            sc.init(null,new TrustManager[]{TRUST_MANAGER}, new SecureRandom());
+            clientBuilder.sslSocketFactory(sc.getSocketFactory(),TRUST_MANAGER);
         } catch (Exception e) {
             showLog("Https认证异常: "+e.getMessage());
         }
     }
 
     /**
+     * 设置HTTPS认证
+     */
+    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
+        SSLContext sslContext = getSSLContext();
+        if(sslContext != null){
+            clientBuilder.sslSocketFactory(sslContext.getSocketFactory(),TRUST_MANAGER);
+        }
+    }
+
+    @SuppressLint("TrulyRandom")
+    private SSLContext getSSLContext() {
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            InputStream inputStream = helperInfo.getHttpsCertificateStream();
+            CertificateFactory cerFactory = CertificateFactory.getInstance("X.509");
+            Certificate cer = cerFactory.generateCertificate(inputStream);
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("trust", cer);
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, null);
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sslContext;
+    }
+
+    /**
      *主机名验证
      */
-    private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+    private static final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
             return true;
+        }
+    };
+
+    private static final X509TrustManager TRUST_MANAGER = new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
         }
     };
 

@@ -143,9 +143,10 @@ public class MainActivity extends BaseActivity {
             @Override
             public void run() {
                 final HttpInfo info = HttpInfo.Builder()
-                        .setUrl(url)
+                        .setUrl("https://kyfw.12306.cn/otn/")
                         .setResponseEncoding(Encoding.UTF_8)//设置该接口服务器响应编码
                         .setRequestEncoding(Encoding.UTF_8)//设置该接口请求参数编码
+                        .setHttpsCertificate("12306.cer")//设置Https证书
                         .build();
                 doHttpSync(info);
                 final String result = info.getRetDetail();

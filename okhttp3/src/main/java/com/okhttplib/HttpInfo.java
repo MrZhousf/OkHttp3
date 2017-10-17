@@ -10,6 +10,7 @@ import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +40,8 @@ public class HttpInfo {
     private long delayExecTime;
     private TimeUnit delayExecUnit;
     private Gson gson;
+    private String httpsCertificate;
+    private InputStream httpsCertificateStream;
 
     //**响应返回参数定义**/
     private int retCode;//返回码
@@ -62,6 +65,8 @@ public class HttpInfo {
         this.delayExecTime = builder.delayExecTime;
         this.delayExecUnit = builder.delayExecUnit;
         this.gson = builder.gson;
+        this.httpsCertificate = builder.httpsCertificate;
+        this.httpsCertificateStream = builder.httpsCertificateStream;
     }
 
     public static Builder Builder() {
@@ -86,6 +91,8 @@ public class HttpInfo {
         private long delayExecTime = 0;//延迟执行时间
         private TimeUnit delayExecUnit = TimeUnit.SECONDS;//延迟执行时间单位
         private Gson gson;
+        private String httpsCertificate;//Https证书
+        private InputStream httpsCertificateStream;//Https证书
 
 
         public Builder() {
@@ -407,6 +414,18 @@ public class HttpInfo {
             return this;
         }
 
+        //设置Https证书：证书必须放在assets文件夹下
+        public Builder setHttpsCertificate(String httpsCertificate){
+            this.httpsCertificate = httpsCertificate;
+            return this;
+        }
+
+        //设置Https证书
+        public Builder setHttpsCertificate(InputStream httpsCertificate){
+            this.httpsCertificateStream = httpsCertificate;
+            return this;
+        }
+
     }
 
 
@@ -588,5 +607,13 @@ public class HttpInfo {
 
     public TimeUnit getDelayExecUnit() {
         return delayExecUnit;
+    }
+
+    public String getHttpsCertificate() {
+        return httpsCertificate;
+    }
+
+    public InputStream getHttpsCertificateStream() {
+        return httpsCertificateStream;
     }
 }

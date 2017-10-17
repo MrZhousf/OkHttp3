@@ -22,6 +22,7 @@ public class LoadingDialog extends Dialog {
     private ImageView iv_load_result;// 加载的结果图标显示
     private TextView tv_load;// 加载的文字展示
     private ProgressBar pb_loading;// 加载中的图片
+    private String showText;
 
     public LoadingDialog(Context context) {
         super(context, R.style.loading_dialog_style);
@@ -41,13 +42,14 @@ public class LoadingDialog extends Dialog {
     public LoadingDialog text(String text){
         if(tv_load != null && !TextUtils.isEmpty(text)){
             tv_load.setText(text);
+            showText = text;
         }
         return this;
     }
 
     //显示对话框
     public void showDialog(){
-        text("加载中");
+        text(showText);
         if(null != pb_loading && pb_loading.getVisibility() != View.VISIBLE){
             pb_loading.setVisibility(View.VISIBLE);
         }
