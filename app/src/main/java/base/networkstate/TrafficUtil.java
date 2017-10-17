@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 
+/**
+ * 网络实时速度工具
+ */
 public class TrafficUtil {
 
 	private int uid = android.os.Process.myUid();

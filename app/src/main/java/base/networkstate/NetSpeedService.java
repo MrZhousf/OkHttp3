@@ -33,7 +33,9 @@ import java.math.BigDecimal;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
+/**
+ * 网络实时速度服务
+ */
 public class NetSpeedService extends Service {
 
 	private LinearLayout linearLayout;
