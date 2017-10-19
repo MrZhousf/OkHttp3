@@ -56,8 +56,8 @@ public class MainActivity extends BaseActivity {
     /**
      * 注意：测试时请更换该地址
      */
-    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
-//    private String url = "http://192.168.120.206:8080/office/api/time?key=zhousf_key";
+//    private String url = "http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json";
+    private String url = "http://192.168.120.206:8088/office/api/time?key=zhousf_key";
 
     private boolean isNeedDeleteCache = true;
 

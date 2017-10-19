@@ -145,7 +145,7 @@ abstract class BaseHelper {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request originalRequest = chain.request();
-            Response originalResponse;
+            Response originalResponse = null;
             switch (cacheType){
                 case CacheType.FORCE_CACHE:
                     originalRequest = originalRequest.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
@@ -164,11 +164,16 @@ abstract class BaseHelper {
                                 .build();
                         originalResponse = chain.proceed(originalRequest);
                     }else {
-                        originalRequest = originalRequest.newBuilder()
-                                .cacheControl(CacheControl.FORCE_NETWORK)
+//                        originalRequest = originalRequest.newBuilder()
+//                                .cacheControl(CacheControl.FORCE_NETWORK)
+//                                .build();
+//                        //网络请求失败后自动读取缓存并响应
+//                        originalResponse = aopChain(chain,originalRequest,CacheControl.FORCE_CACHE,true);
+                        originalResponse = chain.proceed(originalRequest);
+                        originalResponse.newBuilder()
+                                .removeHeader("Pragma")
+                                .header("Cache-Control", "public, only-if-cached, max-stale=" + 60*60*24*365)
                                 .build();
-                        //网络请求失败后自动读取缓存并响应
-                        originalResponse = aopChain(chain,originalRequest,CacheControl.FORCE_CACHE,true);
                     }
                     break;
                 case CacheType.CACHE_THEN_NETWORK:
