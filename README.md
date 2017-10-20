@@ -79,9 +79,9 @@ compile ('com.zhousf.lib:okhttp3:2.9.1.5'){
 
 ### SDK版本
 ```
-compileSdkVersion = 23
-targetSdkVersion = 23
-minSdkVersion = 14
+compileSdkVersion 23
+targetSdkVersion 23
+minSdkVersion 14
 ```
 
 
