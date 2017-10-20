@@ -77,6 +77,14 @@ compile ('com.zhousf.lib:okhttp3:2.9.1.5'){
 -dontwarn okio.**
 ```
 
+### SDK版本
+```
+compileSdkVersion = 23
+targetSdkVersion = 23
+minSdkVersion = 14
+```
+
+
 ## 提交记录
 * 2016-6-29 项目提交
 * 2016-7-4 
