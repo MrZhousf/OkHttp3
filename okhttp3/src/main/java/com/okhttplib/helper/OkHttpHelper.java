@@ -1,5 +1,7 @@
 package com.okhttplib.helper;
 
+import android.text.TextUtils;
+
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
 import com.okhttplib.annotation.Encoding;
@@ -95,10 +97,15 @@ public class OkHttpHelper {
         public OkHttpHelper build(){
             if(!this.uploadFileInfoList.isEmpty()){
                 this.businessType = BusinessType.UploadFile;//文件上传
-                this.httpInfo.setUrl(uploadFileInfoList.get(0).getUrl());
+                UploadFileInfo uploadFileInfo = uploadFileInfoList.get(0);
+                if(!TextUtils.isEmpty(uploadFileInfo.getUrl())){
+                    this.httpInfo.setUrl(uploadFileInfo.getUrl());
+                }
             } else if(downloadFileInfo != null){
                 this.businessType = BusinessType.DownloadFile;//文件下载
-                this.httpInfo.setUrl(downloadFileInfo.getUrl());
+                if(!TextUtils.isEmpty(downloadFileInfo.getUrl())){
+                    this.httpInfo.setUrl(downloadFileInfo.getUrl());
+                }
             } else{
                 this.businessType = BusinessType.HttpOrHttps;//http/https请求
             }

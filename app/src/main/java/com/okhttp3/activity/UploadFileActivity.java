@@ -41,7 +41,7 @@ public class UploadFileActivity extends BaseActivity {
     /**
      * 文件上传地址
      */
-    private String url = "http://192.168.120.206:8080/office/upload/uploadFile";
+    private String url = "http://192.168.120.206:8088/office/upload/uploadFile";
     private String filePath;
     private List<String> imgList = new ArrayList<>();
 
