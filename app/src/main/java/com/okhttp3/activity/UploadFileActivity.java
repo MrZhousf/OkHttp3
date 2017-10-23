@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.okhttp3.R;
 import com.okhttp3.util.FilePathUtil;
 import com.okhttp3.util.LogUtil;
+import com.okhttp3.util.ToastUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
@@ -87,11 +88,12 @@ public class UploadFileActivity extends BaseActivity {
 
                     @Override
                     public void onResponseMain(String filePath, HttpInfo info) {
+                        ToastUtil.show(UploadFileActivity.this,info.getRetDetail());
                         tvResult.setText(info.getRetDetail());
                     }
                 })
                 .build();
-        OkHttpUtil.getDefault(this).doUploadFileAsync(info);
+        OkHttpUtil.getDefault("1234").doUploadFileAsync(info);
     }
 
     /**
@@ -144,6 +146,9 @@ public class UploadFileActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-
-
+    @Override
+    protected void onDestroy() {
+        OkHttpUtil.getDefault().cancelRequest("1234");
+        super.onDestroy();
+    }
 }

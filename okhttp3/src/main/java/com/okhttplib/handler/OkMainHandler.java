@@ -3,6 +3,7 @@ package com.okhttplib.handler;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.bean.CallbackMessage;
@@ -104,7 +105,7 @@ public class OkMainHandler extends Handler {
                     UploadMessage uploadMsg = (UploadMessage) msg.obj;
                     if(null != uploadMsg.progressCallback){
                         requestTag = uploadMsg.requestTag;
-                        if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(uploadMsg.requestTag)){
+                        if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag)){
                             uploadMsg.progressCallback.onResponseMain(uploadMsg.filePath,uploadMsg.info);
                         }
                     }
@@ -113,7 +114,7 @@ public class OkMainHandler extends Handler {
                     DownloadMessage downloadMsg = (DownloadMessage) msg.obj;
                     if(null != downloadMsg){
                         requestTag = downloadMsg.requestTag;
-                        if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(downloadMsg.requestTag)){
+                        if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag)){
                             downloadMsg.progressCallback.onResponseMain(downloadMsg.filePath,downloadMsg.info);
                         }
                     }

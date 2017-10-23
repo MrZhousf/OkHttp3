@@ -80,7 +80,6 @@ public class DownloadActivity extends BaseActivity {
                     public void onResponseMain(String filePath, HttpInfo info) {
                         tvResult.setText(info.getRetDetail());
                         LogUtil.d(TAG, "下载结果：" + info.getRetDetail());
-                        OkHttpUtil.getDefault().cancelRequest(requestTag);
                     }
                 })
                 .build();
@@ -105,6 +104,7 @@ public class DownloadActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        OkHttpUtil.getDefault().cancelRequest(requestTag);
         super.onDestroy();
         unbindService(conn);
     }
