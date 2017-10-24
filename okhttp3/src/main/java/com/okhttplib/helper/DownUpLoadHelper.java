@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import okhttp3.Call;
 import okhttp3.Interceptor;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -95,10 +94,10 @@ class DownUpLoadHelper extends BaseHelper{
             RequestBody requestBody = mBuilder.build();
             Request.Builder requestBuilder = new Request.Builder();
             requestBuilder.url(url).post(new ProgressRequestBody(requestBody,progressCallback,timeStamp,requestTag));
-            helper.getHttpHelper().addHeadsToRequest(info,requestBuilder);
+            addHeadsToRequest(info,requestBuilder);
             Request request = requestBuilder.build();
             helper.setRequest(request);
-            helper.getHttpHelper().responseCallback(helper.doRequestSync(),progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK,requestTag);
+            responseCallback(helper.doRequestSync(),progressCallback, OkMainHandler.RESPONSE_UPLOAD_CALLBACK,requestTag);
         } catch (Exception e){
             showLog("上传文件失败："+e.getMessage());
         }
@@ -138,19 +137,22 @@ class DownUpLoadHelper extends BaseHelper{
                             .build();
                 }
             };
-            //采用新的OkHttpClient处理多线程干扰回调进度问题
-            OkHttpClient httpClient = helper.getClientBuilder().addInterceptor(interceptor).build();
-            Request.Builder requestBuilder = new Request.Builder();
-            requestBuilder.url(url)
-                    .header("RANGE", "bytes=" + completedSize + "-");
-            helper.getHttpHelper().addHeadsToRequest(info, requestBuilder);
-            Request request = requestBuilder.build();
-            helper.setRequest(request);
-            helper.setHttpClient(httpClient);
-            helper.getHttpHelper().responseCallback(helper.doRequestSync(),progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,requestTag);
-            //删除下载任务
-            if(null != downloadTaskMap) {
-                downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
+            try {
+                //采用新的OkHttpClient处理多线程干扰回调进度问题
+                OkHttpClient httpClient = helper.getClientBuilder().addInterceptor(interceptor).build();
+                Request.Builder requestBuilder = new Request.Builder();
+                requestBuilder.url(url)
+                        .header("RANGE", "bytes=" + completedSize + "-");
+                addHeadsToRequest(info, requestBuilder);
+                Request request = requestBuilder.build();
+                helper.setRequest(request);
+                helper.setHttpClient(httpClient);
+                responseCallback(helper.doRequestSync(),progressCallback,OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK,requestTag);
+            } finally {
+                //删除下载任务
+                if(null != downloadTaskMap) {
+                    downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
+                }
             }
         } catch (Exception e){
             showLog("下载文件失败："+e.getMessage());
@@ -161,7 +163,7 @@ class DownUpLoadHelper extends BaseHelper{
     /**
      * 开始文件下载
      */
-    HttpInfo downloadingFile(OkHttpHelper okHttpInfo ,Response res, Call call){
+    HttpInfo downloadingFile(OkHttpHelper okHttpInfo ,Response res){
         final HttpInfo info = httpInfo;
         final DownloadFileInfo fileInfo = okHttpInfo.getDownloadFileInfo();
         RandomAccessFile accessFile = null;
@@ -179,6 +181,9 @@ class DownUpLoadHelper extends BaseHelper{
                 fileInfo.setCompletedSize(completedSize);
             }
             accessFile.seek(completedSize);
+            if(responseBody == null){
+                return retInfo(info,HttpInfo.CheckURL);
+            }
             inputStream = responseBody.byteStream();
             byte[] buffer = new byte[2048];
             bis = new BufferedInputStream(inputStream);
@@ -189,7 +194,7 @@ class DownUpLoadHelper extends BaseHelper{
                 completedSize += length;
             }
             if(DownloadStatus.PAUSE.equals(fileInfo.getDownloadStatus())){
-                return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.Message,"暂停下载");
+                return retInfo(info,HttpInfo.Message,"暂停下载");
             }
             //下载完成
             if(DownloadStatus.DOWNLOADING.equals(fileInfo.getDownloadStatus())){
@@ -205,15 +210,15 @@ class DownUpLoadHelper extends BaseHelper{
                     boolean rename = oldFile.renameTo(newFile);
                     showLog("重命名["+rename+"]:"+newFile.getAbsolutePath());
                 }
-                return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.SUCCESS,filePath);
+                return retInfo(info,HttpInfo.SUCCESS,filePath);
             }
         }catch(SocketTimeoutException e){
-            return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.WriteAndReadTimeOut);
+            return retInfo(info,HttpInfo.WriteAndReadTimeOut);
         }catch (SocketException e){
-            return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.ConnectionInterruption,e.getMessage());
+            return retInfo(info,HttpInfo.ConnectionInterruption,e.getMessage());
         }catch (Exception e){
             showLog("文件下载异常："+e.getMessage());
-            return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.ConnectionInterruption);
+            return retInfo(info,HttpInfo.ConnectionInterruption);
         }finally {
             try {
                 if(null != bis)
@@ -229,7 +234,7 @@ class DownUpLoadHelper extends BaseHelper{
             if(null != downloadTaskMap)
                 downloadTaskMap.remove(fileInfo.getSaveFileNameEncrypt());
         }
-        return okHttpInfo.getHttpHelper().retInfo(info,HttpInfo.SUCCESS,filePath);
+        return retInfo(info,HttpInfo.SUCCESS,filePath);
     }
 
     /**

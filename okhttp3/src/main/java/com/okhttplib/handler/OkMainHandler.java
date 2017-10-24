@@ -3,7 +3,6 @@ package com.okhttplib.handler;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.bean.CallbackMessage;
@@ -107,6 +106,7 @@ public class OkMainHandler extends Handler {
                         requestTag = uploadMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag)){
                             uploadMsg.progressCallback.onResponseMain(uploadMsg.filePath,uploadMsg.info);
+                            BaseActivityLifecycleCallbacks.cancel(requestTag);
                         }
                     }
                     break;
@@ -116,6 +116,7 @@ public class OkMainHandler extends Handler {
                         requestTag = downloadMsg.requestTag;
                         if(!BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag)){
                             downloadMsg.progressCallback.onResponseMain(downloadMsg.filePath,downloadMsg.info);
+                            BaseActivityLifecycleCallbacks.cancel(requestTag);
                         }
                     }
                     break;

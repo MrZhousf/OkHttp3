@@ -47,10 +47,10 @@ public class HttpInterceptor {
                     info.setRetDetail("协议类型错误["+info.getNetCode()+"]："+result);
                     break;
                 case HttpInfo.ConnectionTimeOut:
-                    info.setRetDetail("连接超时："+result);
+                    info.setRetDetail("连接超时");
                     break;
                 case HttpInfo.WriteAndReadTimeOut:
-                    info.setRetDetail("读写超时："+result);
+                    info.setRetDetail("读写超时");
                     break;
                 case HttpInfo.ConnectionInterruption:
                     info.setRetDetail("连接中断："+result);

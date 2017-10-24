@@ -88,12 +88,13 @@ public class UploadFileActivity extends BaseActivity {
 
                     @Override
                     public void onResponseMain(String filePath, HttpInfo info) {
+                        LogUtil.d(TAG, "上传成功");
                         ToastUtil.show(UploadFileActivity.this,info.getRetDetail());
                         tvResult.setText(info.getRetDetail());
                     }
                 })
                 .build();
-        OkHttpUtil.getDefault("1234").doUploadFileAsync(info);
+        OkHttpUtil.getDefault(this).doUploadFileAsync(info);
     }
 
     /**
@@ -148,7 +149,6 @@ public class UploadFileActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        OkHttpUtil.getDefault().cancelRequest("1234");
         super.onDestroy();
     }
 }

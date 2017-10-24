@@ -1,10 +1,19 @@
 package com.okhttplib.helper;
 
 import android.annotation.SuppressLint;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.CacheType;
+import com.okhttplib.bean.DownloadMessage;
+import com.okhttplib.bean.UploadMessage;
+import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
+import com.okhttplib.callback.ProgressCallback;
+import com.okhttplib.handler.OkMainHandler;
+import com.okhttplib.interceptor.ExceptionInterceptor;
+import com.okhttplib.interceptor.ResultInterceptor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +28,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
@@ -49,15 +61,17 @@ import okio.Okio;
  */
 abstract class BaseHelper {
 
-    int cacheSurvivalTime;//缓存存活时间（秒）
-    @CacheType int cacheType;//缓存类型
+    private int cacheSurvivalTime;//缓存存活时间（秒）
+    private @CacheType int cacheType;//缓存类型
     OkHttpClient httpClient;
-    protected String TAG;
-    protected String timeStamp;
-    protected boolean showHttpLog;
-    protected String requestTag;//请求标识
+    private String TAG;
+    public String timeStamp;
+    private boolean showHttpLog;
+    public String requestTag;//请求标识
     HelperInfo helperInfo;
     HttpInfo httpInfo;
+    private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
+    private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
 
     BaseHelper() {
     }
@@ -86,6 +100,8 @@ abstract class BaseHelper {
         }else{
             httpClient = initHttpClient(helperInfo,null);
         }
+        resultInterceptors = helperInfo.getResultInterceptors();
+        exceptionInterceptors = helperInfo.getExceptionInterceptors();
     }
 
     private OkHttpClient initHttpClient(HelperInfo helperInfo, CookieJar cookieJar){
@@ -317,6 +333,114 @@ abstract class BaseHelper {
         }
     };
 
+    /**
+     * 添加请求头参数
+     */
+    Request.Builder addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
+        if(null != info.getHeads() && !info.getHeads().isEmpty()){
+            StringBuilder log = new StringBuilder("Heads: ");
+            for (String key : info.getHeads().keySet()) {
+                requestBuilder.addHeader(key,info.getHeads().get(key));
+                log.append(key).append("=").append(info.getHeads().get(key)).append(" | ");
+            }
+            int point = log.lastIndexOf("|");
+            if(point != -1){
+                log.deleteCharAt(point);
+            }
+            showLog(log.toString());
+        }
+        return requestBuilder;
+    }
+
+    HttpInfo retInfo(HttpInfo info, int code){
+        return retInfo(info,code,code,null);
+    }
+
+    HttpInfo retInfo(HttpInfo info, int netCode, int code){
+        return retInfo(info,netCode,code,null);
+    }
+
+    HttpInfo retInfo(HttpInfo info, int code, String resDetail){
+        return retInfo(info,code,code,resDetail);
+    }
+
+    /**
+     * 封装请求结果
+     */
+    HttpInfo retInfo(HttpInfo info, int netCode, int code, String resDetail){
+        info.packInfo(netCode,code,unicodeToString(resDetail));
+        //拦截请求结果
+        dealInterceptor(info);
+        showLog("Response: "+info.getRetDetail());
+        return info;
+    }
+
+
+    /**
+     * unicode中文转码
+     */
+    private String unicodeToString(String str) {
+        if(TextUtils.isEmpty(str))
+            return "";
+        Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
+        Matcher matcher = pattern.matcher(str);
+        char ch;
+        while (matcher.find()) {
+            ch = (char) Integer.parseInt(matcher.group(2), 16);
+            str = str.replace(matcher.group(1), ch + "");
+        }
+        return str;
+    }
+
+    /**
+     * 处理拦截器
+     */
+    private void dealInterceptor(HttpInfo info){
+        try {
+            if(BaseActivityLifecycleCallbacks.isActivityDestroyed(requestTag))
+                return ;
+            if(info.isSuccessful() && null != resultInterceptors){ //请求结果拦截器
+                for(ResultInterceptor interceptor : resultInterceptors){
+                    interceptor.intercept(info);
+                }
+            }else{ //请求链路异常拦截器
+                if(null != exceptionInterceptors){
+                    for(ExceptionInterceptor interceptor : exceptionInterceptors){
+                        interceptor.intercept(info);
+                    }
+                }
+            }
+        }catch (Exception e){
+            showLog("拦截器处理异常："+e.getMessage());
+        }
+    }
+
+    /**
+     * 请求结果回调
+     */
+    void responseCallback(HttpInfo info, ProgressCallback progressCallback, int code, String requestTag){
+        //同步回调
+        if(null != progressCallback)
+            progressCallback.onResponseSync(info.getUrl(),info);
+        //异步主线程回调
+        if(OkMainHandler.RESPONSE_DOWNLOAD_CALLBACK == code){
+            Message msg = new DownloadMessage(
+                    code,
+                    info.getUrl(),
+                    info,
+                    progressCallback,requestTag)
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+        } else if(OkMainHandler.RESPONSE_UPLOAD_CALLBACK == code){
+            Message msg = new UploadMessage(
+                    code,
+                    info.getUrl(),
+                    info,
+                    progressCallback,requestTag)
+                    .build();
+            OkMainHandler.getInstance().sendMessage(msg);
+        }
+    }
 
     /**
      * 打印日志

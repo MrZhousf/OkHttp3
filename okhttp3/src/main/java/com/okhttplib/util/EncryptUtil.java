@@ -36,22 +36,22 @@ public class EncryptUtil {
      * @param isUpperCase 是否生成大写密文
      */
     public static String MD5StringTo32Bit(String originString,boolean isUpperCase) throws Exception{
-        String result = "";
+        StringBuilder result =  new StringBuilder("");
         if (originString != null) {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte bytes[] = md.digest(originString.getBytes());
-            for (int i = 0; i < bytes.length; i++) {
-                String str = Integer.toHexString(bytes[i] & 0xFF);
+            for(byte b : bytes){
+                String str = Integer.toHexString(b & 0xFF);
                 if (str.length() == 1) {
                     str += "F";
                 }
-                result += str;
+                result.append(str);
             }
         }
         if(isUpperCase){
-            return result.toUpperCase();
+            return result.toString().toUpperCase();
         }else{
-            return result.toLowerCase();
+            return result.toString().toLowerCase();
         }
     }
 

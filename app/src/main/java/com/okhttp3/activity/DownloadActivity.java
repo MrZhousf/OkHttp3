@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.okhttp3.R;
 import com.okhttp3.util.LogUtil;
+import com.okhttp3.util.ToastUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.callback.ProgressCallback;
@@ -78,6 +79,7 @@ public class DownloadActivity extends BaseActivity {
 
                     @Override
                     public void onResponseMain(String filePath, HttpInfo info) {
+                        ToastUtil.show(DownloadActivity.this,info.getRetDetail());
                         tvResult.setText(info.getRetDetail());
                         LogUtil.d(TAG, "下载结果：" + info.getRetDetail());
                     }
