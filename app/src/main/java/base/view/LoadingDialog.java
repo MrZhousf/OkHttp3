@@ -22,7 +22,7 @@ public class LoadingDialog extends Dialog {
     private ImageView iv_load_result;// 加载的结果图标显示
     private TextView tv_load;// 加载的文字展示
     private ProgressBar pb_loading;// 加载中的图片
-    private String showText;
+    private String showText = "加载中...";
 
     public LoadingDialog(Context context) {
         super(context, R.style.loading_dialog_style);
@@ -42,8 +42,8 @@ public class LoadingDialog extends Dialog {
     public LoadingDialog text(String text){
         if(tv_load != null && !TextUtils.isEmpty(text)){
             tv_load.setText(text);
-            showText = text;
         }
+        showText = text;
         return this;
     }
 
@@ -59,26 +59,34 @@ public class LoadingDialog extends Dialog {
         show();
     }
 
+    public void succeed(){
+        succeed(null);
+    }
+
+    public void failed(){
+        failed(null);
+    }
+
     // 加载成功
-    public void succeed() {
+    public void succeed(String text) {
         if(pb_loading != null)
             pb_loading.setVisibility(View.GONE);
         if(iv_load_result != null){
             iv_load_result.setVisibility(View.VISIBLE);
             iv_load_result.setImageResource(R.mipmap.load_suc_icon);
         }
-        tv_load.setText("加载成功");
+        tv_load.setText(TextUtils.isEmpty(text)?"加载成功":text);
     }
 
     // 加载失败
-    public void failed() {
+    public void failed(String text) {
         if(pb_loading != null)
             pb_loading.setVisibility(View.GONE);
         if(iv_load_result != null){
             iv_load_result.setVisibility(View.VISIBLE);
             iv_load_result.setImageResource(R.mipmap.load_fail_icon);
         }
-        tv_load.setText("加载失败");
+        tv_load.setText(TextUtils.isEmpty(text)?"加载失败":text);
     }
 
 
