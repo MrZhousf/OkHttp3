@@ -21,6 +21,8 @@ import static android.graphics.Color.GRAY;
  */
 public class WelcomeActivity extends BaseActivity {
 
+    @Bind(R.id.httpProxyBtn)
+    Button httpProxyBtn;
     @Bind(R.id.httpBtn)
     Button httpBtn;
     @Bind(R.id.uploadImgBtn)
@@ -47,6 +49,7 @@ public class WelcomeActivity extends BaseActivity {
                 .setDefaultStrokeColor(GRAY)
                 .setDefaultBgColor(getResources().getColor(R.color.wihte))
                 .setPressedBgColor(getResources().getColor(R.color.light_blue))
+                .bind(httpProxyBtn)
                 .bind(httpBtn)
                 .bind(uploadImgBtn)
                 .bind(uploadFileBtn)
@@ -54,9 +57,12 @@ public class WelcomeActivity extends BaseActivity {
                 .bind(downloadPointBtn);
     }
 
-    @OnClick({R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn, R.id.downloadPointBtn})
+    @OnClick({R.id.httpProxyBtn, R.id.httpBtn, R.id.uploadImgBtn, R.id.uploadFileBtn, R.id.downloadBtn, R.id.downloadPointBtn})
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.httpProxyBtn:
+                startActivity(new Intent(WelcomeActivity.this, HttpProxyActivity.class));
+                break;
             case R.id.httpBtn:
                 startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 break;

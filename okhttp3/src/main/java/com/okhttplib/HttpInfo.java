@@ -144,9 +144,6 @@ public class HttpInfo {
          * @param paramForm 参数值
          */
         public Builder addParamForm(String paramForm){
-            if(TextUtils.isEmpty(paramForm)){
-                throw new IllegalArgumentException("param must not be null");
-            }
             this.paramForm = paramForm;
             return this;
         }
@@ -169,9 +166,6 @@ public class HttpInfo {
          * @param paramBytes 参数值
          */
         public Builder addParamBytes(String paramBytes){
-            if(TextUtils.isEmpty(paramBytes)){
-                throw new IllegalArgumentException("paramBytes must not be null");
-            }
             this.paramBytes = paramBytes.getBytes();
             return this;
         }
@@ -184,9 +178,6 @@ public class HttpInfo {
          * @param file 上传文件
          */
         public Builder addParamFile(File file){
-            if(file == null || !file.exists()){
-                throw new IllegalArgumentException("file must not be null");
-            }
             this.paramFile = file;
             return this;
         }
@@ -198,9 +189,6 @@ public class HttpInfo {
          * @param json json格式参数值
          */
         public Builder addParamJson(String json){
-            if(TextUtils.isEmpty(json)){
-                throw new IllegalArgumentException("json param must not be null");
-            }
             this.paramJson = json;
             return this;
         }

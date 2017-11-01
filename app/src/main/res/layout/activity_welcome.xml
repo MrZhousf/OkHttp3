@@ -10,6 +10,13 @@
     tools:context="com.okhttp3.activity.WelcomeActivity">
 
     <Button
+        android:id="@+id/httpProxyBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:text="网络请求代理示例"/>
+
+    <Button
         android:id="@+id/httpBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

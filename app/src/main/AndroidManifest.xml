@@ -25,12 +25,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <provider
             android:name="base.BaseProvider"
             android:authorities=".okhttp.base.BaseProvider"
             android:exported="false"
-            android:multiprocess="true" />
+            android:multiprocess="true"/>
 
         <activity android:name=".activity.MainActivity">
         </activity>
@@ -49,7 +48,11 @@
         </activity>
         <activity android:name=".activity.DownloadBreakpointsActivity">
         </activity>
+
         <service android:name="base.networkstate.NetSpeedService"/>
+
+        <activity android:name=".activity.HttpProxyActivity">
+        </activity>
     </application>
 
 </manifest>
