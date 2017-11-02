@@ -27,10 +27,12 @@ class HttpProxyHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //执行前操作
         doBefore(args);
         Object result = method.invoke(obj, args);
         //异步请求时result为空
         if(result != null){
+            //执行后操作
             doAfter((HttpEntity) result);
         }
         return result;
