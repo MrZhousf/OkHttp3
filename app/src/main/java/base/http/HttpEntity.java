@@ -29,6 +29,7 @@ public class HttpEntity {
     private String retDetail;//返回结果
     private int netCode;//网络返回码
 
+
     public static HttpEntity create(){
         return new HttpEntity();
     }
@@ -224,5 +225,9 @@ public class HttpEntity {
 
     public void setNetCode(int netCode) {
         this.netCode = netCode;
+    }
+
+    public boolean isSuccessful(){
+        return this.netCode == 200;
     }
 }

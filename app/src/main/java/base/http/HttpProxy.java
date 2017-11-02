@@ -25,8 +25,9 @@ public class HttpProxy implements HttpInterface{
     }
 
     private HttpProxy() {
-        //这里可以替换网络底层库
-        httpInterface = new HttpProxyHandler().getProxy(new OkHttp());
+        //这里可以切换网络底层库
+        httpInterface = new HttpProxyHandler().getProxy(new OkHttp());//okHttp
+//        httpInterface = new HttpProxyHandler().getProxy(new VolleyHttp());//volley
     }
 
     @Override
