@@ -28,7 +28,7 @@ public class BaseProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         //获取Application上下文
-        initOkHttp(this.getContext());
+        initOkHttp(getContext());
         return false;
     }
 

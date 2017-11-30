@@ -65,16 +65,13 @@ abstract class BaseHelper {
     private @CacheType int cacheType;//缓存类型
     OkHttpClient httpClient;
     private String TAG;
-    public String timeStamp;
+    String timeStamp;
     private boolean showHttpLog;
     public String requestTag;//请求标识
     HelperInfo helperInfo;
     HttpInfo httpInfo;
     private List<ResultInterceptor> resultInterceptors;//请求结果拦截器
     private List<ExceptionInterceptor> exceptionInterceptors;//请求链路异常拦截器
-
-    BaseHelper() {
-    }
 
     BaseHelper(HelperInfo helperInfo) {
         this.helperInfo = helperInfo;
@@ -336,7 +333,7 @@ abstract class BaseHelper {
     /**
      * 添加请求头参数
      */
-    Request.Builder addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
+    void addHeadsToRequest(HttpInfo info, Request.Builder requestBuilder){
         if(null != info.getHeads() && !info.getHeads().isEmpty()){
             StringBuilder log = new StringBuilder("Heads: ");
             for (String key : info.getHeads().keySet()) {
@@ -349,7 +346,6 @@ abstract class BaseHelper {
             }
             showLog(log.toString());
         }
-        return requestBuilder;
     }
 
     HttpInfo retInfo(HttpInfo info, int code){

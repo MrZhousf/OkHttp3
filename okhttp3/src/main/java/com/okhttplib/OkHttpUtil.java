@@ -1,9 +1,11 @@
 package com.okhttplib;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,6 +22,7 @@ import com.okhttplib.helper.HelperInfo;
 import com.okhttplib.helper.OkHttpHelper;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import okhttp3.Cache;
 import okhttp3.CookieJar;
 import okhttp3.Interceptor;
@@ -57,13 +61,14 @@ import static com.okhttplib.annotation.CacheType.FORCE_NETWORK;
  * 支持请求结果拦截以及异常处理拦截
  * 支持单例客户端，提高网络请求速率
  *
- * 引入版本com.squareup.okhttp3:okhttp:3.7.0
+ * 引入版本com.squareup.okhttp3:okhttp:3.8.1
  * @author zhousf
  */
 public class OkHttpUtil implements OkHttpUtilInterface{
 
     private final String TAG = getClass().getSimpleName();
-    public static Context context;
+    @SuppressLint("StaticFieldLeak")
+    private static Context context;
     private static Builder builderGlobal;
     private static OkHttpClient httpClient;
     private static ScheduledExecutorService executorService;
@@ -71,13 +76,22 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private int cacheSurvivalTime = 0;//缓存存活时间（秒）
     private @CacheType int cacheType = FORCE_NETWORK;//缓存类型
 
+    private Context getContext(){
+        if(context == null){
+            context = OkApplication.get();
+        }
+        return context;
+    }
+
     /**
      * 初始化：请在Application中调用
      * @param context 上下文
      */
     public static Builder init(Context context){
         OkHttpUtil.context = context;
-        ((Application)OkHttpUtil.context).registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
+            ((Application)OkHttpUtil.context).registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
+        }
         return BuilderGlobal();
     }
 
@@ -457,10 +471,11 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         httpClient = client;
     }
 
+    @SuppressWarnings("all")
     public boolean isNetworkAvailable() {
-        if(context == null)
+        if(getContext() == null)
             return true;
-        ConnectivityManager cm = (ConnectivityManager) context
+        ConnectivityManager cm = (ConnectivityManager) getContext()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo net = cm.getActiveNetworkInfo();
         return net != null && net.getState() == NetworkInfo.State.CONNECTED;
@@ -471,7 +486,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
         this.builder = builder;
         this.cacheType = builder.cacheType;
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
-        if(null == context)
+        if(null == getContext())
             this.cacheType = CacheType.FORCE_NETWORK;
         if(null == executorService)
             executorService = new ScheduledThreadPoolExecutor(20);
@@ -522,12 +537,9 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             }
         }
         if(httpsCertificate != null){
-            if(OkHttpUtil.context == null){
-                throw new IllegalArgumentException("请初始化OkHttpUtil");
-            }
             InputStream inputStream = null;
             try {
-                inputStream = context.getAssets().open(httpsCertificate);
+                inputStream = getContext().getAssets().open(httpsCertificate);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -640,6 +652,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
             setShowHttpLog(true);
             setShowLifecycleLog(false);
             setDownloadFileDir(Environment.getExternalStorageDirectory().getPath()+"/okHttp_download/");
+            setCachedDir(new File(Environment.getExternalStorageDirectory().getPath()+"/okHttp_cache"));
             setIsGzip(false);
             setResponseEncoding(Encoding.UTF_8);
             setRequestEncoding(Encoding.UTF_8);
@@ -879,7 +892,7 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     public boolean deleteCache() {
         try {
             if(httpClient != null && httpClient.cache() != null)
-            httpClient.cache().delete();
+                httpClient.cache().delete();
         } catch (Exception e){
             e.printStackTrace();
             return false;

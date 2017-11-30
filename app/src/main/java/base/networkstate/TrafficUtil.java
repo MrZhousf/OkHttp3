@@ -73,7 +73,10 @@ public class TrafficUtil {
 	 * 获取当前网速
 	 */
 	public double getNetSpeed() {
+		//获取总的流量情况
 		long curRxBytes = getNetworkRxBytes();
+		//获取当前应用的流量情况
+//		long curRxBytes = getTrafficInfo();
 		if (preRxBytes == 0)
 			preRxBytes = curRxBytes;
 		long bytes = curRxBytes - preRxBytes;

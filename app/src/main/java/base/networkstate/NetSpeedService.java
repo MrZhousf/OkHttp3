@@ -210,7 +210,9 @@ public class NetSpeedService extends Service {
 		WindowManager wm = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);
 		DisplayMetrics outMetrics = new DisplayMetrics();
-		wm.getDefaultDisplay().getMetrics(outMetrics);
+		if(wm != null){
+			wm.getDefaultDisplay().getMetrics(outMetrics);
+		}
 		return outMetrics.widthPixels;
 	}
 
@@ -227,6 +229,8 @@ public class NetSpeedService extends Service {
 		if (context != null) {
 			ConnectivityManager cm = (ConnectivityManager)
 					context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			if(cm == null)
+				return false;
 			final NetworkInfo network = cm.getActiveNetworkInfo();
 			if(network != null && network.getState() == NetworkInfo.State.CONNECTED){
 				return true;
