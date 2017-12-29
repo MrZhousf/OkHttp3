@@ -138,7 +138,9 @@ abstract class BaseHelper {
         public Response intercept(Interceptor.Chain chain) throws IOException {
             Request originalRequest = chain.request();
             Response originalResponse = chain.proceed(originalRequest);
-            httpInfo.setFromCache(false);
+            if(httpInfo != null){
+                httpInfo.setFromCache(false);
+            }
             if(cacheSurvivalTime == 0){
                 cacheSurvivalTime = 60*60*24*365;//默认缓存时间为365天
             }
