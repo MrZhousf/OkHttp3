@@ -241,7 +241,15 @@ class HttpHelper extends BaseHelper{
             showLog("Params: "+info.getParamForm());
             requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),info.getParamForm());
         } else{
-            requestBody = packageFormBody(info);
+            String value;
+            StringBuilder param = new StringBuilder();
+            for (String key : info.getParams().keySet()) {
+                value = info.getParams().get(key);
+                value = value == null ? "" : value;
+                param.append("&").append(key).append("=").append(value);
+            }
+            requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),param.toString());
+//            requestBody = packageFormBody(info);
         }
         return requestBody;
     }
