@@ -15,7 +15,8 @@ import java.lang.annotation.RetentionPolicy;
         ContentType.STREAM,
         ContentType.MARKDOWN,
         ContentType.XML,
-        ContentType.FORM_DATA
+        ContentType.FORM_DATA,
+        ContentType.SOAP
 })
 @Retention(RetentionPolicy.SOURCE)
 public @interface ContentType {
@@ -50,5 +51,10 @@ public @interface ContentType {
      * 文件表单
      */
     String FORM_DATA = "multipart/form-data";
+
+    /**
+     * SOAP+XML
+     */
+    String SOAP = "application/soap+xml";
 
 }

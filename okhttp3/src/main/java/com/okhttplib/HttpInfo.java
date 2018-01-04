@@ -3,6 +3,7 @@ package com.okhttplib;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.okhttplib.annotation.ContentType;
 import com.okhttplib.annotation.Encoding;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.DownloadFileInfo;
@@ -31,6 +32,7 @@ public class HttpInfo {
     private File paramFile;
     private String paramJson;
     private String paramForm;
+    private @ContentType String contentType;
     private List<UploadFileInfo> uploadFiles;
     private List<DownloadFileInfo> downloadFiles;
     private Map<String,String> heads;
@@ -51,14 +53,15 @@ public class HttpInfo {
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
+        this.heads = builder.heads;
         this.params = builder.params;
-        this.paramBytes = builder.paramBytes;
         this.paramFile = builder.paramFile;
         this.paramJson = builder.paramJson;
-        this.uploadFiles = builder.uploadFiles;
         this.paramForm = builder.paramForm;
+        this.paramBytes = builder.paramBytes;
+        this.contentType = builder.contentType;
+        this.uploadFiles = builder.uploadFiles;
         this.downloadFiles = builder.downloadFiles;
-        this.heads = builder.heads;
         this.responseEncoding = builder.responseEncoding;
         this.requestEncoding = builder.requestEncoding;
         this.requestType = builder.requestType;
@@ -78,6 +81,7 @@ public class HttpInfo {
 
         private String url;//请求地址
         private Map<String,String> params;//请求参数：键值对
+        private @ContentType String contentType;//媒体类型
         private byte[] paramBytes;//请求参数（字节数组）
         private File paramFile;//请求参数（文件）
         private String paramJson;//请求参数:application/json
@@ -104,6 +108,15 @@ public class HttpInfo {
 
         public Builder setUrl(String url) {
             this.url = url;
+            return this;
+        }
+
+        /**
+         * 添加媒体类型
+         * @param contentType 媒体类型
+         */
+        public Builder setContentType(@ContentType String contentType){
+            this.contentType = contentType;
             return this;
         }
 
@@ -603,5 +616,9 @@ public class HttpInfo {
 
     public InputStream getHttpsCertificateStream() {
         return httpsCertificateStream;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 }

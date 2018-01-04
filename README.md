@@ -7,7 +7,7 @@
 * 支持Post/Get/Put/Delete请求
 * 支持Cookie持久化，支持Gzip压缩
 * 支持协议头参数Head设置
-* 支持二进制参数、JSON、表单提交
+* 支持二进制参数、JSON、表单提交、SOAP提交
 * 支持Gson解析、Unicode自动转码、请求参数编码以及服务器响应编码设置
 * 支持四种缓存类型请求：仅网络、仅缓存、先网络再缓存、先缓存再网络
 * 支持自定义缓存存活时间与缓存清理功能
@@ -50,23 +50,23 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.9.5</version>
+  <version>2.9.5.2</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.9.5'
+compile 'com.zhousf.lib:okhttp3:2.9.5.2'
 ```
 若项目已包含support-annotations或出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.5'){
+compile ('com.zhousf.lib:okhttp3:2.9.5.2'){
     exclude(module: 'support-annotations')
 }
 ```
 若项目已包含Gson或出现Gson版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.5'){
+compile ('com.zhousf.lib:okhttp3:2.9.5.2'){
     exclude(module:'gson')
 }
 ```
@@ -127,6 +127,8 @@ minSdkVersion 13
     *  支持自定义Https证书认证，增加实时网速浮动窗口
 * 2017-11-1
     *  增加Http动态代理示例，项目集成第三方网络库示例
+* 2018-1-4
+    *  支持SOAP请求
 
 ## 权限
 ```
@@ -211,6 +213,7 @@ HttpInfo.Builder()
         .setUrl(url)
         .setRequestType(RequestType.GET)//请求方式
         .addHead("head","test")//添加头参数
+        .setContentType(ContentType.SOAP)//设置媒体类型
         .addParam("param","test")//添加接口键值对参数
         .addParams(new HashMap<String, String>())//添加接口键值对参数集合
         .addParamBytes("byte")//添加二进制流
