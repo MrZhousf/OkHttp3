@@ -130,7 +130,7 @@ minSdkVersion 13
 * 2018-1-4
     *  支持SOAP请求
 * 2018-1-16
-    *  支持接口响应结果自定义解析Response
+    *  支持接口响应结果自定义解析Response；修复单例bug，感谢@yangjieK指正
 
 ## 权限
 ```
