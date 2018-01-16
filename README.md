@@ -50,23 +50,23 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.9.5.2</version>
+  <version>2.9.5.3</version>
   <type>pom</type>
 </dependency>
 ```
 ### Gradle
 ```
-compile 'com.zhousf.lib:okhttp3:2.9.5.2'
+compile 'com.zhousf.lib:okhttp3:2.9.5.3'
 ```
 若项目已包含support-annotations或出现support-annotations版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.5.2'){
+compile ('com.zhousf.lib:okhttp3:2.9.5.3'){
     exclude(module: 'support-annotations')
 }
 ```
 若项目已包含Gson或出现Gson版本冲突请采用下面方式进行依赖：
 ```
-compile ('com.zhousf.lib:okhttp3:2.9.5.2'){
+compile ('com.zhousf.lib:okhttp3:2.9.5.3'){
     exclude(module:'gson')
 }
 ```
@@ -129,6 +129,8 @@ minSdkVersion 13
     *  增加Http动态代理示例，项目集成第三方网络库示例
 * 2018-1-4
     *  支持SOAP请求
+* 2018-1-16
+    *  支持接口响应结果自定义解析Response
 
 ## 权限
 ```
@@ -226,6 +228,7 @@ HttpInfo.Builder()
         .setRequestEncoding(Encoding.UTF_8)//设置全局的请求参数编码
         .setDelayExec(2, TimeUnit.SECONDS)//延迟2秒执行
         .setHttpsCertificate("12306.cer")//设置Https证书
+        .setNeedResponse(true)//设置返回结果为Response
         .build()
 ```
 

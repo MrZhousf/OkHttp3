@@ -200,11 +200,15 @@ public class MainActivity extends BaseActivity {
     private void forceNetwork() {
         OkHttpUtil.Builder().setCacheType(CacheType.FORCE_NETWORK).build(this)
                 .doGetAsync(
-                        HttpInfo.Builder().setUrl(url).build(),
+                        HttpInfo.Builder()
+                                .setUrl(url)
+                                .setNeedResponse(true)//设置返回结果为Response
+                                .build(),
                         new Callback() {
                             @Override
                             public void onSuccess(HttpInfo info) throws IOException {
-                                String result = info.getRetDetail();
+                                //自定义解析Response，Response会自动close
+                                String result =  info.getResponse().body().string();
                                 resultTV.setText("FORCE_NETWORK：" + result);
                                 setFromCacheTV(info);
                             }

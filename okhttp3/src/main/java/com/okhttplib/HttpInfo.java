@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Response;
+
 /**
  * Http请求实体类
  * @author zhousf
@@ -44,12 +46,19 @@ public class HttpInfo {
     private Gson gson;
     private String httpsCertificate;
     private InputStream httpsCertificateStream;
+    private boolean needResponse;
+
 
     //**响应返回参数定义**/
     private int retCode;//返回码
-    private String retDetail;//返回结果
-    private int netCode;//网络返回码
-    private boolean fromCache;//响应是否来自缓存
+    //返回结果（当needResponse=true时，则从response中获取结果）
+    private String retDetail;
+    //网络返回码
+    private int netCode;
+    //响应是否来自缓存
+    private boolean fromCache;
+    //返回信息体（与needResponse一起使用）
+    private Response response;
 
     public HttpInfo(Builder builder) {
         this.url = builder.url;
@@ -70,6 +79,7 @@ public class HttpInfo {
         this.gson = builder.gson;
         this.httpsCertificate = builder.httpsCertificate;
         this.httpsCertificateStream = builder.httpsCertificateStream;
+        this.needResponse = builder.needResponse;
     }
 
     public static Builder Builder() {
@@ -97,6 +107,7 @@ public class HttpInfo {
         private Gson gson;
         private String httpsCertificate;//Https证书
         private InputStream httpsCertificateStream;//Https证书
+        private boolean needResponse;//返回结果为Response
 
 
         public Builder() {
@@ -108,6 +119,14 @@ public class HttpInfo {
 
         public Builder setUrl(String url) {
             this.url = url;
+            return this;
+        }
+
+        /**
+         * 设置返回结果为Response
+         */
+        public Builder setNeedResponse(boolean needResponse){
+            this.needResponse = needResponse;
             return this;
         }
 
@@ -620,5 +639,21 @@ public class HttpInfo {
 
     public String getContentType() {
         return contentType;
+    }
+
+    public boolean isNeedResponse() {
+        return needResponse;
+    }
+
+    public void setNeedResponse(boolean needResponse) {
+        this.needResponse = needResponse;
+    }
+
+    public Response getResponse() {
+        return response;
+    }
+
+    public void setResponse(Response response) {
+        this.response = response;
     }
 }

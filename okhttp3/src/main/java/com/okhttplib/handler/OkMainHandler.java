@@ -14,6 +14,7 @@ import com.okhttplib.callback.BaseCallback;
 import com.okhttplib.callback.CallbackOk;
 
 import okhttp3.Call;
+import okhttp3.Response;
 
 /**
  * 主线程Handler
@@ -79,6 +80,13 @@ public class OkMainHandler extends Handler {
                                     ((com.okhttplib.callback.Callback)callback).onSuccess(info);
                                 }else{
                                     ((com.okhttplib.callback.Callback)callback).onFailure(info);
+                                }
+                                //当返回结果是Response时自动关闭ResponseBody
+                                if(info.isNeedResponse()){
+                                    Response res = info.getResponse();
+                                    if(null != res){
+                                        res.close();
+                                    }
                                 }
                             }
                         }

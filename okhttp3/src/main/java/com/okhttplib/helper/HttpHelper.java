@@ -302,6 +302,11 @@ class HttpHelper extends BaseHelper{
         try {
             if(null != res){
                 final int netCode = res.code();
+                if(httpInfo.isNeedResponse()){
+                    httpInfo.setResponse(res);
+                    result.append("返回结果为Response,请调用getResponse获取相应结果");
+                    return retInfo(httpInfo,netCode,HttpInfo.SUCCESS,result.toString());
+                }
                 if(res.isSuccessful()){
                     if(helper.getBusinessType() == BusinessType.HttpOrHttps
                             || helper.getBusinessType() == BusinessType.UploadFile){
@@ -346,14 +351,16 @@ class HttpHelper extends BaseHelper{
         } catch (Exception e) {
             return retInfo(httpInfo,HttpInfo.NoResult,"["+e.getMessage()+"]");
         } finally {
-            if(null != res){
-                res.close();
-            }
-            if(null != bufferedReader){
-                try {
-                    bufferedReader.close();
-                } catch (IOException e){
-                    e.printStackTrace();
+            if(!httpInfo.isNeedResponse()){
+                if(null != res){
+                    res.close();
+                }
+                if(null != bufferedReader){
+                    try {
+                        bufferedReader.close();
+                    } catch (IOException e){
+                        e.printStackTrace();
+                    }
                 }
             }
         }
