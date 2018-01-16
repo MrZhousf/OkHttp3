@@ -42,7 +42,6 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.CacheControl;
-import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -86,22 +85,22 @@ abstract class BaseHelper {
         showHttpLog = helperInfo.isShowHttpLog();
         requestTag = helperInfo.getRequestTag();
         //是否采用默认的客户端进行请求
-        OkHttpClient defaultClient = helperInfo.getOkHttpUtil().getDefaultClient();
         if(helperInfo.isDefault()){
-           if(null == defaultClient){
-               httpClient = initHttpClient(helperInfo,null);
+            OkHttpClient defaultClient = helperInfo.getOkHttpUtil().getDefaultClient();
+            if(null == defaultClient){
+               httpClient = initHttpClient(helperInfo);
                helperInfo.getOkHttpUtil().setDefaultClient(httpClient);
            }else{
-               httpClient = initHttpClient(helperInfo,defaultClient.cookieJar());
+               httpClient = defaultClient;
            }
         }else{
-            httpClient = initHttpClient(helperInfo,null);
+            httpClient = initHttpClient(helperInfo);
         }
         resultInterceptors = helperInfo.getResultInterceptors();
         exceptionInterceptors = helperInfo.getExceptionInterceptors();
     }
 
-    private OkHttpClient initHttpClient(HelperInfo helperInfo, CookieJar cookieJar){
+    private OkHttpClient initHttpClient(HelperInfo helperInfo){
         OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
         clientBuilder.protocols(Arrays.asList(Protocol.SPDY_3, Protocol.HTTP_1_1));
         clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
@@ -109,8 +108,6 @@ abstract class BaseHelper {
         if(helperInfo.isGzip()){
             clientBuilder.addInterceptor(new GzipRequestInterceptor());
         }
-        if(null != cookieJar)
-            clientBuilder.cookieJar(cookieJar);
         if(httpInfo == null || httpInfo.getUrl() == null)
             return clientBuilder.build();
         try {
