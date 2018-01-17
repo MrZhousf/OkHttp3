@@ -11,7 +11,6 @@ import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.progress.ProgressRequestBody;
 import com.okhttplib.progress.ProgressResponseBody;
 import com.okhttplib.util.EncryptUtil;
-import com.okhttplib.util.MediaTypeUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -74,21 +73,15 @@ class DownUpLoadHelper extends BaseHelper{
                 if(progressCallback == null){
                     progressCallback = fileInfo.getProgressCallback();
                 }
-                String filePath = fileInfo.getFilePathWithName();
                 String interfaceParamName = fileInfo.getInterfaceParamName();
-                File file = new File(filePath);
-                log.append(interfaceParamName);
-                log.append("=");
-                log.append(filePath);
-                log.append(",");
-                String requestEncoding = info.getRequestEncoding();
-                if(!TextUtils.isEmpty(requestEncoding)){
-                    requestEncoding = ";charset=" + requestEncoding.toLowerCase();
-                }else{
-                    requestEncoding = ";charset=" + helper.getResponseEncoding().toLowerCase();
+                String filePath = fileInfo.getFilePathWithName();
+                String fileName = interfaceParamName;
+                if(!TextUtils.isEmpty(filePath)){
+                    File file = new File(filePath);
+                    fileName = file.getName();
+                    fileInfo.setFile(file);
                 }
-                mBuilder.addFormDataPart(interfaceParamName,file.getName(),
-                        RequestBody.create(MediaTypeUtil.fetchFileMediaType(filePath,requestEncoding), file));
+                mBuilder.addFormDataPart(interfaceParamName,fileName,matchContentType(info,fileInfo));
             }
             showLog(log.toString());
             RequestBody requestBody = mBuilder.build();

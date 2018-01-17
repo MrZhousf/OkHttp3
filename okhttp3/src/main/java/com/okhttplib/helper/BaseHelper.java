@@ -7,13 +7,16 @@ import android.util.Log;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.CacheType;
+import com.okhttplib.annotation.ContentType;
 import com.okhttplib.bean.DownloadMessage;
+import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.bean.UploadMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
 import com.okhttplib.callback.ProgressCallback;
 import com.okhttplib.handler.OkMainHandler;
 import com.okhttplib.interceptor.ExceptionInterceptor;
 import com.okhttplib.interceptor.ResultInterceptor;
+import com.okhttplib.util.MediaTypeUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -444,6 +447,95 @@ abstract class BaseHelper {
     void showLog(String msg){
         if(showHttpLog)
             Log.d(TAG+"["+timeStamp+"]", msg);
+    }
+
+
+    protected RequestBody matchContentType(HttpInfo info,UploadFileInfo fileInfo){
+        RequestBody requestBody;
+        MediaType mediaType;
+        //设置请求参数编码格式
+        String requestEncoding = info.getRequestEncoding();
+        if(TextUtils.isEmpty(requestEncoding)){
+            requestEncoding = ";charset=" + helperInfo.getRequestEncoding().toLowerCase();
+        }else{
+            requestEncoding = ";charset=" + requestEncoding.toLowerCase();
+        }
+        //上传文件
+        if(fileInfo != null){
+            String contentType = fileInfo.getContentType();
+            contentType = TextUtils.isEmpty(contentType)?info.getContentType():contentType;
+            mediaType = MediaType.parse(contentType+requestEncoding);
+            String filePath = fileInfo.getFilePathWithName();
+            if(fileInfo.getFile() != null){
+                if(TextUtils.isEmpty(filePath)){
+                    requestBody = RequestBody.create(mediaType,fileInfo.getFile());
+                }else{
+                    requestBody = RequestBody.create(
+                            MediaTypeUtil.fetchFileMediaType(filePath,requestEncoding),
+                            fileInfo.getFile());
+                }
+            }else if(fileInfo.getFileByte() != null){
+                requestBody = RequestBody.create(mediaType,fileInfo.getFileByte());
+            }else{
+                requestBody = RequestBody.create(mediaType,fileInfo.getFile());
+            }
+            return requestBody;
+        }
+        //兼容以前版本(新版本扩展了ContentType)
+        if(!TextUtils.isEmpty(info.getContentType())){
+            mediaType = MediaType.parse(info.getContentType()+requestEncoding);
+            if(info.getParamBytes() != null){
+                requestBody = RequestBody.create(mediaType,info.getParamBytes());
+            } else if(info.getParamFile() != null){
+                requestBody = RequestBody.create(mediaType,info.getParamFile());
+            } else if(info.getParamJson() != null){
+                showLog("Params: "+info.getParamJson());
+                requestBody = RequestBody.create(mediaType,info.getParamJson());
+            } else if(info.getParamForm() != null){
+                showLog("Params: "+info.getParamForm());
+                requestBody = RequestBody.create(mediaType,info.getParamForm());
+            } else {
+                requestBody = packageRequestBody(info,mediaType);
+            }
+        }else {
+            if(info.getParamBytes() != null){
+                requestBody = RequestBody.create(MediaType.parse(ContentType.STREAM+requestEncoding),info.getParamBytes());
+            } else if(info.getParamFile() != null){
+                requestBody = RequestBody.create(MediaType.parse(ContentType.MARKDOWN+requestEncoding),info.getParamFile());
+            } else if(info.getParamJson() != null){
+                showLog("Params: "+info.getParamJson());
+                requestBody = RequestBody.create(MediaType.parse(ContentType.JSON+requestEncoding),info.getParamJson());
+            } else if(info.getParamForm() != null){
+                showLog("Params: "+info.getParamForm());
+                requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),info.getParamForm());
+            } else{
+                requestBody = packageRequestBody(info,MediaType.parse(ContentType.FORM+requestEncoding));
+            }
+        }
+        return requestBody;
+    }
+
+    private RequestBody packageRequestBody(HttpInfo info, MediaType contentType){
+        String value;
+        StringBuilder param = new StringBuilder();
+        StringBuilder log = new StringBuilder();
+        boolean isFirst = true;
+        if(info.getParams() != null){
+            for (String key : info.getParams().keySet()) {
+                value = info.getParams().get(key);
+                value = value == null ? "" : value;
+                if(isFirst){
+                    isFirst = false;
+                    param.append(key).append("=").append(value);
+                    log.append(key).append("=").append(value);
+                }else{
+                    param.append("&").append(key).append("=").append(value);
+                    log.append(" | ").append(key).append("=").append(value);
+                }
+            }
+        }
+        showLog("Params: "+log.toString());
+        return RequestBody.create(contentType,param.toString());
     }
 
 

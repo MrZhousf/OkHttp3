@@ -7,7 +7,6 @@ import android.text.TextUtils;
 
 import com.okhttplib.HttpInfo;
 import com.okhttplib.annotation.BusinessType;
-import com.okhttplib.annotation.ContentType;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.bean.CallbackMessage;
 import com.okhttplib.callback.BaseActivityLifecycleCallbacks;
@@ -26,7 +25,6 @@ import java.util.Locale;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -200,7 +198,7 @@ class HttpHelper extends BaseHelper{
             }
             requestBuilder.url(params.toString()).get();
         }else{
-            RequestBody requestBody = matchContentType(info);
+            RequestBody requestBody = matchContentType(info,null);
             ProgressRequestBody progress = new ProgressRequestBody(requestBody,progressCallback,timeStamp,requestTag);
             if(method == RequestType.POST){
                 requestBuilder.url(url).post(progress);
@@ -220,72 +218,6 @@ class HttpHelper extends BaseHelper{
         return request;
     }
 
-    private RequestBody matchContentType(HttpInfo info){
-        RequestBody requestBody;
-        //设置请求参数编码格式
-        String requestEncoding = info.getRequestEncoding();
-        if(TextUtils.isEmpty(requestEncoding)){
-            requestEncoding = ";charset=" + helperInfo.getRequestEncoding().toLowerCase();
-        }else{
-            requestEncoding = ";charset=" + requestEncoding.toLowerCase();
-        }
-        MediaType contentType;
-        //兼容以前版本(新版本扩展了ContentType)
-        if(!TextUtils.isEmpty(info.getContentType())){
-            contentType = MediaType.parse(info.getContentType()+requestEncoding);
-            if(info.getParamBytes() != null){
-                requestBody = RequestBody.create(contentType,info.getParamBytes());
-            } else if(info.getParamFile() != null){
-                requestBody = RequestBody.create(contentType,info.getParamFile());
-            } else if(info.getParamJson() != null){
-                showLog("Params: "+info.getParamJson());
-                requestBody = RequestBody.create(contentType,info.getParamJson());
-            } else if(info.getParamForm() != null){
-                showLog("Params: "+info.getParamForm());
-                requestBody = RequestBody.create(contentType,info.getParamForm());
-            } else {
-                requestBody = packageRequestBody(info,contentType);
-            }
-        }else {
-            if(info.getParamBytes() != null){
-                requestBody = RequestBody.create(MediaType.parse(ContentType.STREAM+requestEncoding),info.getParamBytes());
-            } else if(info.getParamFile() != null){
-                requestBody = RequestBody.create(MediaType.parse(ContentType.MARKDOWN+requestEncoding),info.getParamFile());
-            } else if(info.getParamJson() != null){
-                showLog("Params: "+info.getParamJson());
-                requestBody = RequestBody.create(MediaType.parse(ContentType.JSON+requestEncoding),info.getParamJson());
-            } else if(info.getParamForm() != null){
-                showLog("Params: "+info.getParamForm());
-                requestBody = RequestBody.create(MediaType.parse(ContentType.FORM+requestEncoding),info.getParamForm());
-            } else{
-                requestBody = packageRequestBody(info,MediaType.parse(ContentType.FORM+requestEncoding));
-            }
-        }
-        return requestBody;
-    }
-
-    private RequestBody packageRequestBody(HttpInfo info, MediaType contentType){
-        String value;
-        StringBuilder param = new StringBuilder();
-        StringBuilder log = new StringBuilder();
-        boolean isFirst = true;
-        if(info.getParams() != null){
-            for (String key : info.getParams().keySet()) {
-                value = info.getParams().get(key);
-                value = value == null ? "" : value;
-                if(isFirst){
-                    isFirst = false;
-                    param.append(key).append("=").append(value);
-                    log.append(key).append("=").append(value);
-                }else{
-                    param.append("&").append(key).append("=").append(value);
-                    log.append(" | ").append(key).append("=").append(value);
-                }
-            }
-        }
-        showLog("Params: "+log.toString());
-        return RequestBody.create(contentType,param.toString());
-    }
 
     private void showUrlLog(Request request){
         startTime = System.nanoTime();

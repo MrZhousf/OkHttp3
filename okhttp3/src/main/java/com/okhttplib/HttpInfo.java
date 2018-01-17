@@ -281,6 +281,36 @@ public class HttpInfo {
             return this;
         }
 
+        public Builder addUploadFile(UploadFileInfo uploadFileInfo){
+            if(null == this.uploadFiles){
+                this.uploadFiles = new ArrayList<UploadFileInfo>();
+            }
+            this.uploadFiles.add(uploadFileInfo);
+            return this;
+        }
+
+        public Builder addUploadFile(String interfaceParamName,File file, ProgressCallback progressCallback) {
+            if(null == this.uploadFiles){
+                this.uploadFiles = new ArrayList<UploadFileInfo>();
+            }
+            this.uploadFiles.add(new UploadFileInfo()
+                    .setFile(file)
+                    .setInterfaceParamName(interfaceParamName)
+                    .setProgressCallback(progressCallback));
+            return this;
+        }
+
+        public Builder addUploadFile(String interfaceParamName,byte[] file, ProgressCallback progressCallback) {
+            if(null == this.uploadFiles){
+                this.uploadFiles = new ArrayList<UploadFileInfo>();
+            }
+            this.uploadFiles.add(new UploadFileInfo()
+                    .setFile(file)
+                    .setInterfaceParamName(interfaceParamName)
+                    .setProgressCallback(progressCallback));
+            return this;
+        }
+
         /**
          * 添加上传文件
          * @param url 上传文件接口地址

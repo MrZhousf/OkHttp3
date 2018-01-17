@@ -15,6 +15,7 @@ import com.okhttp3.util.LogUtil;
 import com.okhttp3.util.ToastUtil;
 import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
+import com.okhttplib.bean.UploadFileInfo;
 import com.okhttplib.callback.ProgressCallback;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class UploadFileActivity extends BaseActivity {
     /**
      * 文件上传地址
      */
-    private String url = "http://192.168.120.206:8088/office/upload/uploadFile";
+    private String url = "http://192.168.120.206:8080/office/upload/uploadFile";
     private String filePath;
     private List<String> imgList = new ArrayList<>();
 
@@ -79,20 +80,23 @@ public class UploadFileActivity extends BaseActivity {
         }
         HttpInfo info = HttpInfo.Builder()
                 .setUrl(url)
-                .addUploadFile("uploadFile",path,new ProgressCallback(){
-                    @Override
-                    public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
-                        uploadProgress.setProgress(percent);
-                        LogUtil.d(TAG, "上传进度：" + percent);
-                    }
+                .addUploadFile(new UploadFileInfo()
+                        .setInterfaceParamName("uploadFile")
+                        .setFilePathWithName(path)
+                        .setProgressCallback(new ProgressCallback(){
+                            @Override
+                            public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
+                                uploadProgress.setProgress(percent);
+                                LogUtil.d(TAG, "上传进度：" + percent);
+                            }
 
-                    @Override
-                    public void onResponseMain(String filePath, HttpInfo info) {
-                        LogUtil.d(TAG, "上传成功");
-                        ToastUtil.show(UploadFileActivity.this,info.getRetDetail());
-                        tvResult.setText(info.getRetDetail());
-                    }
-                })
+                            @Override
+                            public void onResponseMain(String filePath, HttpInfo info) {
+                                LogUtil.d(TAG, "上传成功");
+                                ToastUtil.show(UploadFileActivity.this,info.getRetDetail());
+                                tvResult.setText(info.getRetDetail());
+                            }
+                        }))
                 .build();
         OkHttpUtil.getDefault(this).doUploadFileAsync(info);
     }
@@ -115,7 +119,8 @@ public class UploadFileActivity extends BaseActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                OkHttpUtil.getDefault(UploadFileActivity.this).doUploadFileSync(info,new ProgressCallback(){
+                OkHttpUtil.getDefault(UploadFileActivity.this)
+                        .doUploadFileSync(info,new ProgressCallback(){
                     @Override
                     public void onProgressMain(int percent, long bytesWritten, long contentLength, boolean done) {
                         uploadProgress.setProgress(percent);
