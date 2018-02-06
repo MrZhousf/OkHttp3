@@ -496,6 +496,12 @@ public class OkHttpUtil implements OkHttpUtilInterface{
                     .helperInfo(packageHelperInfo(null))
                     .build();
         }
+        if(httpClient == null){
+            OkHttpHelper.Builder()
+                    .helperInfo(packageHelperInfo(null))
+                    .build()
+                    .doRequestAsync();
+        }
     }
 
     /**

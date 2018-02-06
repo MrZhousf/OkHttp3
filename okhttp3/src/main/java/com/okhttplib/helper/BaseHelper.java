@@ -93,9 +93,9 @@ abstract class BaseHelper {
             if(null == defaultClient){
                httpClient = initHttpClient(helperInfo);
                helperInfo.getOkHttpUtil().setDefaultClient(httpClient);
-           }else{
+            }else{
                httpClient = defaultClient;
-           }
+            }
         }else{
             httpClient = initHttpClient(helperInfo);
         }

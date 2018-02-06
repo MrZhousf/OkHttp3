@@ -99,6 +99,8 @@ class HttpHelper extends BaseHelper{
      * 异步请求
      */
     void doRequestAsync(final OkHttpHelper helper){
+        if(httpInfo == null)
+            return ;
         final HttpInfo info = httpInfo;
         final BaseCallback callback = helper.getCallback();
         Request request = helper.getRequest();
