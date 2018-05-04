@@ -880,16 +880,18 @@ public class OkHttpUtil implements OkHttpUtilInterface{
     private static String parseRequestTag(Object object){
         String requestTag = null;
         if(null != object){
-            requestTag = object.getClass().getName();
-            if(requestTag.contains("$")){
-                requestTag = requestTag.substring(0,requestTag.indexOf("$"));
-            }
             if(object instanceof String
                     || object instanceof Float
                     || object instanceof Double
                     || object instanceof Integer){
                 requestTag = String.valueOf(object);
+            }else{
+                requestTag = String.valueOf(object.hashCode());
             }
+//            requestTag = object.getClass().getName();
+//            if(requestTag.contains("$")){
+//                requestTag = requestTag.substring(0,requestTag.indexOf("$"));
+//            }
         }
         return requestTag;
     }

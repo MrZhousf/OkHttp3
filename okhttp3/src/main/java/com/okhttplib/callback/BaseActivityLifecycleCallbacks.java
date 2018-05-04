@@ -50,12 +50,18 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     /**
      * 取消请求
-     * @param tag 请求标识
+     * @param activity 请求标识
      */
-    private static void cancelCallByActivityDestroy(String tag){
+    private void cancelCallByActivityDestroy(Activity activity){
+        String tag = activity.getClass().getName();
         if(null == tag)
             return ;
-        SparseArray<Call> callList = callsMap.get(tag);
+        destroy(tag,callsMap.get(tag));
+        destroy(tag,callsMap.get(String.valueOf(activity.hashCode())));
+
+    }
+
+    private void destroy(String tag, SparseArray<Call> callList){
         if(null != callList){
             final int len = callList.size();
             for(int i=0;i<len;i++){
@@ -174,7 +180,7 @@ public class BaseActivityLifecycleCallbacks implements Application.ActivityLifec
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        cancelCallByActivityDestroy(activity.getClass().getName());
+        cancelCallByActivityDestroy(activity);
     }
 
     public static void setShowLifecycleLog(boolean showLifecycle) {
