@@ -132,7 +132,7 @@ class HttpHelper extends BaseHelper{
                         code = HttpInfo.CheckURL;
                     }
                 } else if(e instanceof SocketTimeoutException){
-                    code = HttpInfo.WriteAndReadTimeOut;
+                    code = HttpInfo.ConnectionTimeOut;
                     if(null != e.getMessage()){
                         if(e.getMessage().contains("failed to connect to"))
                             code = HttpInfo.ConnectionTimeOut;
