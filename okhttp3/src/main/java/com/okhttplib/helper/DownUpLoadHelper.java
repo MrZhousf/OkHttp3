@@ -132,7 +132,7 @@ class DownUpLoadHelper extends BaseHelper{
             };
             try {
                 //采用新的OkHttpClient处理多线程干扰回调进度问题
-                OkHttpClient httpClient = helper.getClientBuilder().addInterceptor(interceptor).build();
+                OkHttpClient httpClient = super.clientBuilder.addInterceptor(interceptor).build();
                 Request.Builder requestBuilder = new Request.Builder();
                 requestBuilder.url(url)
                         .header("RANGE", "bytes=" + completedSize + "-");

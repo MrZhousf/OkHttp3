@@ -8,6 +8,7 @@ import android.graphics.PixelFormat;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -129,7 +130,12 @@ public class NetSpeedService extends Service {
 	private void initView() {
 		final LayoutParams layoutParams = new LayoutParams();
 		windowManager = (WindowManager) getApplication().getSystemService(WINDOW_SERVICE);
-		layoutParams.type = LayoutParams.TYPE_SYSTEM_ALERT;
+//		layoutParams.type = LayoutParams.TYPE_SYSTEM_ALERT;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			layoutParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+		}else {
+			layoutParams.type =  WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+		}
 		layoutParams.format = PixelFormat.RGBA_8888;
 		layoutParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE;
 		layoutParams.gravity = Gravity.START | Gravity.TOP;

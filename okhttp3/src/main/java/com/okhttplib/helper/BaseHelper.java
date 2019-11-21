@@ -66,6 +66,7 @@ abstract class BaseHelper {
     private int cacheSurvivalTime;//缓存存活时间（秒）
     private @CacheType int cacheType;//缓存类型
     OkHttpClient httpClient;
+    OkHttpClient.Builder clientBuilder;
     private String TAG;
     String timeStamp;
     private boolean showHttpLog;
@@ -104,7 +105,10 @@ abstract class BaseHelper {
     }
 
     private OkHttpClient initHttpClient(HelperInfo helperInfo){
-        OkHttpClient.Builder clientBuilder = helperInfo.getClientBuilder();
+        if(clientBuilder != null){
+            return clientBuilder.build();
+        }
+        clientBuilder = helperInfo.getClientBuilder();
         clientBuilder.protocols(Arrays.asList(Protocol.SPDY_3, Protocol.HTTP_1_1));
         clientBuilder.addInterceptor(NO_NETWORK_INTERCEPTOR);
         clientBuilder.addNetworkInterceptor(NETWORK_INTERCEPTOR);

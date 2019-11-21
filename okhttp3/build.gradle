@@ -10,7 +10,7 @@ android {
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
-        versionName "2.9.8"
+        versionName "2.9.9"
     }
 
     buildTypes {
@@ -33,7 +33,11 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.1'
     testCompile 'junit:junit:4.12'
 }
-//chmod +x gradlew
-//gradlew install
-//gradlew bintrayUpload
+// mac
+// chmod +x gradlew
+// gradlew install
+// gradlew bintrayUpload
+// windows
+// ./gradlew install
+// ./gradlew bintrayUpload
 //apply from: "bintrayUpload.gradle"
