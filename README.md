@@ -50,7 +50,7 @@
 <dependency>
   <groupId>com.zhousf.lib</groupId>
   <artifactId>okhttp3</artifactId>
-  <version>2.9.8</version>
+  <version>2.9.9</version>
   <type>pom</type>
 </dependency>
 ```
